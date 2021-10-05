@@ -30,7 +30,64 @@ def Column(
     device: Device = "",
 ):
     """
-    Column Factory method; allocates memory on device (or Scope.default.device) device
+    Creates a TorchArrow Column.  Allocates memory on device (or
+    Scope.default.device) device.
+
+    Parameters
+    ----------
+    data: array-like or Iterable
+        Defines the contents of the column.
+
+    dtype: dtype, default None
+        Data type to force.  If None the type will be automatically
+        inferred where possible.
+
+    scope : Scope, default None
+        scope provides the runtime context used for evaluation. Use
+        None for the default scope.  Scopes can provide context
+        related configuration and pytorch-style tracing to build
+        deferred execution graphs (e.g. for privacy analysis or batch
+        optimization).
+
+    device: Device, default ""
+        Device selects which runtime to use from scope.  TorchArrow supports
+        multiple runtimes (CPU and GPU).  If not supplied, uses the Velox
+        vectorized runtime.  Valid values are "cpu" (Velox), "gpu" (coming
+        soon), "demo" (Numpy).
+
+    Examples
+    --------
+
+    Creating a column using auto-inferred type:
+
+    >>> import torcharrow as ta
+    >>> s = ta.Column([1,2,None,4])
+    >>> s
+    0  1
+    1  2
+    2  None
+    3  4
+    dtype: Int64(nullable=True), length: 4, null_count: 1
+
+    Create a column with arbitrarily data types, here a non-nullable
+    column of a list of non-nullable strings of arbitrary length:
+
+    >>> sf = ta.Column([ ["hello", "world"], ["how", "are", "you"] ], dtype =dt.List(dt.string))
+    >>> sf.dtype
+    List(item_dtype=String(nullable=False), nullable=False, fixed_size=-1)
+
+    Create a column of average climate data, one map per continent,
+    with city as key and yearly average min and max temperature:
+
+    >>> mf = ta.Column([
+    >>>     {'helsinki': [-1.3, 21.5], 'moscow': [-4.0,24.3]},
+    >>>     {'algiers':[11.2, 25.2], 'kinshasa':[22.2,26.8]}
+    >>>     ])
+    >>> mf
+    0  {'helsinki': [-1.3, 21.5], 'moscow': [-4.0, 24.3]}
+    1  {'algiers': [11.2, 25.2], 'kinshasa': [22.2, 26.8]}
+    dtype: Map(string, List(float64)), length: 2, null_count: 0
+
     """
     scope = scope or Scope.default
     device = device or scope.device

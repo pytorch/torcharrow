@@ -4,7 +4,7 @@ TorchArrow is a [Pandas](https://github.com/pandas-dev/pandas) inspired DataFram
 leveraging the [Velox vectorized engine](https://github.com/facebookexternal/velox/) for loading, filtering, mapping, joining, aggregating, and
 otherwise manipulating tabular data on CPUs.
 
-TorchArrow supports [PyTorch](https://github.com/pytorch/pytorch)'s Tensors as first class citizens. It allows mostly zero copy interop with Numpy, Pandas, PyArrow, CuDf and of coarse intgerates well with PyTorch datawrangling workflows.
+TorchArrow supports [PyTorch](https://github.com/pytorch/pytorch)'s Tensors as first class citizens. It allows mostly zero copy interop with Numpy, Pandas, PyArrow, CuDf and of course integrates well with PyTorch data-wrangling workflows.
 
 
 ## Installation
@@ -30,7 +30,7 @@ git submodule update --init --recursive
 
 On MacOS
 
-[HomeBrew](https://brew.sh/) is required to install development tools on MacOs.
+[HomeBrew](https://brew.sh/) is required to install development tools on MacOS.
 
 ```bash
 # Install Build Prerequisites
@@ -72,11 +72,11 @@ This directory supports rapid development. So expect frequent changes.
 
 Still to be done:
 * Add tabular.py as package in setup and not as code
-* [DONE] How to do Multi-device targeting (See TorchArrow state handling notebook
+* [DONE] How to do Multi-device targeting (See TorchArrow state handling notebook)
 * An example program analysis (types/PPF?)
 * Add example UDFs
 * Add Tensors as example UDTs
-* [WORKS, example to be wriutten] Using Numba for Jitting
+* [WORKS, example to be written] Using Numba for Jitting
 
 
 

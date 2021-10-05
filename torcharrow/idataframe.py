@@ -46,6 +46,114 @@ def DataFrame(
     scope: Optional[Scope] = None,
     device: Device = "",
 ):
+    """Creates a TorchArrow DataFrame.
+
+    Parameters
+    ----------
+    data : dict or list of tuples
+        Defines the contents of the DataFrame.  Dict keys are used for column
+        names, and values for columns.  Use dtype to force a particular column
+        ordering.  When Data is a list of tuples, dtype has to be provided to
+        infer field names.
+
+    dtype : dtype, default None
+        Data type to force.  If None the type will be automatically inferred
+        where possible.  Should be a dt.Struct() providing a list of
+        dt.Fields.
+
+    scope : Scope, default None
+        scope provides the runtime context used for evaluation. Use
+        None for the default scope.  Scopes can provide context
+        related configuration and pytorch-style tracing to build
+        deferred execution graphs (e.g. for privacy analysis or batch
+        optimization).
+
+    device: Device, default ""
+        Device selects which runtime to use from scope.  TorchArrow supports
+        multiple runtimes (CPU and GPU).  If not supplied, uses the Velox
+        vectorized runtime.  Valid values are "cpu" (Velox), "gpu" (coming
+        soon), "demo" (Numpy).
+
+    Examples
+    --------
+
+    A Dataframe is just a set of named and strongly typed columns of equal
+    length:
+
+    >>> import torcharrow as ta
+    >>> df = ta.DataFrame({'a': list(range(7)),
+    >>>                    'b': list(reversed(range(7))),
+    >>>                    'c': list(range(7))
+    >>>                   })
+    >>> df
+      index    a    b    c
+    -------  ---  ---  ---
+          0    0    6    0
+          1    1    5    1
+          2    2    4    2
+          3    3    3    3
+          4    4    2    4
+          5    5    1    5
+          6    6    0    6
+    dtype: Struct([Field('a', int64), Field('b', int64), Field('c', int64)]), count: 7, null_count: 0
+
+    DataFrames are immutable, except you can always add a new column, provided
+    its name hasn't been used. The column is appended to the set of existing
+    columns at the end:
+
+    >>> df['d'] = ta.Column(list(range(99, 99+7)))
+    >>> df
+      index    a    b    c    d
+    -------  ---  ---  ---  ---
+          0    0    6    0   99
+          1    1    5    1  100
+          2    2    4    2  101
+          3    3    3    3  102
+          4    4    2    4  103
+          5    5    1    5  104
+          6    6    0    6  105
+    dtype: Struct([Field('a', int64), Field('b', int64), Field('c', int64), Field('d', int64)]), count: 7, null_count: 0
+
+    Building a nested Dataframe:
+
+    >>> df_inner = ta.DataFrame({'b1': [11, 22, 33], 'b2':[111,222,333]})
+    >>> df_outer = ta.DataFrame({'a': [1, 2, 3], 'b':df_inner})
+    >>> df_outer
+      index    a  b
+    -------  ---  ---------
+          0    1  (11, 111)
+          1    2  (22, 222)
+          2    3  (33, 333)
+    dtype: Struct([Field('a', int64), Field('b', Struct([Field('b1', int64), Field('b2', int64)]))]), count: 3, null_count: 0
+
+    Build a Dataframe from a list of tuples:
+
+    >>> import torcharrow.dtypes as dt
+    >>> l = [(1, 'a'), (2, 'b'), (3, 'c')]
+    >>> ta.DataFrame(l, dtype = dt.Struct([dt.Field('t1', dt.int64), dt.Field('t2', dt.string)]))
+      index    t1  t2
+    -------  ----  ----
+          0     1  a
+          1     2  b
+          2     3  c
+    dtype: Struct([Field('t1', int64), Field('t2', string)]), count: 3, null_count: 0
+
+    Convert from a Pandas Dataframe:
+
+    >>> import pandas as pd
+    >>> pdf = pd.DataFrame({'a': [0, 1, 2, 3],'b': [0.1, 0.2, None, 0.3]})
+    >>> gdf = T.from_pandas_dataframe(pdf, scope= ta)
+    >>> gdf
+      index    a    b
+    -------  ---  ---
+          0    0  0.1
+          1    1  0.2
+          2    2
+          3    3  0.3
+    dtype: Struct([Field('a', int64), Field('b', Float64(nullable=True))]), count: 4, null_count: 0
+
+    """
+
     scope = scope or Scope.default
     device = device or scope.device
     return scope.Frame(data, dtype=dtype, device=device)
