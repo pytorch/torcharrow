@@ -1,0 +1,40 @@
+name: Ubuntu Build and Test
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v2
+
+      - name: Update submodules
+        run: git submodule update --init --recursive
+
+      - name: Install dependencies with APT
+        run: |
+          sudo apt install -y g++ cmake ccache ninja-build checkinstall git \
+          libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
+          libbz2-dev libgflags-dev libgtest-dev libgmock-dev libevent-dev libfmt-dev \
+          libprotobuf-dev liblz4-dev libzstd-dev libre2-dev libsnappy-dev liblzo2-dev \
+          protobuf-compiler
+
+      - name: Build and install Folly
+        run: scripts/install_ubuntu_folly.sh
+
+      - name: Bulid TorchArrow
+        run: DEBUG=1 python setup.py develop --user
+
+      - name: Install dependencies for test
+        run: pip3 install pytest --user
+
+      - name : Run TorchArrow unit tests
+        run: pytest --no-header -v torcharrow
