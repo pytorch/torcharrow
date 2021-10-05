@@ -44,7 +44,7 @@ scripts/build_mac_dep.sh ranges_v3 googletest fmt double_conversion folly re2
 #### Install TorchArrow
 For local development, you can build with debug mode:
 ```
-DEBUG=1 python setup develop
+DEBUG=1 python setup.py develop
 ```
 
 And run unit tests with
