@@ -1,0 +1,200 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import abc
+import array as ar
+import functools
+from dataclasses import dataclass
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Literal,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    cast,
+    get_type_hints,
+)
+
+import numpy as np
+import torcharrow.dtypes as dt
+
+from .column_factory import ColumnFactory, Device
+from .expression import Var, eval_expression, expression
+from .icolumn import IColumn
+from .scope import Scope
+from .trace import trace, traceproperty
+
+# assumes that these have been imported already:
+# from .inumerical_column import INumericalColumn
+# from .istring_column import IStringColumn
+# from .imap_column import IMapColumn
+# from .ilist_column import IMapColumn
+
+# ------------------------------------------------------------------------------
+# DataFrame Factory with default scope and device
+
+
+def DataFrame(
+    data: Union[Iterable, dt.DType, Literal[None]] = None,
+    dtype: Optional[dt.DType] = None,
+    scope: Optional[Scope] = None,
+    device: Device = "",
+):
+    scope = scope or Scope.default
+    device = device or scope.device
+    return scope.Frame(data, dtype=dtype, device=device)
+
+
+# -----------------------------------------------------------------------------
+# DataFrames aka (StructColumns, can be nested as StructColumns:-)
+
+DataOrDTypeOrNone = Union[Mapping, Sequence, dt.DType, Literal[None]]
+
+
+class IDataFrame(IColumn):
+    """Dataframe, ordered dict of typed columns of the same length"""
+
+    def __init__(self, scope, device, dtype):
+        assert dt.is_struct(dtype)
+        super().__init__(scope, device, dtype)
+
+    @property  # type: ignore
+    def columns(self):
+        """The column labels of the DataFrame."""
+        return [f.name for f in self.dtype.fields]
+
+    @abc.abstractmethod
+    def _set_field_data(self, name: str, col: IColumn, empty_df: bool):
+        """
+        PRIVATE _set field data, append if field doesn't exist
+        self._dtype is already updated upon invocation
+        """
+        raise self._not_supported("_set_field_data")
+
+    @trace
+    def __setitem__(self, name: str, value: Any) -> None:
+        if isinstance(value, IColumn):
+            assert self.device == value.device
+            col = value
+        else:
+            col = self.scope.Column(value)
+
+        empty_df = len(self.dtype.fields) == 0
+
+        # Update dtype
+        idx = self.dtype.get_index(name)
+        if idx is None:
+            # append column
+            new_fields = self.dtype.fields + [dt.Field(name, col.dtype)]
+        else:
+            # override column
+            new_fields = list(self.dtype.fields)
+            new_fields[idx] = dt.Field(name, col.dtype)
+        self._dtype = dt.Struct(fields=new_fields)
+
+        # Update field data
+        self._set_field_data(name, col, empty_df)
+
+    @trace
+    @expression
+    def transform(
+        self,
+        func: Callable,
+        /,
+        dtype: Optional[dt.DType] = None,
+        format: str = "column",
+        columns: Optional[List[str]] = None,
+    ):
+        """
+        Like map() but invokes the callable on mini-batches of rows at a time.
+        The column is passed to the callable as TorchArrow column by default.
+        If `format='python'` the input is converted to python types instead.
+        If `format='torch'` the input is converted to PyTorch types
+        dtype required if result type != item type and the type hint is missing on the callable.
+        """
+        if columns is None:
+            return super().map(func, dtype=dtype, format=format)
+
+        for i in columns:
+            if i not in self.columns:
+                raise KeyError("column {i} not in dataframe")
+
+        if dtype is None:
+            signature = get_type_hints(func)
+            if "return" in signature:
+                dtype = dt.dtype_from_batch_pytype(signature["return"])
+            else:
+                assert self._dtype is not None
+                dtype = self._dtype
+            # TODO: check type annotations of inputs too in order to infer the input format
+
+        if len(columns) == 1:
+            raw_res = func(self._format_transform_column(self[columns[0]], format))
+        else:
+            raw_res = func(
+                *(self._format_transform_column(self[c], format) for c in columns)
+            )
+        return self._format_transform_result(raw_res, format, dtype, len(self))
+
+    @trace
+    def to_python(self):
+        tup_type = self._dtype.py_type
+        return [
+            tup_type(*v)
+            for v in zip(*(self[f.name].to_python() for f in self._dtype.fields))
+        ]
+
+
+# TODO Make this abstract and add all the abstract methods here ...
+# TODO Current short cut has 'everything', excpet for columns as a  DataFrameDemo
+# TODO Make GroupedDatFrame also an IGroupedDataframe to make it truly compositional
+
+
+# -----------------------------------------------------------------------------
+# DataFrameVariable me
+
+
+class IDataFrameVar(Var, IDataFrame):
+    # A dataframe variable is purely symbolic,
+    # It should only appear as part of a relational expression
+
+    def __init__(self, name: str, qualname: str = ""):
+        super().__init__(name, qualname)
+
+    def _append_null(self):
+        return self._not_supported("_append_null")
+
+    def _append_value(self, value):
+        return self._not_supported("_append_value")
+
+    def _finalize(self, mask=None):
+        return self._not_supported("_finalize")
+
+    def __len__(self):
+        return self._not_supported("len")
+
+    def null_count(self):
+        return self._not_supported("null_count")
+
+    def getmask(self, i):
+        return self._not_supported("getmask")
+
+    def getdata(self, i):
+        return self._not_supported("getdata")
+
+    def _set_field_data(self, name: str, col: IColumn, empty_df: bool):
+        raise self._not_supported("_set_field_data")
+
+    @property  # type: ignore
+    def columns(self):
+        return self._not_supported("columns")
+
+
+# The super variable...
+me = IDataFrameVar("me", "torcharrow.idataframe.me")
