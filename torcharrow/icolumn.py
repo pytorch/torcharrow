@@ -1,0 +1,1744 @@
+#!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates.
+from __future__ import annotations
+
+import abc
+import itertools
+import math
+import operator
+import statistics
+import typing as ty
+from collections import OrderedDict, defaultdict
+from functools import partial, reduce
+
+import numpy as np
+import torcharrow.dtypes as dt
+from tabulate import tabulate
+
+from .column_factory import Device
+from .expression import expression
+from .scope import Scope
+from .trace import trace, traceproperty
+
+# ------------------------------------------------------------------------------
+# Column Factory with default scope and device
+
+
+def Column(
+    data: ty.Union[ty.Iterable, dt.DType, ty.Literal[None]] = None,
+    dtype: ty.Optional[dt.DType] = None,
+    scope: ty.Optional[Scope] = None,
+    device: Device = "",
+):
+    """
+    Creates a TorchArrow Column.  Allocates memory on device (or
+    Scope.default.device) device.
+
+    Parameters
+    ----------
+    data: array-like or Iterable
+        Defines the contents of the column.
+
+    dtype: dtype, default None
+        Data type to force.  If None the type will be automatically
+        inferred where possible.
+
+    scope : Scope, default None
+        scope provides the runtime context used for evaluation. Use
+        None for the default scope.  Scopes can provide context
+        related configuration and pytorch-style tracing to build
+        deferred execution graphs (e.g. for privacy analysis or batch
+        optimization).
+
+    device: Device, default ""
+        Device selects which runtime to use from scope.  TorchArrow supports
+        multiple runtimes (CPU and GPU).  If not supplied, uses the Velox
+        vectorized runtime.  Valid values are "cpu" (Velox), "gpu" (coming
+        soon), "demo" (Numpy).
+
+    Examples
+    --------
+
+    Creating a column using auto-inferred type:
+
+    >>> import torcharrow as ta
+    >>> s = ta.Column([1,2,None,4])
+    >>> s
+    0  1
+    1  2
+    2  None
+    3  4
+    dtype: Int64(nullable=True), length: 4, null_count: 1
+
+    Create a column with arbitrarily data types, here a non-nullable
+    column of a list of non-nullable strings of arbitrary length:
+
+    >>> sf = ta.Column([ ["hello", "world"], ["how", "are", "you"] ], dtype =dt.List(dt.string))
+    >>> sf.dtype
+    List(item_dtype=String(nullable=False), nullable=False, fixed_size=-1)
+
+    Create a column of average climate data, one map per continent,
+    with city as key and yearly average min and max temperature:
+
+    >>> mf = ta.Column([
+    >>>     {'helsinki': [-1.3, 21.5], 'moscow': [-4.0,24.3]},
+    >>>     {'algiers':[11.2, 25.2], 'kinshasa':[22.2,26.8]}
+    >>>     ])
+    >>> mf
+    0  {'helsinki': [-1.3, 21.5], 'moscow': [-4.0, 24.3]}
+    1  {'algiers': [11.2, 25.2], 'kinshasa': [22.2, 26.8]}
+    dtype: Map(string, List(float64)), length: 2, null_count: 0
+
+    """
+    scope = scope or Scope.default
+    device = device or scope.device
+    return scope.Column(data, dtype=dtype, device=device)
+
+
+# TODO: Add interop related column factory methods such as from_python, from_torch, from_arrow, from_pandas, etc
+
+# ------------------------------------------------------------------------------
+# IColumn
+
+
+class IColumn(ty.Sized, ty.Iterable, abc.ABC):
+    """Interface for Column are n vectors (n>=1) of columns"""
+
+    def __init__(self, scope, device, dtype: dt.DType):
+
+        self._scope: Scope = scope
+        self._device = device
+        self._dtype: dt.DType = dtype
+
+        # id handling, used for tracing...
+        self.id = f"c{scope.ct.next()}"
+
+    # getters ---------------------------------------------------------------
+
+    @property
+    def scope(self) -> Scope:
+        return self._scope
+
+    @property
+    def device(self):
+        return self._device
+
+    @property  # type: ignore
+    @traceproperty
+    def dtype(self) -> dt.DType:
+        """dtype of the colum/frame"""
+        return self._dtype
+
+    @property  # type: ignore
+    @traceproperty
+    def isnullable(self):
+        """A boolean indicating whether column/frame can have nulls"""
+        return self.dtype.nullable
+
+    # private builders -------------------------------------------------------
+
+    def _EmptyColumn(self, dtype):
+        """PRIVATE Column factory; must be follwed by _append... and _finalize"""
+        return self.scope._EmptyColumn(dtype, self.device)
+
+    def _FullColumn(self, data, dtype=None, mask=None):
+        """PRIVATE Column factory; data must be in the expected representation"""
+        return self.scope._FullColumn(data, dtype, self.device, mask)
+
+    def _FromPyList(self, data: ty.List, dtype: dt.DType):
+        """
+        Convert from plain Python container (list of scalars or containers).
+        Corresponding to :meth:`IColumn.to_python`.
+        """
+        return self.scope._FromPyList(data, dtype, self.device)
+
+    def _Column(self, data=None, dtype: ty.Optional[dt.DType] = None):
+        return self.scope.Column(data, dtype, device=self.device)
+
+    def _DataFrame(self, data, dtype=None, columns=None):
+        """PRIVATE Column factory; data must be in the expected representation"""
+        return self.scope.DataFrame(data, dtype, columns, device=self.device)
+
+    # private builders -------------------------------------------------------
+
+    @trace
+    @abc.abstractmethod
+    def _append_null(self):
+        """PRIVATE _append null value with updateing mask"""
+        raise self._not_supported("_append_null")
+
+    @trace
+    @abc.abstractmethod
+    def _append_value(self, value):
+        """PRIVATE _append non-null value with updateing mask"""
+        raise self._not_supported("_append_value")
+
+    @trace
+    def _append(self, value):
+        """PRIVATE _append value"""
+        if value is None:
+            self._append_null()
+        else:
+            self._append_value(value)
+
+    def _extend(self, values):
+        """PRIVATE _extend values"""
+        for value in values:
+            self._append(value)
+
+    # public append/copy/astype------------------------------------------------
+
+    @trace
+    def append(self, values):
+        """
+        Returns column/dataframe with values appended.
+
+        Parameters
+        ----------
+        values: list of values or dataframe
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> sf = ta.Column([ ["hello", "world"], ["how", "are", "you"] ], dtype =dt.List(dt.string))
+        >>> sf = sf.append([["I", "am", "fine"]])
+        >>> sf
+        0  ['hello', 'world']
+        1  ['how', 'are', 'you']
+        2  ['I', 'am', 'fine']
+        dtype: List(string), length: 3, null_count: 0
+        """
+        # TODO use _column_copy, but for now this works...
+        res = self._EmptyColumn(self.dtype)
+        for (m, d) in self.items():
+            if m:
+                res._append_null()
+            else:
+                res._append_value(d)
+        for i in values:
+            res._append(i)
+        return res._finalize()
+
+    @trace
+    def concat(self, columns: ty.List[IColumn]):
+        """Returns concatenated columns."""
+        concat_list = self.to_python()
+        for column in columns:
+            concat_list += column.to_python()
+        return self._FromPyList(concat_list, self.dtype)
+
+    @trace
+    def copy(self):
+        # TODO implement this generically over columns using _FullColumn
+        raise self._not_supported("copy")
+
+    def astype(self, dtype):
+        """Cast the Column to the given dtype"""
+        if dt.is_primitive(self.dtype):
+            if dt.is_primitive(dtype):
+                fun = dt.cast_as(dtype)
+                res = self._EmptyColumn(dtype)
+                for m, i in self.item():
+                    if m:
+                        res._append_null()
+                    else:
+                        res.append_value(fun(i))
+                return res._finalize()
+            else:
+                raise TypeError('f"{astype}({dtype}) is not supported")')
+        raise TypeError('f"{astype} for {type(self).__name__} is not supported")')
+
+    # public simple observers -------------------------------------------------
+
+    @trace
+    @expression
+    def count(self):
+        """Return number of non-NA/null observations pgf the column/frame"""
+        return len(self) - self.null_count()
+
+    @trace
+    @expression
+    @abc.abstractmethod
+    def null_count(self):
+        """Return number of null values"""
+        raise self._not_supported("getmask")
+
+    @trace
+    @expression
+    @abc.abstractmethod
+    def __len__(self):
+        """Return number of rows including null values"""
+        raise self._not_supported("__len__")
+
+    @trace
+    @expression
+    def length(self):
+        """Return number of rows including null values"""
+        return len(self)
+
+    # printing ----------------------------------------------------------------
+
+    def __str__(self):
+        return f"Column([{', '.join(str(i) for i in self)}], id = {self.id})"
+
+    def __repr__(self):
+        rows = [[l if l is not None else "None"] for l in self]
+        tab = tabulate(
+            rows,
+            tablefmt="plain",
+            showindex=True,
+        )
+        typ = f"dtype: {self._dtype}, length: {len(self)}, null_count: {self.null_count()}"
+        return tab + dt.NL + typ
+
+    # private helpers ---------------------------------------------------------
+
+    def _not_supported(self, name):
+        raise TypeError(f"{name} for type {type(self).__name__} is not supported")
+
+    scalar_types = (int, float, bool, str)
+
+    # selectors/getters -------------------------------------------------------
+
+    @abc.abstractmethod
+    def getmask(self, i):
+        """Return mask at index i"""
+        raise self._not_supported("getmask")
+
+    @abc.abstractmethod
+    def getdata(self, i):
+        """Return data at index i"""
+        raise self._not_supported("getdata")
+
+    def valid(self, index):
+        """Return whether data at index i is valid, i.e., non-masked"""
+        return not self.getmask(index)
+
+    def get(self, index, fill_value=None):
+        """Return data[index] or fill_value if data[i] not valid"""
+        if self.getmask(index):
+            return fill_value
+        else:
+            return self.getdata(index)
+
+    @trace
+    @expression
+    def __getitem__(self, arg):
+        """
+        If *arg* is a
+
+        `n`, a number, return the row with index n
+        `[n1,..,nm]` return a new column with the rows[n1],..,rows[nm]
+        `[n1:n2:n3]`, return a new column slice with rows[n1:n2:n3]
+
+        `s`, a string, return the column named s
+        `[s1,..,sm]` return  dataframe having column[s1],..,column[sm]
+        `[s1:s2]` return dataframe having columns[s1:s2]
+
+        `[b1,..,bn]`, where bi are booleans, return all rows that are true
+        `Column([b1..bn])` return all rows that are true
+        """
+
+        if isinstance(arg, int):
+            return self.get(arg)
+        elif isinstance(arg, str):
+            return self.get_column(arg)
+        elif isinstance(arg, slice):
+            args = []
+            for i in [arg.start, arg.stop, arg.step]:
+                if isinstance(i, np.integer):
+                    args.append(int(i))
+                else:
+                    args.append(i)
+            if all(a is None or isinstance(a, int) for a in args):
+                return self.slice(*args)
+            elif all(a is None or isinstance(a, str) for a in args):
+                if arg.step is not None:
+                    raise TypeError(f"column slice can't have step argument {arg.step}")
+                return self.slice_columns(arg.start, arg.stop)
+            else:
+                raise TypeError(
+                    f"slice arguments {[type(a) for a in args]} should all be int or string"
+                )
+        elif isinstance(arg, (tuple, list)):
+            if len(arg) == 0:
+                return self
+            if all(isinstance(a, bool) for a in arg):
+                return self.filter(arg)
+            if all(isinstance(a, int) for a in arg):
+                return self.gets(arg)
+            if all(isinstance(a, str) for a in arg):
+                return self.get_columns(arg)
+            else:
+                raise TypeError("index should be list of int or list of str")
+        elif isinstance(arg, IColumn) and dt.is_boolean(arg.dtype):
+            return self.filter(arg)
+        else:
+            raise self._not_supported("__getitem__")
+
+    def gets(self, indices):
+        """Return a new column with the rows[indices[0]],..,rows[indices[-1]]"""
+        res = self._EmptyColumn(self.dtype)
+        for i in indices:
+            (m, d) = (self.getmask(i), self.getdata(i))
+            if m:
+                res._append_null()
+            else:
+                res._append_value(d)
+        return res._finalize()
+
+    def slice(self, start, stop, step):
+        """Return a new column with the slice rows[start:stop:step]"""
+        res = self._EmptyColumn(self.dtype)
+        for i in list(range(len(self)))[start:stop:step]:
+            m = self.getmask(i)
+            if m:
+                res._append_null()
+            else:
+                res._append_value(self.getdata(i))
+        return res._finalize()
+
+    def get_column(self, column):
+        """Return the named column"""
+        raise self._not_supported("get_column")
+
+    def get_columns(self, columns):
+        """Return a new dataframe referencing the columns[s1],..,column[sm]"""
+        raise self._not_supported("get_columns")
+
+    def slice_columns(self, start, stop):
+        """Return a new dataframe with the slice rows[start:stop]"""
+        raise self._not_supported("slice_columns")
+
+    @trace
+    @expression
+    def head(self, n=5):
+        """
+        Return the first `n` rows.
+
+        Parameters
+        ----------
+        n : int
+            Number of rows to return.
+
+        See Also
+        --------
+        icolumn.tail : Return the last `n` rows.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.DataFrame({'a': list(range(7)),
+        >>>             'b': list(reversed(range(7))),
+        >>>             'c': list(range(7))
+        >>>            })
+        >>> df.head(2)
+          index    a    b    c    d
+        -------  ---  ---  ---  ---
+              0    0    6    0   99
+              1    1    5    1  100
+        dtype: Struct([Field('a', int64), Field('b', int64), Field('c', int64), Field('d', int64)]), count: 2, null_count: 0
+        """
+        return self[:n]
+
+    @trace
+    @expression
+    def tail(self, n=5):
+        """
+        Return the last `n` rows.
+
+        Parameters
+        ----------
+        n : int
+            Number of rows to return.
+
+        See Also
+        --------
+        icolumn.head : Return the first `n` rows.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.DataFrame({'a': list(range(7)),
+        >>>             'b': list(reversed(range(7))),
+        >>>             'c': list(range(7))
+        >>>            })
+        >>> df.tail(1)
+          index    a    b    c    d
+        -------  ---  ---  ---  ---
+              0    6    0    6  105
+        dtype: Struct([Field('a', int64), Field('b', int64), Field('c', int64), Field('d', int64)]), count: 2, null_count: 0
+        """
+        return self[-n:]
+
+    @trace
+    @expression
+    def reverse(self):
+        return self[::-1]
+
+    # iterators  -------------------------------------------------------------
+
+    def __iter__(self):
+        """Return the iterator object itself."""
+        for i in range(len(self)):
+            yield self.get(i)
+
+    def items(self):
+        """Iterator returning mask,data pairs for all items of a column"""
+        for i in range(len(self)):
+            yield (self.getmask(i), self.getdata(i))
+
+    def data(self, fill_value=None):
+        """Iterator returning non-null or fill_value data of a column"""
+        for m, i in self.items():
+            if m:
+                if fill_value is not None:
+                    yield fill_value
+            else:
+                yield i
+
+    def _vectorize(self, fun, dtype: dt.DType):
+        return self.map(fun, "ignore", dtype)
+
+    # functools map/filter/reduce ---------------------------------------------
+
+    @trace
+    @expression
+    def map(
+        self,
+        arg: ty.Union[ty.Dict, ty.Callable],
+        na_action: ty.Literal["ignore", None] = None,
+        dtype: ty.Optional[dt.DType] = None,
+        columns: ty.Optional[ty.List[str]] = None,
+    ):
+        """
+        Maps rows according to input correspondence.
+
+        Parameters
+        ----------
+        arg - dict or callable
+            If arg is a dict then input is mapped using this dict and
+            non-mapped values become null.  If arg is a callable, this
+            is treated as a user-defined function (UDF) which is
+            invoked on each element of the input.  Callables must be
+            global functions or methods on class instances, lambdas
+            are not supported.
+        na_action - "ignore" or None, default None
+            If your UDF returns null for null input, selecting
+            "ignore" is an efficiency improvement where map will avoid
+            calling your UDF on null values.  If None, aways calls the
+            UDF.
+        dtype - DType, default None
+            DType is used to force the output type.  DType is required
+            if result type != item type.
+        columns - list of column names, default None
+            Determines which columns to provide to the mapping dict or UDF.
+
+        See Also
+        --------
+        flatmap, filter, reduce
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> ta.Column([1,2,None,4]).map({1:111})
+        0  111
+        1  None
+        2  None
+        3  None
+        dtype: Int64(nullable=True), length: 4, null_count: 3
+
+        Using a defaultdict to provide a missing value:
+
+        >>> from collections import defaultdict
+        >>> ta.Column([1,2,None,4]).map(defaultdict(lambda: -1, {1:111}))
+        0  111
+        1   -1
+        2   -1
+        3   -1
+        dtype: Int64(nullable=True), length: 4, null_count: 0
+
+        Using user-supplied python function:
+
+        >>> def add_ten(num):
+        >>>     return num + 10
+        >>>
+        >>> ta.Column([1,2,None,4]).map(add_ten, na_action='ignore')
+        0  11
+        1  12
+        2  None
+        3  14
+        dtype: Int64(nullable=True), length: 4, null_count: 1
+
+        Note that .map(add_ten, na_action=None) in the example above
+        would fail with a type error since addten is not defined for
+        None/null.  To pass nulls to a UDF, the UDF needs to prepare
+        for it:
+
+        >>> def add_ten_or_0(num):
+        >>>     return 0 if num is None else num + 10
+        >>>
+        >>> ta.Column([1,2,None,4]).map(add_ten_or_0, na_action=None)
+        0  11
+        1  12
+        2   0
+        3  14
+        dtype: Int64(nullable=True), length: 4, null_count: 0
+
+        Mapping to different types requires a dtype parameter:
+
+        >>> ta.Column([1,2,None,4]).map(str, dtype=dt.string)
+        0  '1'
+        1  '2'
+        2  'None'
+        3  '4'
+        dtype: string, length: 4, null_count: 0
+
+        Mapping over a DataFrame, the UDF gets the whole row as a tuple:
+
+        >>> def add_unary(tup):
+        >>>     return tup[0]+tup[1]
+        >>>
+        >>> ta.DataFrame({'a': [1,2,3], 'b': [1,2,3]}).map(add_unary , dtype = dt.int64)
+        0  2
+        1  4
+        2  6
+        dtype: int64, length: 3, null_count: 0
+
+        Multi-parameter UDFs:
+
+        >>> def add_binary(a,b):
+        >>>     return a + b
+        >>>
+        >>> ta.DataFrame({'a': [1,2,3], 'b': ['a', 'b', 'c'], 'c':[1,2,3]}).map(add_binary, columns = ['a','c'], dtype = dt.int64)
+        0  2
+        1  4
+        2  6
+        dtype: int64, length: 3, null_count: 0
+
+        Multi-return UDFs - functions that return more than one column
+        can be specified by returning a DataFrame (also known as a
+        struct column); providing the return dtype is mandatory.
+
+        ta.DataFrame({'a': [17, 29, 30], 'b': [3,5,11]}).map(divmod, columns= ['a','b'], dtype = dt.Struct([dt.Field('quotient', dt.int64), dt.Field('remainder', dt.int64)]))
+          index    quotient    remainder
+        -------  ----------  -----------
+              0           5            2
+              1           5            4
+              2           2            8
+        dtype: Struct([Field('quotient', int64), Field('remainder', int64)]), count: 3, null_count: 0
+
+        UDFs with state can be written by capturing the state in a
+        (data)class and use a method as a delegate:
+
+        >>> def fib(n):
+        >>>     if n == 0:
+        >>>         return 0
+        >>>     elif n == 1 or n == 2:
+        >>>         return 1
+        >>>     else:
+        >>>         return fib(n-1) + fib(n-2)
+        >>>
+        >>> from dataclasses import dataclass
+        >>> @dataclass
+        >>> class State:
+        >>>     state: int
+        >>>     def __post_init__(self):
+        >>>         self.state = fib(self.state)
+        >>>     def add_fib(self, x):
+        >>>         return self.state+x
+        >>>
+        >>> m = State(10)
+        >>> ta.Column([1,2,3]).map(m.add_fib)
+        0  56
+        1  57
+        2  58
+        dtype: int64, length: 3, null_count: 0
+        """
+        # to avoid applying the function to missing values, use
+        #   na_action == 'ignore'
+        if columns is not None:
+            raise TypeError(f"columns parameter for flat columns not supported")
+        # Using the faster fromlist construction path by collecting the results
+        # in a Python list and then passing the list to the constructor
+        res = []
+        if isinstance(arg, defaultdict):
+            for masked, i in self.items():
+                if not masked:
+                    res.append(arg[i])
+                elif na_action is None:
+                    res.append(arg[None])
+                else:
+                    res.append(None)
+        elif isinstance(arg, dict):
+            for masked, i in self.items():
+                if not masked:
+                    if i in arg:
+                        res.append(arg[i])
+                    else:
+                        res.append(None)
+                elif None in arg and na_action is None:
+                    res.append(arg[None])
+                else:
+                    res.append(None)
+        else:  # arg must be a function
+            assert isinstance(arg, ty.Callable)
+            if dtype is None:
+                (dtype, _) = dt.infer_dype_from_callable_hint(arg)
+
+            for masked, i in self.items():
+                if not masked:
+                    res.append(arg(i))
+                elif na_action is None:
+                    res.append(arg(None))
+                else:  # na_action == 'ignore'
+                    res.append(None)
+
+        dtype = dtype or self._dtype
+        return self._FromPyList(res, dtype)
+
+    @staticmethod
+    def _format_transform_column(c: IColumn, format: str):
+        if format == "column":
+            return c
+        if format == "python":
+            return c.to_python()
+        if format == "torch":
+            return c.to_torch()
+        raise ValueError(f"Invalid value for `format` argument: {format}")
+
+    def _format_transform_result(
+        self, raw: ty.Any, format: str, dtype: dt.DType, length: int
+    ):
+        if format == "torch":
+            from . import pytorch
+
+            pytorch.ensure_available()
+            ret = pytorch.from_torch(raw, dtype=dtype)
+        elif format == "python" or format == "column":
+            ret = self._Column(raw, dtype=dtype)
+        else:
+            raise ValueError(f"Invalid value for `format` argument: {format}")
+
+        if len(ret) != length:
+            raise ValueError(
+                f"Output of transform must return the same number of rows: got {len(ret)} instead of {length}"
+            )
+        return ret
+
+    @trace
+    @expression
+    def transform(
+        self,
+        func: ty.Callable,
+        /,
+        dtype: ty.Optional[dt.DType] = None,
+        format: str = "column",
+        columns: ty.Optional[ty.List[str]] = None,
+    ):
+        """
+        Like map() but invokes the callable on mini-batches of rows at a time.
+        The column is passed to the callable as TorchArrow column by default.
+        If `format='python'` the input is converted to python types instead.
+        If `format='torch'` the input is converted to PyTorch types
+        dtype required if result type != item type and the type hint is missing on the callable.
+        """
+        if columns is not None:
+            raise TypeError("columns parameter for flat columns not supported")
+
+        if dtype is None:
+            signature = ty.get_type_hints(func)
+            if "return" in signature:
+                dtype = dt.dtype_from_batch_pytype(signature["return"])
+            else:
+                # assume it's an identity mapping
+                assert self._dtype is not None
+                dtype = self._dtype
+            # TODO: check type annotations of inputs too in order to infer the input format
+
+        # TODO: if func is annotated, check whether its input parameter is IColumn when format="column"
+        raw_res = func(self._format_transform_column(self, format))
+        return self._format_transform_result(raw_res, format, dtype, len(self))
+
+    @trace
+    @expression
+    def flatmap(
+        self,
+        arg: ty.Union[ty.Dict, ty.Callable],
+        na_action: ty.Literal["ignore", None] = None,
+        dtype: ty.Optional[dt.DType] = None,
+        columns: ty.Optional[ty.List[str]] = None,
+    ):
+        """
+        Maps rows to list of rows according to input correspondence
+        dtype required if result type != item type.
+        """
+
+        if columns is not None:
+            raise TypeError(f"columns parameter for flat columns not supported")
+
+        def func(x):
+            return arg.get(x, None) if isinstance(arg, dict) else arg(x)
+
+        dtype = dtype or self.dtype
+        res = self._EmptyColumn(dtype)
+        for masked, i in self.items():
+            if not masked:
+                res._extend(func(i))
+            elif na_action is None:
+                res._extend(func(None))
+            else:
+                res._append_null()
+        return res._finalize()
+
+    @trace
+    @expression
+    def filter(
+        self,
+        predicate: ty.Union[ty.Callable, ty.Iterable],
+        columns: ty.Optional[ty.List[str]] = None,
+    ):
+        """
+        Select rows where predicate is True.
+        Different from Pandas. Use keep for Pandas filter.
+
+        Parameters
+        ----------
+        predicate - callable or iterable
+            A predicate function or iterable of booleans the same
+            length as the column.  If an n-ary predicate, use the
+            columns parameter to provide arguments.
+        columns - list of string names, default None
+            Which columns to invoke the filter with.  If None, apply to
+            all columns.
+
+        See Also
+        --------
+        map, reduce, flatmap
+
+        Examples
+        --------
+        >>> ta.Column([1,2,3,4]).filter([True, False, True, False]) == ta.Column([1,2,3,4]).filter(lambda x: x%2==1)
+        0  1
+        1  1
+        dtype: boolean, length: 2, null_count: 0
+        """
+        if columns is not None:
+            raise TypeError(f"columns parameter for flat columns not supported")
+
+        if not isinstance(predicate, ty.Iterable) and not callable(predicate):
+            raise TypeError(
+                "predicate must be a unary boolean predicate or iterable of booleans"
+            )
+        res = self._EmptyColumn(self._dtype)
+        if callable(predicate):
+            for x in self:
+                if predicate(x):
+                    res._append(x)
+        elif isinstance(predicate, ty.Iterable):
+            for x, p in zip(self, predicate):
+                if p:
+                    res._append(x)
+        else:
+            pass
+        return res._finalize()
+
+    @trace
+    @expression
+    def reduce(self, fun, initializer=None, finalizer=None):
+        """
+        Apply binary function cumulatively to the rows[0:],
+        so as to reduce the column/dataframe to a single value
+
+        Parameters
+        ----------
+        fun - callable
+            Binary function to invoke via reduce.
+        initializer - element, or None
+            The initial value used for reduce.  If None, uses the
+            first element of the column.
+        finalizer - callable, or None
+            Function to call on the final value.  If None the last result
+            of invoking fun is returned
+
+        Examples
+        --------
+        >>> import operator
+        >>> import torcharrow
+        >>> ta.Column([1,2,3,4]).reduce(operator.mul)
+        24
+        """
+        if len(self) == 0:
+            if initializer is not None:
+                return initializer
+            else:
+                raise TypeError("reduce of empty sequence with no initial value")
+        start = 0
+        if initializer is None:
+            value = self[0]
+            start = 1
+        else:
+            value = initializer
+        for i in range(start, len(self)):
+            value = fun(value, self[i])
+        if finalizer is not None:
+            return finalizer(value)
+        else:
+            return value
+
+    # if-then-else ---------------------------------------------------------------
+
+    def ite(self, then_, else_):
+        """Vectorized if-then-else"""
+        if not dt.is_boolean(self.dtype):
+            raise TypeError("condition must be a boolean vector")
+        if not isinstance(then_, IColumn):
+            then_ = self._Column(then_)
+        if not isinstance(else_, IColumn):
+            else_ = self._Column(else_)
+        lub = dt.common_dtype(then_.dtype, else_.dtype)
+        if lub is None or dt.is_void(lub):
+            raise TypeError(
+                "then and else branches must have compatible types, got {then_.dtype} and {else_.dtype}, respectively"
+            )
+        res = self._EmptyColumn(lub)
+        for (m, b), t, e in zip(self.items(), then_, else_):
+            if m:
+                res._append_null()
+            elif b:
+                res._append(t)
+            else:
+                res._append(e)
+        return res._finalize()
+
+    # sorting and top-k -------------------------------------------------------
+
+    @trace
+    @expression
+    def sort(
+        self,
+        by: ty.Optional[ty.List[str]] = None,
+        ascending=True,
+        na_position: ty.Literal["last", "first"] = "last",
+    ):
+        """
+        Sort a column/a dataframe in ascending or descending order.
+
+        Parameters
+        ----------
+        by : array-like, default None
+            Columns to sort by, uses all columns for comparison if None.
+        ascending : bool, default True
+            If true, sort in ascending order, else descending.
+        na_position : {{'last', 'first'}}, default "last"
+            If 'last' order nulls after non-null values, if 'first' orders
+            nulls before non-null values.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.DataFrame({'a': list(range(7)),
+        >>>             'b': list(reversed(range(7))),
+        >>>             'c': list(range(7))
+        >>>            })
+        >>> df.sort(by=['c', 'b']).head(2)
+          index    a    b    c    d
+        -------  ---  ---  ---  ---
+              0    0    6    0   99
+              1    1    5    1  100
+        dtype: Struct([Field('a', int64), Field('b', int64), Field('c', int64), Field('d', int64)]), count: 2, null_count: 0
+        """
+        if by is not None:
+            raise TypeError("sorting a non-structured column can't have 'by' parameter")
+        res = self._EmptyColumn(self.dtype)
+        if na_position == "first":
+            res._extend([None] * self.null_count())
+        res._extend(sorted((i for i in self if i is not None), reverse=not ascending))
+        if na_position == "last":
+            res._extend([None] * self.null_count())
+        return res._finalize()
+
+    @trace
+    @expression
+    def nlargest(
+        self,
+        n=5,
+        columns: ty.Optional[ty.List[str]] = None,
+        keep: ty.Literal["last", "first"] = "first",
+    ):
+        """Returns a new data of the *n* largest element."""
+        # keep="all" not supported
+        if columns is not None:
+            raise TypeError(
+                "computing n-largest on non-structured column can't have 'columns' parameter"
+            )
+        return self.sort(ascending=False).head(n)
+
+    @trace
+    @expression
+    def nsmallest(self, n=5, columns: ty.Optional[ty.List[str]] = None, keep="first"):
+        """Returns a new data of the *n* smallest element."""
+        # keep="all" not supported
+        if columns is not None:
+            raise TypeError(
+                "computing n-smallest on non-structured column can't have 'columns' parameter"
+            )
+
+        return self.sort(ascending=True).head(n)
+
+    @trace
+    @expression
+    def nunique(self, dropna=True):
+        """Returns the number of unique values of the column"""
+        if not dropna:
+            return len(set(self))
+        else:
+            return len(set(i for i in self if i is not None))
+
+    # operators ---------------------------------------------------------------
+    @staticmethod
+    def swap(op):
+        return lambda a, b: op(b, a)
+
+    @trace
+    @expression
+    def __add__(self, other):
+        """Vectorized a + b."""
+        return self._py_arithmetic_op(other, operator.add)
+
+    @trace
+    @expression
+    def __radd__(self, other):
+        """Vectorized b + a."""
+        return self._py_arithmetic_op(other, IColumn.swap(operator.add))
+
+    @trace
+    @expression
+    def __sub__(self, other):
+        """Vectorized a - b."""
+        return self._py_arithmetic_op(other, operator.sub)
+
+    @trace
+    @expression
+    def __rsub__(self, other):
+        """Vectorized b - a."""
+        return self._py_arithmetic_op(other, IColumn.swap(operator.sub))
+
+    @trace
+    @expression
+    def __mul__(self, other):
+        """Vectorized a * b."""
+        return self._py_arithmetic_op(other, operator.mul)
+
+    @trace
+    @expression
+    def __rmul__(self, other):
+        """Vectorized b * a."""
+        return self._py_arithmetic_op(other, IColumn.swap(operator.mul))
+
+    @trace
+    @expression
+    def __floordiv__(self, other):
+        """Vectorized a // b."""
+        return self._py_arithmetic_op(other, operator.floordiv)
+
+    @trace
+    @expression
+    def __rfloordiv__(self, other):
+        """Vectorized b // a."""
+        return self._py_arithmetic_op(other, IColumn.swap(operator.floordiv))
+
+    @trace
+    @expression
+    def __truediv__(self, other):
+        """Vectorized a / b."""
+        return self._py_arithmetic_op(other, operator.truediv, div="__truediv__")
+
+    @trace
+    @expression
+    def __rtruediv__(self, other):
+        """Vectorized b / a."""
+        return self._py_arithmetic_op(
+            other, IColumn.swap(operator.truediv), div="__rtruediv__"
+        )
+
+    @trace
+    @expression
+    def __mod__(self, other):
+        """Vectorized a % b."""
+        return self._py_arithmetic_op(other, operator.mod)
+
+    @trace
+    @expression
+    def __rmod__(self, other):
+        """Vectorized b % a."""
+        return self._py_arithmetic_op(other, IColumn.swap(operator.mod))
+
+    @trace
+    @expression
+    def __pow__(self, other):
+        """Vectorized a ** b."""
+        return self._py_arithmetic_op(other, operator.pow)
+
+    @trace
+    @expression
+    def __rpow__(self, other):
+        """Vectorized b ** a."""
+        return self._py_arithmetic_op(other, IColumn.swap(operator.pow))
+
+    @trace
+    @expression
+    def __eq__(self, other):
+        """Vectorized a == b."""
+        return self._py_comparison_op(other, operator.eq)
+
+    @trace
+    @expression
+    def __ne__(self, other):
+        """Vectorized a != b."""
+        return self._py_comparison_op(other, operator.ne)
+
+    @trace
+    @expression
+    def __lt__(self, other):
+        """Vectorized a < b."""
+        return self._py_comparison_op(other, operator.le)
+
+    @trace
+    @expression
+    def __gt__(self, other):
+        """Vectorized a > b."""
+        return self._py_comparison_op(other, operator.gt)
+
+    @trace
+    @expression
+    def __le__(self, other):
+        """Vectorized a < b."""
+        return self._py_comparison_op(other, operator.le)
+
+    @trace
+    @expression
+    def __ge__(self, other):
+        """Vectorized a < b."""
+        return self._py_comparison_op(other, operator.ge)
+
+    @trace
+    @expression
+    def __or__(self, other):
+        """Vectorized bitwise or operation: a | b."""
+        return self._py_arithmetic_op(other, operator.__or__)
+
+    @trace
+    @expression
+    def __ror__(self, other):
+        """Vectorized reverse bitwise or operation: b | a."""
+        return self._py_arithmetic_op(other, IColumn.swap(operator.__or__))
+
+    @trace
+    @expression
+    def __xor__(self, other):
+        """Vectorized bitwise exclusive or operation: a ^ b."""
+        return self._py_arithmetic_op(other, operator.__xor__)
+
+    @trace
+    @expression
+    def __rxor__(self, other):
+        """Vectorized reverse bitwise exclusive or operation: b ^ a."""
+        return self._py_arithmetic_op(other, IColumn.swap(operator.__xor__))
+
+    @trace
+    @expression
+    def __and__(self, other):
+        """Vectorized bitwise and operation: a & b."""
+        return self._py_arithmetic_op(other, operator.__and__)
+
+    @trace
+    @expression
+    def __rand__(self, other):
+        """Vectorized reverse bitwise and operation: b & a."""
+        return self._py_arithmetic_op(other, IColumn.swap(operator.__and__))
+
+    @trace
+    @expression
+    def __invert__(self):
+        """Vectorized bitwise inverse operation: ~a."""
+        if dt.is_boolean(self.dtype):
+            return self._vectorize(lambda a: not a, self.dtype)
+        return self._vectorize(operator.__invert__, self.dtype)
+
+    @trace
+    @expression
+    def __neg__(self):
+        """Vectorized: -a."""
+        return self._vectorize(operator.neg, self.dtype)
+
+    @trace
+    @expression
+    def __pos__(self):
+        """Vectorized: +a."""
+        return self._vectorize(operator.pos, self.dtype)
+
+    @staticmethod
+    def _isin(values):
+        return lambda value: value in values
+
+    @trace
+    @expression
+    def isin(self, values: ty.Union[list, IColumn, dict]):
+        """
+        Check whether values are contained in column.
+
+        Parameters
+        ----------
+        values - array-like, column or dict
+            Which values to check the presence of.
+
+        Returns
+        -------
+        Boolean column of the same length as self where item x denotes if
+        member x has a value contained in values.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.DataFrame({'a': list(range(7)),
+        >>>             'b': list(reversed(range(7))),
+        >>>             'c': list(range(7))
+        >>>            })
+        >>> df[df['a'].isin([5])]
+          index    a    b    c    d
+        -------  ---  ---  ---  ---
+              0    5    1    5  104
+        dtype: Struct([Field('a', int64), Field('b', int64), Field('c', int64), Field('d', int64)]), count: 1, null_count: 0
+
+        """
+        # note mask is True
+        res = self._EmptyColumn(dt.boolean)
+        for m, i in self.items():
+            if m:
+                res._append_value(False)
+            else:
+                res._append_value(i in values)
+        return res._finalize()
+
+    @trace
+    @expression
+    def abs(self):
+        """Absolute value of each element of the series."""
+        return self._vectorize(abs, self.dtype)
+
+    @trace
+    @expression
+    def ceil(self):
+        """Rounds each value upward to the smallest integral"""
+        return self._vectorize(math.ceil, self.dtype)
+
+    @trace
+    @expression
+    def floor(self):
+        """Rounds each value downward to the largest integral value"""
+        return self._vectorize(math.floor, self.dtype)
+
+    @trace
+    @expression
+    def round(self, decimals=0):
+        """Round each value in a data to the given number of decimals."""
+        return self._vectorize(partial(round, ndigits=decimals), self.dtype)
+
+    def _py_arithmetic_op(self, other, fun, div=""):
+        others = None
+        other_dtype = None
+        if isinstance(other, IColumn):
+            others = other.items()
+            other_dtype = other.dtype
+        else:
+            others = itertools.repeat((False, other))
+            other_dtype = dt.infer_dtype_from_value(other)
+
+        if not dt.is_boolean_or_numerical(self.dtype) or not dt.is_boolean_or_numerical(
+            other_dtype
+        ):
+            raise TypeError(f"{type(self).__name__}.{fun.__name__} is not supported")
+
+        res = []
+        if div != "":
+            res_dtype = dt.Float64(self.dtype.nullable or other_dtype.nullable)
+            for (m, i), (n, j) in zip(self.items(), others):
+                # TODO Use error handling to mke this more efficient..
+                if m or n:
+                    res.append(None)
+                elif div == "__truediv__" and j == 0:
+                    res.append(None)
+                elif div == "__rtruediv__" and i == 0:
+                    res.append(None)
+                else:
+                    res.append(fun(i, j))
+        else:
+            res_dtype = dt.promote(self.dtype, other_dtype)
+            if res_dtype is None:
+                raise TypeError(f"{self.dtype} and {other_dtype} are incompatible")
+            for (m, i), (n, j) in zip(self.items(), others):
+                if m or n:
+                    res.append(None)
+                else:
+                    res.append(fun(i, j))
+        return self._FromPyList(res, res_dtype)
+
+    def _py_comparison_op(self, other, pred):
+        others = None
+        other_dtype = None
+        if isinstance(other, IColumn):
+            others = other.items()
+            other_dtype = other.dtype
+        else:
+            others = itertools.repeat((False, other))
+            other_dtype = dt.infer_dtype_from_value(other)
+        res_dtype = dt.Boolean(self.dtype.nullable or other_dtype.nullable)
+        res = []
+        for (m, i), (n, j) in zip(self.items(), others):
+            if m or n:
+                res.append(None)
+            else:
+                res.append(pred(i, j))
+        return self._FromPyList(res, res_dtype)
+
+    # data cleaning -----------------------------------------------------------
+
+    @trace
+    @expression
+    def fillna(self, fill_value: ty.Union[dt.ScalarTypes, ty.Dict]):
+        """
+        Fill NA/NaN values using the specified method.
+
+        Parameters
+        ----------
+        fill_value : int, float, bool, or str
+
+        See Also
+        --------
+        icolumn.dropna : Return a column/frame with rows removed where a
+        row has any or all nulls.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> s = ta.Column([1,2,None,4])
+        >>> s.fillna(999)
+        0    1
+        1    2
+        2  999
+        3    4
+        dtype: int64, length: 4, null_count: 0
+
+        """
+        if not isinstance(fill_value, IColumn.scalar_types):
+            raise TypeError(f"fillna with {type(fill_value)} is not supported")
+        if isinstance(fill_value, IColumn.scalar_types):
+            res = self._EmptyColumn(self.dtype.constructor(nullable=False))
+            for m, i in self.items():
+                if not m:
+                    res._append_value(i)
+                else:
+                    res._append_value(fill_value)
+            return res._finalize()
+        else:
+            raise TypeError(f"fillna with {type(fill_value)} is not supported")
+
+    @trace
+    @expression
+    def dropna(self, how: ty.Literal["any", "all"] = "any"):
+        """
+        Return a column/frame with rows removed where a row has any or all
+        nulls.
+
+        Parameters
+        ----------
+        how : {{'any','all'}}, default "any"
+            If 'any' drop row if any column is null.  If 'all' drop row if
+            all columns are null.
+
+        See Also
+        --------
+        icolumn.fillna : Fill NA/NaN values using the specified method.
+
+        Examples
+        --------
+                >>> import torcharrow as ta
+        >>> s = ta.Column([1,2,None,4])
+        >>> s.dropna()
+        0    1
+        1    2
+        2    4
+        dtype: int64, length: 3, null_count: 0
+        """
+        if dt.is_primitive(self.dtype):
+            res = self._EmptyColumn(self.dtype.constructor(nullable=False))
+            for m, i in self.items():
+                if not m:
+                    res._append_value(i)
+            return res._finalize()
+        else:
+            raise TypeError(f"dropna for type {self.dtype} is not supported")
+
+    @trace
+    @expression
+    def drop_duplicates(
+        self,
+        subset: ty.Union[str, ty.List[str], ty.Literal[None]] = None,
+        keep: ty.Literal["first", "last", False] = "first",
+    ):
+        """Remove duplicate values from row/frame but keep the first, last, none"""
+        # TODO Add functionality for first and last
+        assert keep == "first"
+        if subset is not None:
+            raise TypeError(f"subset parameter for flat columns not supported")
+        res = self._EmptyColumn(self._dtype)
+        res._extend(list(OrderedDict.fromkeys(self)))
+        return res._finalize()
+
+    # # universal  ---------------------------------------------------------------
+
+    def _check(self, pred, name):
+        if not pred(self.dtype):
+            raise ValueError(f"{name} undefined for {type(self).__name__}.")
+
+    @trace
+    @expression
+    def min(self, fill_value=None):
+        """
+        Return the minimum of the non-null values.
+
+        Parameters
+        ----------
+        fill_value : int, float, bool, or str, default None
+            If None, NA/NaN values will be ignore, else they are replaced
+            with fill_value.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> s = ta.Column([1,2,None,4])
+        >>> s.min(fill_value=999)
+        1
+        """
+
+        return min(self.data(fill_value))
+
+    @trace
+    @expression
+    def max(self, fill_value=None):
+        """
+        Return the maximum of the non-null values.
+
+        Parameters
+        ----------
+        fill_value : int, float, bool, or str, default None
+            If None, NA/NaN values will be ignore, else they are replaced
+            with fill_value.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> s = ta.Column([1,2,None,4])
+        >>> s.max(fill_value=999)
+        """
+        return max(self.data(fill_value))
+
+    @trace
+    @expression
+    def all(self):
+        """Return whether all non-null elements are True"""
+        return all(self.data())
+
+    @trace
+    @expression
+    def any(self, skipna=True):
+        """Return whether any non-null element is True in Column"""
+        return any(self.data())
+
+    @trace
+    @expression
+    def sum(self):
+        """
+        Return sum of all non-null elements.
+
+        Parameters
+        ----------
+        fill_value : int, float, bool, or str, default None
+            If None, NA/NaN values will be ignore, else they are replaced
+            with fill_value.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> s = ta.Column([1,2,None,4])
+        >>> s.sum(fill_value=999)
+        1006
+        """
+        self._check(dt.is_numerical, "sum")
+        return sum(self.data())
+
+    @trace
+    @expression
+    def prod(self):
+        """Return produce of the non-null values in the data"""
+        self._check(dt.is_numerical, "prod")
+        return reduce(operator.mul, self.data(), 1)
+
+    @trace
+    @expression
+    def cummin(self):
+        """Return cumulative minimum of the data."""
+        return self._accumulate(min)
+
+    @trace
+    @expression
+    def cummax(self):
+        """Return cumulative maximum of the data."""
+        return self._accumulate(max)
+
+    @trace
+    @expression
+    def cumsum(self):
+        """Return cumulative sum of the data."""
+        self._check(dt.is_numerical, "cumsum")
+        return self._accumulate(operator.add)
+
+    @trace
+    @expression
+    def cumprod(self):
+        """Return cumulative product of the data."""
+        self._check(dt.is_numerical, "cumprod")
+        return self._accumulate(operator.mul)
+
+    @trace
+    @expression
+    def mean(self):
+        self._check(dt.is_numerical, "mean")
+        """
+        Return the mean of the non-null values in the series.
+
+        Parameters
+        ----------
+        fill_value : int, float, bool, or str, default None
+            If None, NA/NaN values will be ignore, else they are replaced
+            with fill_value.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> s = ta.Column([1,2,None,4])
+        >>> s.mean(fill_value=999)
+        251.5
+        """
+        m = statistics.mean((float(i) for i in list(self.data())))
+        return m
+
+    @trace
+    @expression
+    def median(self):
+        """Return the median of the values in the data."""
+        self._check(dt.is_numerical, "median")
+        return statistics.median((float(i) for i in list(self.data())))
+
+    @trace
+    @expression
+    def mode(self):
+        """Return the mode(s) of the data."""
+        self._check(dt.is_numerical, "mode")
+        return statistics.mode(self.data())
+
+    @trace
+    @expression
+    def std(self):
+        """Return the stddev(s) of the data."""
+        self._check(dt.is_numerical, "std")
+        return statistics.stdev((float(i) for i in list(self.data())))
+
+    def _accumulate(self, func):
+        total = None
+        res = self._EmptyColumn(self.dtype)
+        for m, i in self.items():
+            if m:
+                res._append_null()
+            elif total is None:
+                res._append_value(i)
+                total = i
+            else:
+                total = func(total, i)
+                res._append_value(total)
+        m = res._finalize()
+        return m
+
+    @trace
+    @expression
+    def percentiles(self, q, interpolation="midpoint"):
+        """Compute the q-th percentile of non-null data."""
+        if interpolation != "midpoint":
+            raise TypeError(
+                f"percentiles for '{type(self).__name__}' with parameter other than 'midpoint' not supported "
+            )
+        if len(self) == 0 or len(q) == 0:
+            return []
+        out = []
+        s = sorted(self)
+        for percent in q:
+            k = (len(self) - 1) * (percent / 100)
+            f = math.floor(k)
+            c = math.ceil(k)
+            if f == c:
+                out.append(s[int(k)])
+                continue
+            d0 = s[int(f)] * (c - k)
+            d1 = s[int(c)] * (k - f)
+            out.append(d0 + d1)
+        return out
+
+    # describe ----------------------------------------------------------------
+    @trace
+    @expression
+    def describe(
+        self,
+        percentiles_=None,
+        include_columns: ty.Union[ty.List[dt.DType], ty.Literal[None]] = None,
+        exclude_columns: ty.Union[ty.List[dt.DType], ty.Literal[None]] = None,
+    ):
+        """
+        Generate descriptive statistics.
+
+        Parameters
+        ----------
+        percentiles_ - array-like, default None
+            Defines which percentiles to calculate.  If None, uses [25,50,75].
+
+        Examples
+        --------
+        >>> import torcharrow
+        >>> t = ta.Column([1,2,999,4])
+        >>> t.describe()
+          index  statistic      value
+        -------  -----------  -------
+              0  count          4
+              1  mean         251.5
+              2  std          498.335
+              3  min            1
+              4  25%            1.5
+              5  50%            3
+              6  75%          501.5
+              7  max          999
+        """
+        import torcharrow.idataframe
+
+        # Not supported: datetime_is_numeric=False,
+        if include_columns is not None or exclude_columns is not None:
+            raise TypeError(
+                f"'include/exclude columns' parameter for '{type(self).__name__}' not supported "
+            )
+        if percentiles_ is None:
+            percentiles_ = [25, 50, 75]
+        percentiles_ = sorted(set(percentiles_))
+        if len(percentiles_) > 0:
+            if percentiles_[0] < 0 or percentiles_[-1] > 100:
+                raise ValueError("percentiles must be betwen 0 and 100")
+
+        if dt.is_numerical(self.dtype):
+            res = self._EmptyColumn(
+                dt.Struct(
+                    [dt.Field("statistic", dt.string), dt.Field("value", dt.float64)]
+                )
+            )
+            res._append(("count", self.count()))
+            res._append(("mean", self.mean()))
+            res._append(("std", self.std()))
+            res._append(("min", self.min()))
+            values = self.percentiles(percentiles_, "midpoint")
+            for p, v in zip(percentiles_, values):
+                res._append((f"{p}%", v))
+            res._append(("max", self.max()))
+            return res._finalize()
+        else:
+            raise ValueError(f"describe undefined for {type(self).__name__}.")
+
+    # unique and montonic -----------------------------------------------------
+    @trace
+    @expression
+    def is_unique(self):
+        """Return boolean if data values are unique."""
+        seen = set()
+        return not any(i in seen or seen.add(i) for i in self)
+
+    # only on flat column
+    @trace
+    @expression
+    def is_monotonic_increasing(self):
+        """Return boolean if values in the object are monotonic increasing"""
+        return self._compare(operator.lt, initial=True)
+
+    @trace
+    @expression
+    def is_monotonic_decreasing(self):
+        """Return boolean if values in the object are monotonic decreasing"""
+        return self._compare(operator.gt, initial=True)
+
+    def _compare(self, op, initial):
+        assert initial in [True, False]
+        if len(self) == 0:
+            return initial
+        it = iter(self)
+        start = next(it)
+        for step in it:
+            if step is None:
+                continue
+            if op(start, step):
+                start = step
+                continue
+            else:
+                return False
+        return True
+
+    # interop ----------------------------------------------------------------
+
+    @trace
+    def to_pandas(self):
+        """Convert self to pandas dataframe"""
+        import pandas as pd  # type: ignore
+
+        # default implementation, normally this should be zero copy...
+        return pd.Series(self)
+
+    @trace
+    def to_arrow(self):
+        """Convert self to pandas dataframe"""
+        import pyarrow as pa  # type: ignore
+
+        # default implementation, normally this should be zero copy...
+        return pa.array(self)
+
+    @trace
+    def to_python(self):
+        """Convert to plain Python container (list of scalars or containers)"""
+        return list(self)
+
+    @trace
+    def to_torch(self):
+        """Convert to PyTorch containers (Tensor, PackedList, PackedMap, etc)"""
+        raise NotImplementedError()
+
+    # batching/unbatching -----------------------------------------------------
+    # NOTE experimental
+    def batch(self, n):
+        assert n > 0
+        i = 0
+        while i < len(self):
+            h = i
+            i = i + n
+            yield self[h:i]
+
+    @staticmethod
+    def unbatch(iter: ty.Iterable[IColumn]):
+        res = []
+        for i in iter:
+            res.append(i)
+        if len(res) == 0:
+            raise ValueError("can't determine column type")
+        return res[0].concat(res[1:])

@@ -1,0 +1,7 @@
+[submodule "pybind11"]
+	path = csrc/velox/pybind11
+	url = https://github.com/pybind/pybind11.git
+[submodule "velox"]
+	path = csrc/velox/velox
+	url = https://github.com/facebookincubator/velox.git
+
