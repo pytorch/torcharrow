@@ -194,13 +194,9 @@ std::shared_ptr<velox::exec::ExprSet> BaseColumn::genUnaryExprSet(
   // Construct Typed Expression
   using InputExprList =
       std::vector<std::shared_ptr<const velox::core::ITypedExpr>>;
-  InputExprList inputTypedExprs{
-      std::make_shared<velox::core::InputTypedExpr>(inputRowType)};
-
   InputExprList fieldAccessTypedExprs{
       std::make_shared<velox::core::FieldAccessTypedExpr>(
           inputRowType->childAt(0),
-          std::move(inputTypedExprs),
           inputRowType->nameOf(0))};
 
   InputExprList callTypedExprs{std::make_shared<velox::core::CallTypedExpr>(
@@ -241,15 +237,12 @@ std::shared_ptr<velox::exec::ExprSet> BaseColumn::genBinaryExprSet(
   // Construct Typed Expression
   using InputExprList =
       std::vector<std::shared_ptr<const velox::core::ITypedExpr>>;
-  InputExprList inputTypedExprs{
-      std::make_shared<velox::core::InputTypedExpr>(inputRowType)};
 
   InputExprList castedFieldAccessTypedExprs;
   for (int i = 0; i < 2; i++) {
     auto fieldAccessTypedExpr =
         std::make_shared<velox::core::FieldAccessTypedExpr>(
             inputRowType->childAt(i),
-            InputExprList(inputTypedExprs),
             inputRowType->nameOf(i));
 
     if (*inputRowType->childAt(i) == *commonType) {
