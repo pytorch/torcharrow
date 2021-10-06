@@ -15,7 +15,7 @@ Coming soon!
 
 ### From Source
 
-If you are installing from source, you will need Python 3.8 or later and a C++17 compiler.
+If you are installing from source, you will need Python 3.8 or later and a C++17 compiler. Also, we highly recommend installing an [Miniconda](https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links) environment.
 
 #### Get the TorchArrow Source
 ```bash
@@ -33,12 +33,23 @@ On MacOS
 [HomeBrew](https://brew.sh/) is required to install development tools on MacOS.
 
 ```bash
-# Install Build Prerequisites
+# Install dependencies from Brew
 brew install --formula ninja cmake ccache protobuf icu4c boost gflags glog libevent lz4 lzo snappy xz zstd
-pip install --user cmake-format regex
 
-# Build Dependencies
+# Build and install other dependencies
 scripts/build_mac_dep.sh ranges_v3 googletest fmt double_conversion folly re2
+```
+
+On Ubuntu (20.04 or later)
+```bash
+# Install dependencies from APT
+apt install -y g++ cmake ccache ninja-build checkinstall \
+    libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
+    libbz2-dev libgflags-dev libgtest-dev libgmock-dev libevent-dev libfmt-dev \
+    libprotobuf-dev liblz4-dev libzstd-dev libre2-dev libsnappy-dev liblzo2-dev \
+    protobuf-compiler
+# Build and install Folly
+scripts/install_ubuntu_folly.sh
 ```
 
 #### Install TorchArrow
