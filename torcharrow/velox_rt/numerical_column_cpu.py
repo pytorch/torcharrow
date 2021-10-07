@@ -271,8 +271,8 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         ) -> bool:
             # Arithmetic operations and bitwise operations are not supported in Velox
             # for boolean type, so let's fall back to Pyhton implementation when both
-            # operands are boolean. T102551531 for tracking native Velox support for
-            # boolean
+            # operands are boolean
+            # TODO: Support native Velox execution for boolean ops
             if dt.is_boolean(self.dtype):
                 if isinstance(other, NumericalColumnCpu) and dt.is_boolean(other.dtype):
                     return True
