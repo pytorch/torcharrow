@@ -425,6 +425,9 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(g & h, [False, False, True, False])
         self.assertEqual(g | h, [True, False, True, True])
         self.assertEqual(g ^ h, [True, False, False, True])
+        self.assertEqual(True & g, [True, False, True, False])
+        self.assertEqual(True | g, [True, True, True, True])
+        self.assertEqual(True ^ g, [False, True, False, True])
         self.assertEqual(~g, [True, True, True, True])
 
         i = self.ts.Column([1, 2, 0])
@@ -432,6 +435,9 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(i & j, [1, 2, 0])
         self.assertEqual(i | j, [3, 2, 3])
         self.assertEqual(i ^ j, [2, 0, 3])
+        self.assertEqual(2 & i, [0, 2, 0])
+        self.assertEqual(2 | i, [3, 2, 2])
+        self.assertEqual(2 ^ i, [3, 0, 2])
         self.assertEqual(~i, [-2, -3, -4])
 
         # Expressions should throw if anything is wrong

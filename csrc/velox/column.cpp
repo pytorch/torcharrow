@@ -476,6 +476,15 @@ std::string opCodeToFunctionName(BinaryOpCode opCode) {
     case BinaryOpCode::Gte: {
       return "gte";
     } break;
+    case BinaryOpCode::BitwiseAnd: {
+      return "bitwise_and";
+    } break;
+    case BinaryOpCode::BitwiseOr: {
+      return "bitwise_or";
+    } break;
+    case BinaryOpCode::BitwiseXor: {
+      return "bitwise_xor";
+    } break;
     default: {
       throw std::logic_error(
           "Unsupported BinaryOpCode: " +

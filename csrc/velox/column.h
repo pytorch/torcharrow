@@ -207,6 +207,9 @@ enum class BinaryOpCode : int16_t {
   Gt,
   Lte,
   Gte,
+  BitwiseAnd,
+  BitwiseOr,
+  BitwiseXor,
   // Do not use NOpCode! This is used for counting elements in BinaryOpCode
   NOpCode,
 };

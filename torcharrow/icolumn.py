@@ -749,61 +749,61 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __add__(self, other):
         """Vectorized a + b."""
-        return self._arithmetic_op(other, operator.add)
+        return self._py_arithmetic_op(other, operator.add)
 
     @trace
     @expression
     def __radd__(self, other):
         """Vectorized b + a."""
-        return self._arithmetic_op(other, IColumn.swap(operator.add))
+        return self._py_arithmetic_op(other, IColumn.swap(operator.add))
 
     @trace
     @expression
     def __sub__(self, other):
         """Vectorized a - b."""
-        return self._arithmetic_op(other, operator.sub)
+        return self._py_arithmetic_op(other, operator.sub)
 
     @trace
     @expression
     def __rsub__(self, other):
         """Vectorized b - a."""
-        return self._arithmetic_op(other, IColumn.swap(operator.sub))
+        return self._py_arithmetic_op(other, IColumn.swap(operator.sub))
 
     @trace
     @expression
     def __mul__(self, other):
         """Vectorized a * b."""
-        return self._arithmetic_op(other, operator.mul)
+        return self._py_arithmetic_op(other, operator.mul)
 
     @trace
     @expression
     def __rmul__(self, other):
         """Vectorized b * a."""
-        return self._arithmetic_op(other, IColumn.swap(operator.mul))
+        return self._py_arithmetic_op(other, IColumn.swap(operator.mul))
 
     @trace
     @expression
     def __floordiv__(self, other):
         """Vectorized a // b."""
-        return self._arithmetic_op(other, operator.floordiv)
+        return self._py_arithmetic_op(other, operator.floordiv)
 
     @trace
     @expression
     def __rfloordiv__(self, other):
         """Vectorized b // a."""
-        return self._arithmetic_op(other, IColumn.swap(operator.floordiv))
+        return self._py_arithmetic_op(other, IColumn.swap(operator.floordiv))
 
     @trace
     @expression
     def __truediv__(self, other):
         """Vectorized a / b."""
-        return self._arithmetic_op(other, operator.truediv, div="__truediv__")
+        return self._py_arithmetic_op(other, operator.truediv, div="__truediv__")
 
     @trace
     @expression
     def __rtruediv__(self, other):
         """Vectorized b / a."""
-        return self._arithmetic_op(
+        return self._py_arithmetic_op(
             other, IColumn.swap(operator.truediv), div="__rtruediv__"
         )
 
@@ -811,97 +811,97 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __mod__(self, other):
         """Vectorized a % b."""
-        return self._arithmetic_op(other, operator.mod)
+        return self._py_arithmetic_op(other, operator.mod)
 
     @trace
     @expression
     def __rmod__(self, other):
         """Vectorized b % a."""
-        return self._arithmetic_op(other, IColumn.swap(operator.mod))
+        return self._py_arithmetic_op(other, IColumn.swap(operator.mod))
 
     @trace
     @expression
     def __pow__(self, other):
         """Vectorized a ** b."""
-        return self._arithmetic_op(other, operator.pow)
+        return self._py_arithmetic_op(other, operator.pow)
 
     @trace
     @expression
     def __rpow__(self, other):
         """Vectorized b ** a."""
-        return self._arithmetic_op(other, IColumn.swap(operator.pow))
+        return self._py_arithmetic_op(other, IColumn.swap(operator.pow))
 
     @trace
     @expression
     def __eq__(self, other):
         """Vectorized a == b."""
-        return self._comparison_op(other, operator.eq)
+        return self._py_comparison_op(other, operator.eq)
 
     @trace
     @expression
     def __ne__(self, other):
         """Vectorized a != b."""
-        return self._comparison_op(other, operator.ne)
+        return self._py_comparison_op(other, operator.ne)
 
     @trace
     @expression
     def __lt__(self, other):
         """Vectorized a < b."""
-        return self._comparison_op(other, operator.le)
+        return self._py_comparison_op(other, operator.le)
 
     @trace
     @expression
     def __gt__(self, other):
         """Vectorized a > b."""
-        return self._comparison_op(other, operator.gt)
+        return self._py_comparison_op(other, operator.gt)
 
     @trace
     @expression
     def __le__(self, other):
         """Vectorized a < b."""
-        return self._comparison_op(other, operator.le)
+        return self._py_comparison_op(other, operator.le)
 
     @trace
     @expression
     def __ge__(self, other):
         """Vectorized a < b."""
-        return self._comparison_op(other, operator.ge)
+        return self._py_comparison_op(other, operator.ge)
 
     @trace
     @expression
     def __or__(self, other):
         """Vectorized bitwise or operation: a | b."""
-        return self._arithmetic_op(other, operator.__or__)
+        return self._py_arithmetic_op(other, operator.__or__)
 
     @trace
     @expression
     def __ror__(self, other):
         """Vectorized reverse bitwise or operation: b | a."""
-        return self._arithmetic_op(other, IColumn.swap(operator.__or__))
+        return self._py_arithmetic_op(other, IColumn.swap(operator.__or__))
 
     @trace
     @expression
     def __xor__(self, other):
         """Vectorized bitwise exclusive or operation: a ^ b."""
-        return self._arithmetic_op(other, operator.__xor__)
+        return self._py_arithmetic_op(other, operator.__xor__)
 
     @trace
     @expression
     def __rxor__(self, other):
         """Vectorized reverse bitwise exclusive or operation: b ^ a."""
-        return self._arithmetic_op(other, IColumn.swap(operator.__xor__))
+        return self._py_arithmetic_op(other, IColumn.swap(operator.__xor__))
 
     @trace
     @expression
     def __and__(self, other):
         """Vectorized bitwise and operation: a & b."""
-        return self._arithmetic_op(other, operator.__and__)
+        return self._py_arithmetic_op(other, operator.__and__)
 
     @trace
     @expression
     def __rand__(self, other):
         """Vectorized reverse bitwise and operation: b & a."""
-        return self._arithmetic_op(other, IColumn.swap(operator.__and__))
+        return self._py_arithmetic_op(other, IColumn.swap(operator.__and__))
 
     @trace
     @expression
@@ -963,7 +963,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         _round = lambda i: round(i, decimals)
         return self._vectorize(_round, self.dtype)
 
-    def _arithmetic_op(self, other, fun, div=""):
+    def _py_arithmetic_op(self, other, fun, div=""):
         others = None
         other_dtype = None
         if isinstance(other, IColumn):
@@ -977,6 +977,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         ):
             if div != "":
                 res_dtype = dt.Float64(self.dtype.nullable or other_dtype.nullable)
+                # TODO Use _fromlist
                 res = self._EmptyColumn(res_dtype)
                 for (m, i), (n, j) in zip(self.items(), others):
                     # TODO Use error handling to mke this more efficient..
@@ -993,6 +994,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 res_dtype = dt.promote(self.dtype, other_dtype)
                 if res_dtype is None:
                     raise TypeError(f"{self.dtype} and {other_dtype} are incompatible")
+                # TODO Use _fromlist
                 res = self._EmptyColumn(res_dtype)
                 for (m, i), (n, j) in zip(self.items(), others):
                     if m or n:
@@ -1002,7 +1004,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 return res._finalize()
         raise TypeError(f"{type(self).__name__}.{fun.__name__} is not supported")
 
-    def _comparison_op(self, other, pred):
+    def _py_comparison_op(self, other, pred):
         others = None
         other_dtype = None
         if isinstance(other, IColumn):
@@ -1011,6 +1013,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         else:
             others = itertools.repeat((False, other))
             other_dtype = dt.infer_dtype_from_value(other)
+        # TODO Use _fromlist
         res = self._EmptyColumn(dt.Boolean(self.dtype.nullable or other_dtype.nullable))
         for (m, i), (n, j) in zip(self.items(), others):
             if m or n:

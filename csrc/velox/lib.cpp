@@ -161,109 +161,142 @@ py::class_<SimpleColumn<T>, BaseColumn>& declareComparisons(
           "eq",
           [](SimpleColumn<T>& a,
              const BaseColumn& b) -> std::unique_ptr<BaseColumn> {
-            return a.callBinaryOp(
-                b,
-                BinaryOpCode::Eq,
-                OperatorType::Direct);
+            return a.callBinaryOp(b, BinaryOpCode::Eq, OperatorType::Direct);
           })
       .def(
           "eq",
           [](SimpleColumn<T>& a,
              const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
-            return a.callBinaryOp(
-                b,
-                BinaryOpCode::Eq,
-                OperatorType::Direct);
+            return a.callBinaryOp(b, BinaryOpCode::Eq, OperatorType::Direct);
           })
       .def(
           "neq",
           [](SimpleColumn<T>& a,
              const BaseColumn& b) -> std::unique_ptr<BaseColumn> {
-            return a.callBinaryOp(
-                b,
-                BinaryOpCode::Neq,
-                OperatorType::Direct);
+            return a.callBinaryOp(b, BinaryOpCode::Neq, OperatorType::Direct);
           })
       .def(
           "neq",
           [](SimpleColumn<T>& a,
              const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
-            return a.callBinaryOp(
-                b,
-                BinaryOpCode::Neq,
-                OperatorType::Direct);
+            return a.callBinaryOp(b, BinaryOpCode::Neq, OperatorType::Direct);
           })
       .def(
           "lt",
           [](SimpleColumn<T>& a,
              const BaseColumn& b) -> std::unique_ptr<BaseColumn> {
-            return a.callBinaryOp(
-                b,
-                BinaryOpCode::Lt,
-                OperatorType::Direct);
+            return a.callBinaryOp(b, BinaryOpCode::Lt, OperatorType::Direct);
           })
       .def(
           "lt",
           [](SimpleColumn<T>& a,
              const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
-            return a.callBinaryOp(
-                b,
-                BinaryOpCode::Lt,
-                OperatorType::Direct);
+            return a.callBinaryOp(b, BinaryOpCode::Lt, OperatorType::Direct);
           })
       .def(
           "gt",
           [](SimpleColumn<T>& a,
              const BaseColumn& b) -> std::unique_ptr<BaseColumn> {
-            return a.callBinaryOp(
-                b,
-                BinaryOpCode::Gt,
-                OperatorType::Direct);
+            return a.callBinaryOp(b, BinaryOpCode::Gt, OperatorType::Direct);
           })
       .def(
           "gt",
           [](SimpleColumn<T>& a,
              const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
-            return a.callBinaryOp(
-                b,
-                BinaryOpCode::Gt,
-                OperatorType::Direct);
+            return a.callBinaryOp(b, BinaryOpCode::Gt, OperatorType::Direct);
           })
       .def(
           "lte",
           [](SimpleColumn<T>& a,
              const BaseColumn& b) -> std::unique_ptr<BaseColumn> {
-            return a.callBinaryOp(
-                b,
-                BinaryOpCode::Lte,
-                OperatorType::Direct);
+            return a.callBinaryOp(b, BinaryOpCode::Lte, OperatorType::Direct);
           })
       .def(
           "lte",
           [](SimpleColumn<T>& a,
              const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
-            return a.callBinaryOp(
-                b,
-                BinaryOpCode::Lte,
-                OperatorType::Direct);
+            return a.callBinaryOp(b, BinaryOpCode::Lte, OperatorType::Direct);
           })
       .def(
           "gte",
           [](SimpleColumn<T>& a,
              const BaseColumn& b) -> std::unique_ptr<BaseColumn> {
-            return a.callBinaryOp(
-                b,
-                BinaryOpCode::Gte,
-                OperatorType::Direct);
+            return a.callBinaryOp(b, BinaryOpCode::Gte, OperatorType::Direct);
           })
       .def(
           "gte",
           [](SimpleColumn<T>& a,
              const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
+            return a.callBinaryOp(b, BinaryOpCode::Gte, OperatorType::Direct);
+          });
+}
+
+template <typename T>
+py::class_<SimpleColumn<T>, BaseColumn>& declareBitwiseOperations(
+    py::class_<SimpleColumn<T>, BaseColumn>& pyClass) {
+  return pyClass
+      .def(
+          "bitwise_and",
+          [](SimpleColumn<T>& a,
+             const BaseColumn& b) -> std::unique_ptr<BaseColumn> {
             return a.callBinaryOp(
-                b,
-                BinaryOpCode::Gte,
-                OperatorType::Direct);
+                b, BinaryOpCode::BitwiseAnd, OperatorType::Direct);
+          })
+      .def(
+          "bitwise_and",
+          [](SimpleColumn<T>& a,
+             const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
+            return a.callBinaryOp(
+                b, BinaryOpCode::BitwiseAnd, OperatorType::Direct);
+          })
+      .def(
+          "bitwise_rand",
+          [](SimpleColumn<T>& a,
+             const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
+            return a.callBinaryOp(
+                b, BinaryOpCode::BitwiseAnd, OperatorType::Reverse);
+          })
+      .def(
+          "bitwise_or",
+          [](SimpleColumn<T>& a,
+             const BaseColumn& b) -> std::unique_ptr<BaseColumn> {
+            return a.callBinaryOp(
+                b, BinaryOpCode::BitwiseOr, OperatorType::Direct);
+          })
+      .def(
+          "bitwise_or",
+          [](SimpleColumn<T>& a,
+             const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
+            return a.callBinaryOp(
+                b, BinaryOpCode::BitwiseOr, OperatorType::Direct);
+          })
+      .def(
+          "bitwise_ror",
+          [](SimpleColumn<T>& a,
+             const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
+            return a.callBinaryOp(
+                b, BinaryOpCode::BitwiseOr, OperatorType::Reverse);
+          })
+      .def(
+          "bitwise_xor",
+          [](SimpleColumn<T>& a,
+             const BaseColumn& b) -> std::unique_ptr<BaseColumn> {
+            return a.callBinaryOp(
+                b, BinaryOpCode::BitwiseXor, OperatorType::Direct);
+          })
+      .def(
+          "bitwise_xor",
+          [](SimpleColumn<T>& a,
+             const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
+            return a.callBinaryOp(
+                b, BinaryOpCode::BitwiseXor, OperatorType::Direct);
+          })
+      .def(
+          "bitwise_rxor",
+          [](SimpleColumn<T>& a,
+             const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
+            return a.callBinaryOp(
+                b, BinaryOpCode::BitwiseXor, OperatorType::Reverse);
           });
 }
 
@@ -375,10 +408,14 @@ template <
     velox::TypeKind kind,
     typename T = typename velox::TypeTraits<kind>::NativeType>
 py::class_<SimpleColumn<T>, BaseColumn> declareIntegralType(py::module& m) {
-  return declareNumericalType<kind>(m).def(
-      "append", [](SimpleColumn<T>& self, py::int_ value) {
-        self.append(py::cast<T>(value));
-      });
+  py::class_<SimpleColumn<T>, BaseColumn> pyClass =
+      declareNumericalType<kind>(m).def(
+          "append", [](SimpleColumn<T>& self, py::int_ value) {
+            self.append(py::cast<T>(value));
+          });
+  declareBitwiseOperations(pyClass);
+
+  return pyClass;
 }
 
 template <
@@ -674,6 +711,7 @@ PYBIND11_MODULE(_torcharrow, m) {
                                  })
                              .def("invert", &SimpleColumn<bool>::invert);
   declareComparisons(boolColumnClass);
+  declareBitwiseOperations(boolColumnClass);
 
   declareFloatingType<velox::TypeKind::REAL>(m);
   declareFloatingType<velox::TypeKind::DOUBLE>(m);

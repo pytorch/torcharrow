@@ -2,7 +2,7 @@ import array as ar
 import math
 import operator
 import statistics
-from typing import Dict, List, Literal, Optional, Union, cast
+from typing import Dict, List, Literal, Optional, Union, cast, Callable
 
 import numpy as np
 import torcharrow._torcharrow as velox
@@ -226,9 +226,8 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         return len(result)
 
     # operators ---------------------------------------------------------------
-
     def _checked_binary_op_call(
-        self, other: Union[INumericalColumn, int, float], op_name: str
+        self, other: Union[INumericalColumn, int, float, bool], op_name: str
     ) -> INumericalColumn:
         if isinstance(other, INumericalColumn):
             self.scope.check_is_same(other.scope)
@@ -243,24 +242,16 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             )
         else:
             # other is scalar
+            assert (
+                isinstance(other, int)
+                or isinstance(other, float)
+                or isinstance(other, bool)
+            )
             result_col = getattr(self._data, op_name)(other)
             result_dtype = result_col.dtype().with_null(self.dtype.nullable)
             return ColumnFromVelox.from_velox(
                 self.scope, self.device, result_dtype, result_col, True
             )
-
-    def _checked_binary_rop_call(
-        self, other: Union[int, float], op_name: str
-    ) -> INumericalColumn:
-        # other.__add__(self) will be called if other is NumericalColumnCpu
-        assert isinstance(other, int) or isinstance(other, float)
-
-        # other is scalar
-        result_col = getattr(self._data, op_name)(other)
-        result_dtype = result_col.dtype().with_null(self.dtype.nullable)
-        return ColumnFromVelox.from_velox(
-            self.scope, self.device, result_dtype, result_col, True
-        )
 
     def _checked_comparison_op_call(
         self,
@@ -272,41 +263,72 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             other = self.scope.Column(other)
         return self._checked_binary_op_call(other, op_name)
 
+    def _checked_arithmetic_op_call(
+        self, other: Union[int, float, bool], op_name: str, fallback_py_op: Callable
+    ) -> INumericalColumn:
+        def should_use_py_impl(
+            self, other: Union[INumericalColumn, int, float, bool]
+        ) -> bool:
+            # Arithmetic operations and bitwise operations are not supported in Velox
+            # for boolean type, so let's fall back to Pyhton implementation when both
+            # operands are boolean. T102551531 for tracking native Velox support for
+            # boolean
+            if dt.is_boolean(self.dtype):
+                if isinstance(other, NumericalColumnCpu) and dt.is_boolean(other.dtype):
+                    return True
+                # TODO
+                # After we match PyTorch semantic to promote boolean type to integer
+                # when other is an integer scalar, we should return False for that case
+                elif not isinstance(other, NumericalColumnCpu):
+                    return True
+            return False
+
+        if should_use_py_impl(self, other):
+            return self._py_arithmetic_op(other, fallback_py_op)
+
+        return self._checked_binary_op_call(other, op_name)
+
     @trace
     @expression
     def __add__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
         """Vectorized a + b."""
-        return self._checked_binary_op_call(other, "add")
+        return self._checked_arithmetic_op_call(other, "add", operator.add)
 
     @trace
     @expression
     def __radd__(self, other: Union[int, float]) -> INumericalColumn:
         """Vectorized b + a."""
-        return self._checked_binary_rop_call(other, "radd")
+        return self._checked_arithmetic_op_call(
+            other, "radd", IColumn.swap(operator.add)
+        )
 
     @trace
     @expression
     def __sub__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
         """Vectorized a - b."""
-        return self._checked_binary_op_call(other, "sub")
+        return self._checked_arithmetic_op_call(other, "sub", operator.sub)
 
     @trace
     @expression
     def __rsub__(self, other: Union[int, float]) -> INumericalColumn:
         """Vectorized b - a."""
-        return self._checked_binary_rop_call(other, "rsub")
+        return self._checked_arithmetic_op_call(
+            other, "rsub", IColumn.swap(operator.sub)
+        )
 
     @trace
     @expression
     def __mul__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
         """Vectorized a * b."""
-        return self._checked_binary_op_call(other, "mul")
+        return self._checked_arithmetic_op_call(other, "mul", operator.mul)
 
     @trace
     @expression
     def __rmul__(self, other: Union[int, float]) -> INumericalColumn:
         """Vectorized b * a."""
-        return self._checked_binary_rop_call(other, "rmul")
+        return self._checked_arithmetic_op_call(
+            other, "rmul", IColumn.swap(operator.mul)
+        )
 
     @trace
     @expression
@@ -424,13 +446,15 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     @expression
     def __mod__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
         """Vectorized a % b."""
-        return self._checked_binary_op_call(other, "mod")
+        return self._checked_arithmetic_op_call(other, "mod", operator.mod)
 
     @trace
     @expression
     def __rmod__(self, other: Union[int, float]) -> INumericalColumn:
         """Vectorized b % a."""
-        return self._checked_binary_rop_call(other, "rmod")
+        return self._checked_arithmetic_op_call(
+            other, "rmod", IColumn.swap(operator.mod)
+        )
 
     @trace
     @expression
@@ -536,7 +560,49 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         """Vectorized a >= b."""
         return self._checked_comparison_op_call(other, "gte")
 
-    # TODO __or__, __ror__, __xor__, __rxor__, __and__, __rand__, __invert__
+    @trace
+    @expression
+    def __and__(self, other: Union[INumericalColumn, int]) -> INumericalColumn:
+        """Vectorized a & b."""
+        return self._checked_arithmetic_op_call(other, "bitwise_and", operator.__and__)
+
+    @trace
+    @expression
+    def __rand__(self, other: Union[int]) -> INumericalColumn:
+        """Vectorized b & a."""
+        return self._checked_arithmetic_op_call(
+            other, "bitwise_rand", IColumn.swap(operator.__and__)
+        )
+
+    @trace
+    @expression
+    def __or__(self, other: Union[INumericalColumn, int]) -> INumericalColumn:
+        """Vectorized a | b."""
+        return self._checked_arithmetic_op_call(other, "bitwise_or", operator.__or__)
+
+    @trace
+    @expression
+    def __ror__(self, other: Union[int]) -> INumericalColumn:
+        """Vectorized b | a."""
+        return self._checked_arithmetic_op_call(
+            other, "bitwise_ror", IColumn.swap(operator.__or__)
+        )
+
+    @trace
+    @expression
+    def __xor__(self, other: Union[INumericalColumn, int]) -> INumericalColumn:
+        """Vectorized a | b."""
+        return self._checked_arithmetic_op_call(other, "bitwise_xor", operator.__xor__)
+
+    @trace
+    @expression
+    def __rxor__(self, other: Union[int]) -> INumericalColumn:
+        """Vectorized b | a."""
+        return self._checked_arithmetic_op_call(
+            other, "bitwise_rxor", IColumn.swap(operator.__xor__)
+        )
+
+    # TODO __invert__
 
     @trace
     @expression
