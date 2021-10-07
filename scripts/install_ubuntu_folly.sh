@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 # Based on https://github.com/facebookincubator/velox/blob/475bb6538c3e57c8c347bca76cb783e315c9c261/scripts/setup-ubuntu.sh#L55-L80
 
 # Folly must be built with the same compiler flags so that some low level types

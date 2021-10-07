@@ -89,5 +89,7 @@ Still to be done:
 * Add Tensors as example UDTs
 * [WORKS, example to be written] Using Numba for Jitting
 
+## License
 
+TorchArrow is BSD licensed, as found in the [LICENSE](LICENSE) file.
 

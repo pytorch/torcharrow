@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 # For relative imports to work in Python 3.6
 from .column_factory import *  # dependencies: None
 from .expression import *  # dependencies: None

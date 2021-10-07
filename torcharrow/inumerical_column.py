@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import torcharrow.dtypes as dt
 from torcharrow.column_factory import Device
 

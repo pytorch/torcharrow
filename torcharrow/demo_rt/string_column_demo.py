@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import array as ar
 from dataclasses import dataclass
 from typing import cast, List

@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 from typing import Tuple, Callable, Dict, ClassVar
 
 # ---------------------------------------------------------------------------
