@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
 add_library(
   torcharrow_udfs OBJECT
   functions.h

@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import TypeVar, Generic, Union, List, Any, Optional, Tuple

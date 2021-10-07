@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import statistics
 import unittest
 from math import ceil, floor

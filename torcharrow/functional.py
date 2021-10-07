@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 from types import ModuleType
 from typing import Dict, Set
 

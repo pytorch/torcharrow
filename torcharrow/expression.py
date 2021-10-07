@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import operator
 from abc import ABC
 from keyword import iskeyword

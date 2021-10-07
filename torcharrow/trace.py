@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import functools
 from typing import List, Tuple, Type, Optional
 

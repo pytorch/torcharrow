@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import timeit
 from abc import ABC, abstractmethod
 from typing import List, Optional

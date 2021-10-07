@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 from typing import List, Optional, cast
 
 # Skipping analyzing 'numpy': found module but no type hints or library stubs
