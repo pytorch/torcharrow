@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import array as ar
 import warnings
 from typing import List

@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import torcharrow._torcharrow as velox
 from torcharrow.dtypes import (
     get_underlying_dtype,

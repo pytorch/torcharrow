@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import torcharrow._torcharrow as velox
 from torcharrow.column_factory import Device
 from torcharrow.dtypes import DType

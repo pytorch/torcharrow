@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import types
 
 import torcharrow._torcharrow as ta
