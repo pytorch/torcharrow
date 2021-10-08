@@ -2,10 +2,8 @@
 #pragma once
 
 #include "string_functions.h"
-#include "velox/exec/tests/utils/FunctionUtils.h"
 #include "velox/expression/VectorFunction.h"
 #include "velox/functions/lib/Re2Functions.h"
-#include "velox/parse/Expressions.h"
 
 namespace facebook::torcharrow::functions {
 
@@ -25,10 +23,6 @@ inline void registerTorchArrowFunctions() {
       "match_re",
       velox::functions::re2MatchSignatures(),
       velox::functions::makeRe2Match);
-}
-
-inline void initializeTorchArrowTypeResolver() {
-  velox::exec::test::registerTypeResolver();
 }
 
 void registerUserDefinedFunctions();
