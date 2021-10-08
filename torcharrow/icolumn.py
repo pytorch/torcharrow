@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import abc
-import functools
 import itertools
 import math
 import operator
 import statistics
 import typing as ty
 from collections import OrderedDict, defaultdict
+from functools import partial, reduce
 
 import numpy as np
 import torcharrow.dtypes as dt
@@ -437,19 +437,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 yield i
 
     def _vectorize(self, fun, dtype: dt.DType):
-        # note: _vectorize is a special case for IColumn.map,
-        # with na_action='ignore' and arg is always a function
-        #
-        # TODO: consolidate _vectorize() with map()
-        default = dtype.default_value()
-        res = []
-        for m, i in self.items():
-            if m:
-                res.append(None)
-            else:
-                res.append(fun(i))
-
-        return self._Column(res, dtype)
+        return self.map(fun, "ignore", dtype)
 
     # functools map/filter/reduce ---------------------------------------------
 
@@ -961,8 +949,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def round(self, decimals=0):
         """Round each value in a data to the given number of decimals."""
-        _round = lambda i: round(i, decimals)
-        return self._vectorize(_round, self.dtype)
+        return self._vectorize(partial(round, ndigits=decimals), self.dtype)
 
     def _py_arithmetic_op(self, other, fun, div=""):
         others = None
@@ -1112,7 +1099,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def prod(self):
         """Return produce of the non-null values in the data"""
         self._check(dt.is_numerical, "prod")
-        return functools.reduce(operator.mul, self.data(), 1)
+        return reduce(operator.mul, self.data(), 1)
 
     @trace
     @expression
