@@ -62,11 +62,10 @@ add_subdirectory(functions)
 target_link_libraries(_torcharrow PRIVATE
   velox_vector
   velox_memory
+  velox_buffer
   velox_core
   velox_functions_prestosql
-  velox_parse_expression
-  velox_parse_parser
-  velox_exec_test_util
+  velox_function_registry
   torcharrow_udfs)
 
 #target_compile_definitions(_torcharrow PRIVATE)
