@@ -1,21 +1,18 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include "column.h"
-#include <velox/common/memory/Memory.h>
-#include <velox/type/Type.h>
-#include <velox/vector/ComplexVector.h>
-#include <chrono>
 #include <memory>
-#include <ratio>
 #include "bindings.h"
+
+#include "velox/common/memory/Memory.h"
+#include "velox/type/Type.h"
+#include "velox/vector/ComplexVector.h"
 #include "velox/common/base/Exceptions.h"
 #include "velox/core/Expressions.h"
 #include "velox/core/ITypedExpr.h"
 #include "velox/expression/Expr.h"
-#include "velox/functions/prestosql/CoreFunctions.h"
-#include "velox/parse/Expressions.h"
-#include "velox/parse/ExpressionsParser.h"
 #include "velox/type/Type.h"
 #include "velox/vector/BaseVector.h"
+#include "velox/functions/FunctionRegistry.h"
 
 namespace py = pybind11;
 
@@ -347,40 +344,30 @@ std::unique_ptr<BaseColumn> BaseColumn::factoryNullaryUDF(
 std::unique_ptr<OperatorHandle> OperatorHandle::fromGenericUDF(
     velox::RowTypePtr inputRowType,
     const std::string& udfName) {
-  // Generate the expression
-  std::stringstream ss;
-  ss << udfName << "(";
-  bool first = true;
-  for (int i = 0; i < inputRowType->size(); i++) {
-    if (!first) {
-      ss << ",";
-    }
-    ss << inputRowType->nameOf(i);
-    first = false;
-  }
-  ss << ")";
+  velox::TypePtr outputType = velox::resolveFunction(udfName, inputRowType->children());
 
-  return OperatorHandle::fromExpression(inputRowType, ss.str());
-}
-
-std::unique_ptr<OperatorHandle> OperatorHandle::fromExpression(
-    velox::RowTypePtr inputRowType,
-    const std::string& expr) {
-  std::shared_ptr<const velox::core::IExpr> untypedExpr =
-      velox::parse::parseExpr(expr);
-  std::shared_ptr<const velox::core::ITypedExpr> typedExpr =
-      velox::core::Expressions::inferTypes(
-          untypedExpr,
-          inputRowType,
-          TorchArrowGlobalStatic::execContext().pool());
-
-  using TypedExprList =
+  // Construct Typed Expression
+  using InputExprList =
       std::vector<std::shared_ptr<const velox::core::ITypedExpr>>;
-  TypedExprList typedExprs{typedExpr};
+
+  InputExprList fieldAccessTypedExprs;
+  fieldAccessTypedExprs.reserve(inputRowType->size());
+  for (int i = 0; i < inputRowType->size(); i++) {
+    auto fieldAccessTypedExpr =
+        std::make_shared<velox::core::FieldAccessTypedExpr>(
+            inputRowType->childAt(i),
+            inputRowType->nameOf(i));
+
+    fieldAccessTypedExprs.push_back(fieldAccessTypedExpr);
+  }
+
+  InputExprList callTypedExprs{std::make_shared<velox::core::CallTypedExpr>(
+      outputType, std::move(fieldAccessTypedExprs), udfName)};
+
   return std::make_unique<OperatorHandle>(
       inputRowType,
       std::make_shared<velox::exec::ExprSet>(
-          std::move(typedExprs), &TorchArrowGlobalStatic::execContext()));
+          std::move(callTypedExprs), &TorchArrowGlobalStatic::execContext()));
 }
 
 std::unique_ptr<BaseColumn> OperatorHandle::call(velox::vector_size_t size) {

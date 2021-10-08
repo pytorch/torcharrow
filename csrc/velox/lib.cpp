@@ -750,7 +750,6 @@ PYBIND11_MODULE(_torcharrow, m) {
   velox::functions::registerVectorFunctions();
 
   functions::registerTorchArrowFunctions();
-  functions::initializeTorchArrowTypeResolver();
 
   functions::registerUserDefinedFunctions();
 

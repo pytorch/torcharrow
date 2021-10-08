@@ -2,12 +2,13 @@
 #pragma once
 
 #include <pybind11/pybind11.h>
-#include <velox/common/memory/Memory.h>
-#include <velox/core/QueryCtx.h>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include "vector.h"
+
+#include "velox/common/memory/Memory.h"
+#include "velox/core/QueryCtx.h"
 #include "velox/common/base/Exceptions.h"
 #include "velox/expression/Expr.h"
 #include "velox/type/Type.h"
@@ -67,13 +68,11 @@ struct OperatorHandle {
       std::shared_ptr<velox::exec::ExprSet> exprSet)
       : inputRowType_(inputRowType), exprSet_(exprSet) {}
 
+  // Create OperatorHandle based on the function name and input type
+  // Doesn't handle type promotion yet
   static std::unique_ptr<OperatorHandle> fromGenericUDF(
       velox::RowTypePtr inputRowType,
       const std::string& udfName);
-
-  static std::unique_ptr<OperatorHandle> fromExpression(
-      velox::RowTypePtr inputRowType,
-      const std::string& expr);
 
   static velox::RowVectorPtr wrapRowVector(
       const std::vector<velox::VectorPtr>& children,
@@ -318,7 +317,7 @@ class BaseColumn {
     return _delegate;
   }
 
-  // TODO: add output type
+  // TODO: deprecate this method and migrate to OperatorHandle::fromGenericUDF
   static std::shared_ptr<velox::exec::ExprSet> genUnaryExprSet(
       // input row type is required even for unary op since the input vector
       // needs to be wrapped into a velox::RowVector before evaluation.
@@ -537,6 +536,8 @@ class SimpleColumn : public BaseColumn {
 
   //
   // string column ops
+  // TODO: remove these method binding and migrate to the
+  // genericUnaryUDF methods
   //
   std::unique_ptr<BaseColumn> lower() {
     static_assert(
@@ -582,7 +583,7 @@ class SimpleColumn : public BaseColumn {
     const static auto inputRowType =
         velox::ROW({"c0"}, {velox::CppToType<T>::create()});
     const static auto op =
-        OperatorHandle::fromExpression(inputRowType, "torcharrow_isalnum(c0)");
+        OperatorHandle::fromGenericUDF(inputRowType, "torcharrow_isalnum");
     return op->call({_delegate});
   }
 
@@ -593,8 +594,8 @@ class SimpleColumn : public BaseColumn {
 
     const static auto inputRowType =
         velox::ROW({"c0"}, {velox::CppToType<T>::create()});
-    const static auto op = OperatorHandle::fromExpression(
-        inputRowType, "torcharrow_isinteger(c0)");
+    const static auto op = OperatorHandle::fromGenericUDF(
+        inputRowType, "torcharrow_isinteger");
     return op->call({_delegate});
   }
 
@@ -606,7 +607,7 @@ class SimpleColumn : public BaseColumn {
     const static auto inputRowType =
         velox::ROW({"c0"}, {velox::CppToType<T>::create()});
     const static auto op =
-        OperatorHandle::fromExpression(inputRowType, "torcharrow_islower(c0)");
+        OperatorHandle::fromGenericUDF(inputRowType, "torcharrow_islower");
     return op->call({_delegate});
   }
 };
