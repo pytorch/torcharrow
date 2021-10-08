@@ -145,12 +145,12 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """PRIVATE Column factory; data must be in the expected representation"""
         return self.scope._FullColumn(data, dtype, self.device, mask)
 
-    def _FromPython(self, data: ty.List, dtype: dt.DType):
+    def _FromPyList(self, data: ty.List, dtype: dt.DType):
         """
         Convert from plain Python container (list of scalars or containers).
         Corresponding to :meth:`IColumn.to_python`.
         """
-        return self.scope._FromPython(data, dtype, self.device)
+        return self.scope._FromPyList(data, dtype, self.device)
 
     def _Column(self, data=None, dtype: ty.Optional[dt.DType] = None):
         return self.scope.Column(data, dtype, device=self.device)
@@ -449,7 +449,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             else:
                 res.append(fun(i))
 
-        return self._FromPython(res, dtype)
+        return self._Column(res, dtype)
 
     # functools map/filter/reduce ---------------------------------------------
 
@@ -506,7 +506,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                     res.append(None)
 
         dtype = dtype or self._dtype
-        return self._Column(res, dtype)
+        return self._FromPyList(res, dtype)
 
     @staticmethod
     def _format_transform_column(c: IColumn, format: str):
@@ -973,37 +973,35 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         else:
             others = itertools.repeat((False, other))
             other_dtype = dt.infer_dtype_from_value(other)
-        if dt.is_boolean_or_numerical(self.dtype) and dt.is_boolean_or_numerical(
+
+        if not dt.is_boolean_or_numerical(self.dtype) or not dt.is_boolean_or_numerical(
             other_dtype
         ):
-            if div != "":
-                res_dtype = dt.Float64(self.dtype.nullable or other_dtype.nullable)
-                # TODO Use _fromlist
-                res = self._EmptyColumn(res_dtype)
-                for (m, i), (n, j) in zip(self.items(), others):
-                    # TODO Use error handling to mke this more efficient..
-                    if m or n:
-                        res._append_null()
-                    elif div == "__truediv__" and j == 0:
-                        res._append_null()
-                    elif div == "__rtruediv__" and i == 0:
-                        res._append_null()
-                    else:
-                        res._append_value(fun(i, j))
-                return res._finalize()
-            else:
-                res_dtype = dt.promote(self.dtype, other_dtype)
-                if res_dtype is None:
-                    raise TypeError(f"{self.dtype} and {other_dtype} are incompatible")
-                # TODO Use _fromlist
-                res = self._EmptyColumn(res_dtype)
-                for (m, i), (n, j) in zip(self.items(), others):
-                    if m or n:
-                        res._append_null()
-                    else:
-                        res._append_value(fun(i, j))
-                return res._finalize()
-        raise TypeError(f"{type(self).__name__}.{fun.__name__} is not supported")
+            raise TypeError(f"{type(self).__name__}.{fun.__name__} is not supported")
+
+        res = []
+        if div != "":
+            res_dtype = dt.Float64(self.dtype.nullable or other_dtype.nullable)
+            for (m, i), (n, j) in zip(self.items(), others):
+                # TODO Use error handling to mke this more efficient..
+                if m or n:
+                    res.append(None)
+                elif div == "__truediv__" and j == 0:
+                    res.append(None)
+                elif div == "__rtruediv__" and i == 0:
+                    res.append(None)
+                else:
+                    res.append(fun(i, j))
+        else:
+            res_dtype = dt.promote(self.dtype, other_dtype)
+            if res_dtype is None:
+                raise TypeError(f"{self.dtype} and {other_dtype} are incompatible")
+            for (m, i), (n, j) in zip(self.items(), others):
+                if m or n:
+                    res.append(None)
+                else:
+                    res.append(fun(i, j))
+        return self._FromPyList(res, res_dtype)
 
     def _py_comparison_op(self, other, pred):
         others = None
@@ -1014,14 +1012,14 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         else:
             others = itertools.repeat((False, other))
             other_dtype = dt.infer_dtype_from_value(other)
-        # TODO Use _fromlist
-        res = self._EmptyColumn(dt.Boolean(self.dtype.nullable or other_dtype.nullable))
+        res_dtype = dt.Boolean(self.dtype.nullable or other_dtype.nullable)
+        res = []
         for (m, i), (n, j) in zip(self.items(), others):
             if m or n:
-                res._append_null()
+                res.append(None)
             else:
-                res._append_value(pred(i, j))
-        return res._finalize()
+                res.append(pred(i, j))
+        return self._FromPyList(res, res_dtype)
 
     # data cleaning -----------------------------------------------------------
 

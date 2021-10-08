@@ -364,7 +364,7 @@ class TestSimpleColumns(unittest.TestCase):
         self.assertTrue(isinstance(col.type(), ta.VeloxType_VARCHAR))
         self.assert_Column(col, ["abc"] * 6)
 
-    def test_FromPython(self):
+    def test_FromPyList(self):
         #  BIGINT
         col = ta.Column(ta.VeloxType_BIGINT(), [1, 2, None, 4])
         self.assertTrue(isinstance(col.type(), ta.VeloxType_BIGINT))

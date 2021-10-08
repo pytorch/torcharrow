@@ -51,7 +51,7 @@ class BenchmarkListConstruction:
             self.ts = ts
 
         def run(self):
-            col = self.ts._FromPython(self.test_strings, dtype=dt.string)
+            col = self.ts._FromPyList(self.test_strings, dtype=dt.string)
 
     def runListConstruction(
         self, runner: ListConstructionRunner, test_strings: Optional[List[str]] = None

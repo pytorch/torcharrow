@@ -291,6 +291,7 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(c * d, [0, 5, 18])
 
         self.assertEqual(c / 2, [0.0, 0.5, 1.5])
+        self.assertEqual(list(c / 0), [None, None, None])
 
         self.assertEqual(
             [round(i, 2) if i is not None else None for i in list(2 / c)],

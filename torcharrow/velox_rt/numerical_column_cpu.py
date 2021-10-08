@@ -396,10 +396,13 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             col = velox.Column(get_velox_type(dt.float64))
             assert len(self) == len(other)
             for i in range(len(self)):
+                other_data = other.getdata(i)
                 if self.getmask(i) or other.getmask(i):
                     col.append_null()
+                elif other_data == 0:
+                    col.append_null()
                 else:
-                    col.append(self.getdata(i) / other.getdata(i))
+                    col.append(self.getdata(i) / other_data)
             return ColumnFromVelox.from_velox(
                 self.scope, self.device, dt.float64, col, True
             )
@@ -407,6 +410,8 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             col = velox.Column(get_velox_type(dt.float64))
             for i in range(len(self)):
                 if self.getmask(i):
+                    col.append_null()
+                elif other == 0:
                     col.append_null()
                 else:
                     col.append(self.getdata(i) / other)
@@ -424,20 +429,26 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             col = velox.Column(get_velox_type(dt.float64))
             assert len(self) == len(other)
             for i in range(len(self)):
+                self_data = self.getdata(i)
                 if self.getmask(i) or other.getmask(i):
                     col.append_null()
+                elif self_data == 0:
+                    col.append_null()
                 else:
-                    col.append(other.getdata(i) / self.getdata(i))
+                    col.append(other.getdata(i) / self_data)
             return ColumnFromVelox.from_velox(
                 self.scope, self.device, dt.float64, col, True
             )
         else:
             col = velox.Column(get_velox_type(dt.float64))
             for i in range(len(self)):
+                self_data = self.getdata(i)
                 if self.getmask(i) or self.getdata(i) == 0:
                     col.append_null()
+                elif self_data == 0:
+                    col.append_null()
                 else:
-                    col.append(other / self.getdata(i))
+                    col.append(other / self_data)
             return ColumnFromVelox.from_velox(
                 self.scope, self.device, dt.float64, col, True
             )

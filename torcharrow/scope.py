@@ -131,7 +131,7 @@ class Scope:
 
         return call(self, device, data, dtype, mask)
 
-    def _FromPython(self, data: ty.List, dtype: dt.DType, device=""):
+    def _FromPyList(self, data: ty.List, dtype: dt.DType, device=""):
         """
         Convert from plain Python container (list of scalars or containers).
         """
@@ -186,7 +186,7 @@ class Scope:
                 raise ValueError("Column cannot infer type from data")
             if dt.contains_tuple(dtype):
                 raise TypeError("Cannot infer type from Python tuple")
-            return self._FromPython(data, dtype, device)
+            return self._FromPyList(data, dtype, device)
 
         if data is not None:
             warnings.warn(
