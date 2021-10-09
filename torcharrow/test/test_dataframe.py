@@ -2,6 +2,7 @@
 import unittest
 from typing import List, Optional, NamedTuple
 
+import numpy.testing
 import torcharrow.dtypes as dt
 from torcharrow import IDataFrame, Scope, me
 
@@ -95,7 +96,7 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(df[["a", "c"]].columns, ["a", "c"])
         # pick and index
         self.assertEqual(list(df[["a", "c"]]["a"]), [None] * 3)
-        self.assertEqual(list(df[["a", "c"]]["c"]), [1.1, 2.2, 3.3])
+        numpy.testing.assert_almost_equal(list(df[["a", "c"]]["c"]), [1.1, 2.2, 3.3])
 
         # slice
 
@@ -175,7 +176,7 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(
             df.dtype,
             dt.Struct(
-                [dt.Field("a", dt.int64), dt.Field("b", dt.Float64(nullable=True))]
+                [dt.Field("a", dt.int64), dt.Field("b", dt.Float32(nullable=True))]
             ),
         )
 

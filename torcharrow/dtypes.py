@@ -567,7 +567,9 @@ def infer_dtype_from_value(value):
         return prt(value, boolean)
     if isinstance(value, (int, np.integer)):
         return prt(value, int64)
-    if isinstance(value, (float, np.float32, np.float64)):
+    if isinstance(value, (float, np.float32)):
+        return prt(value, float32)
+    if isinstance(value, np.float64):
         return prt(value, float64)
     if isinstance(value, (str, np.str_)):
         return prt(value, string)
@@ -633,7 +635,7 @@ _promotion_list = [
     ("bcs", "bcs", int16),
     ("bcsi", "bcsi", int32),
     ("bcsil", "bcsil", int64),
-    ("f", "f", float32),
+    ("bcsilf", "bcsilf", float32),
     ("bcsilfg", "bcsilfg", float64),
 ]
 

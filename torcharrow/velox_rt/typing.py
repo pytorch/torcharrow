@@ -7,6 +7,7 @@ from torcharrow.dtypes import (
     int16,
     int32,
     int64,
+    float32,
     float64,
     string,
     boolean,
@@ -29,6 +30,8 @@ def get_velox_type(dtype: DType):
         return velox.VeloxType_SMALLINT()
     elif underlying_dtype == int8:
         return velox.VeloxType_TINYINT()
+    elif underlying_dtype == float32:
+        return velox.VeloxType_REAL()
     elif underlying_dtype == float64:
         return velox.VeloxType_DOUBLE()
     elif underlying_dtype == string:

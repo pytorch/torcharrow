@@ -2,8 +2,9 @@
 import operator
 import unittest
 
+import numpy.testing
 import torcharrow.dtypes as dt
-from torcharrow import Scope, IMapColumn
+from torcharrow import IMapColumn
 
 
 class TestMapColumn(unittest.TestCase):
@@ -20,20 +21,21 @@ class TestMapColumn(unittest.TestCase):
     def base_test_infer(self):
         c = self.ts.Column(
             [
-                {"helsinki": [-1.3, 21.5], "moscow": [-4.0, 24.3]},
+                {"helsinki": [-1.0, 21.0], "moscow": [-4.0, 24.0]},
                 {},
-                {"nowhere": [], "algiers": [11.2, 25, 2], "kinshasa": [22.2, 26.8]},
+                {"nowhere": [], "algiers": [11.0, 25, 2], "kinshasa": [22.0, 26.0]},
             ]
         )
         self.assertIsInstance(c, IMapColumn)
         self.assertEqual(len(c), 3)
+        self.assertEqual(c.dtype, dt.Map(dt.string, dt.List(dt.float32)))
 
         self.assertEqual(
             list(c),
             [
-                {"helsinki": [-1.3, 21.5], "moscow": [-4.0, 24.3]},
+                {"helsinki": [-1.0, 21.0], "moscow": [-4.0, 24.0]},
                 {},
-                {"nowhere": [], "algiers": [11.2, 25, 2], "kinshasa": [22.2, 26.8]},
+                {"nowhere": [], "algiers": [11.0, 25, 2], "kinshasa": [22.0, 26.0]},
             ],
         )
 

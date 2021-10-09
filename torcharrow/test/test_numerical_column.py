@@ -3,6 +3,7 @@ import statistics
 import unittest
 from math import ceil, floor
 
+import numpy.testing
 import torcharrow.dtypes as dt
 from torcharrow import IColumn, INumericalColumn
 
@@ -129,8 +130,11 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(list(c), [1, 1])
 
         # float
+        c = self.ts.Column([1.0, 2.0])
+        self.assertEqual(c.dtype, dt.float32)
+        self.assertEqual(list(c), [1.0, 2.0])
         c = self.ts.Column([1, 2.0])
-        self.assertEqual(c.dtype, dt.float64)
+        self.assertEqual(c.dtype, dt.float32)
         self.assertEqual(list(c), [1.0, 2.0])
 
         # dt.string:: to do in a different tests
@@ -266,6 +270,8 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(+-c, [0, -1, -3])
 
         self.assertEqual(c + 1, [1, 2, 4])
+        self.assertEqual(e + 1, [2.0, 2.0, 8.0])
+
         # self.assertEqual(c.add(1), [1, 2, 4])
 
         self.assertEqual(1 + c, [1, 2, 4])
@@ -413,13 +419,23 @@ class TestNumericalColumn(unittest.TestCase):
     def base_test_math_ops(self):
         c = [1.0, 4.2, 2, 7, -9, -2.5]
         C = self.ts.Column(c + [None])
+        self.assertEqual(C.dtype, dt.Float32(nullable=True))
 
-        self.assertEqual(list(C.abs()), [abs(i) for i in c] + [None])
-        self.assertEqual(list(C.ceil()), [ceil(i) for i in c] + [None])
-        self.assertEqual(list(C.floor()), [floor(i) for i in c] + [None])
+        numpy.testing.assert_almost_equal(list(C.abs())[:-1], [abs(i) for i in c], 6)
+        self.assertEqual(list(C.abs())[-1], None)
+
+        self.assertEqual(list(C.ceil())[:-1], [ceil(i) for i in c])
+        self.assertEqual(list(C.ceil())[-1], None)
+
+        self.assertEqual(list(C.floor())[:-1], [floor(i) for i in c])
+        self.assertEqual(list(C.floor())[-1], None)
 
         self.assertEqual(list(C.round()), [round(i) for i in c] + [None])
-        self.assertEqual(list(C.round(2)), [round(i, 2) for i in c] + [None])
+
+        numpy.testing.assert_almost_equal(
+            list(C.round(2))[:-1], [round(i, 2) for i in c], 6
+        )
+        self.assertEqual(list(C.round(2))[-1], None)
         # self.assertEqual(list(C.hash_values()), [hash(i) for i in c] + [None])
 
     def base_test_describe(self):
