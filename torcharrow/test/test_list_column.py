@@ -25,6 +25,23 @@ class TestListColumn(unittest.TestCase):
         for i, lst in zip(range(4), verdict):
             self.assertEqual(c[i], lst)
 
+    def base_test_append_concat(self):
+        base_list = [["hello", "world"], ["how", "are", "you"]]
+        sf1 = self.ts.Column(base_list, dtype=dt.List(dt.string))
+        self.assertEqual(list(sf1), base_list)
+
+        append1 = [["I", "am", "fine", "and", "you"]]
+        sf2 = sf1.append(append1)
+        self.assertEqual(list(sf2), base_list + append1)
+
+        append2 = [["I", "am", "fine", "too"]]
+        sf3 = sf2.concat([self.ts.Column(append2)])
+        self.assertEqual(list(sf3), base_list + append1 + append2)
+
+        # concat everything
+        sf_all = sf1.concat([sf2, sf3])
+        self.assertEqual(list(sf_all), list(sf1) + list(sf2) + list(sf3))
+
     def base_test_nested_numerical_twice(self):
         c = self.ts.Column(
             dt.List(dt.List(dt.Int64(nullable=False), nullable=True), nullable=False)

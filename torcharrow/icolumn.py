@@ -203,17 +203,12 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         return res._finalize()
 
     @trace
-    def concat(self, columns):
+    def concat(self, columns: ty.List[IColumn]):
         """Returns concatenated columns."""
-        # TODO use _column_copy, but for now this works...
-        res = self._EmptyColumn(self.dtype)
-        for each in [self] + columns:
-            for (m, d) in each.items():
-                if m:
-                    res._append_null()
-                else:
-                    res._append_value(d)
-        return res._finalize()
+        concat_list = self.to_python()
+        for column in columns:
+            concat_list += column.to_python()
+        return self._FromPyList(concat_list, self.dtype)
 
     @trace
     def copy(self):

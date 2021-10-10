@@ -117,22 +117,6 @@ class ListColumnCpu(IListColumn, ColumnFromVelox):
                 )
             )
 
-    def concat(self, values):
-        """Returns column/dataframe with values appended."""
-        # tmp = self.scope.Column(values, dtype=self.dtype, device = self.device)
-        # res= IListColumn(*self._meta(),
-        #     np.append(self._data,tmp._data),
-        #     np.append(self._offsets,tmp._offsets[1:] + self._offsets[-1]),
-        #     np.append(self._mask,tmp._mask))
-
-        # TODO replace this with vectorized code like the one above, except that is buggy
-        res = self._EmptyColumn(self.dtype)
-        for v in self:
-            res._append(v)
-        for v in values:
-            res._append(v)
-        return res._finalize()
-
     # printing ----------------------------------------------------------------
 
     def __str__(self):
