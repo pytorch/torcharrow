@@ -1,11 +1,17 @@
-# TorchArrow
+# TorchArrow (Warning: Unstable Prototype)
 
-TorchArrow is a [Pandas](https://github.com/pandas-dev/pandas) inspired DataFrame library in Python built on the [Apache Arrow](https://github.com/apache/arrow) columnar memory format and
-leveraging the [Velox vectorized engine](https://github.com/facebookexternal/velox/) for loading, filtering, mapping, joining, aggregating, and
-otherwise manipulating tabular data on CPUs.
+**This is a prototype library currently under heavy development. It does not currently have stable releases, and as such will likely be modified significantly in backwards compatibility breaking ways until beta release (targeting early 2022). If you have suggestions on the API or use cases you would like to be covered, please open a GitHub issue. We would love to hear thoughts and feedback.**
 
-TorchArrow supports [PyTorch](https://github.com/pytorch/pytorch)'s Tensors as first class citizens. It allows mostly zero copy interop with Numpy, Pandas, PyArrow, CuDf and of course integrates well with PyTorch data-wrangling workflows.
+TorchArrow is a [torch](https://github.com/pytorch/pytorch).Tensor-like, [Pandas](https://github.com/pandas-dev/pandas) inspired Python DataFrame library for data preprocessing in deep learning. It supports multiple execution runtimes and [Arrow](https://github.com/apache/arrow) as a common format.
 
+It plans to provide:
+
+* Python Dataframe library implementing streaming-friendly [Pandas](https://github.com/pandas-dev/pandas) subset
+* Seamless handoff with [PyTorch](https://github.com/pytorch/pytorch) or other model authoring, such as Tensor collation and easily plugging into PyTorch DataLoader and [DataPipes](https://github.com/pytorch/data#what-are-datapipes)
+* Zero copy for external readers via [Arrow](https://github.com/apache/arrow) in-memory columnar format
+* High-performance CPU backend via [Velox](https://github.com/facebookincubator/velox/)
+* GPU backend via [libcudf](https://docs.rapids.ai/api/libcudf/stable/)
+* High-performance C++ UDF support with vectorization
 
 ## Installation
 
@@ -70,24 +76,10 @@ python setup.py install
 
 
 ## Documentation
-All documentation is available via Notebooks:
-* [TorchArrow in 10 minutes (a tutorial)](https://github.com/facebookexternal/torchdata/blob/main/torcharrow/torcharrow10min.ipynb)
-* [TorchArrow data pipes](https://github.com/facebookexternal/torchdata/blob/main/torcharrow/torcharrow_data_pipes.ipynb)
-* [TorchArrow state handling](https://github.com/facebookexternal/torchdata/blob/main/torcharrow/torcharrow_state.ipynb)
-* TorchArrow multitargeting - TBD
-* TorchArrow, Pandas, UPM and SQL: What's the difference - TBD
-* TorchArrow, Design rationale - TBD
+This [10 minutes tutorial](https://github.com/facebookresearch/torcharrow/blob/main/tutorial.ipynb) provides a short introduction to TorchArrow. More documents on advanced topics are coming soon!
 
-## Status
-This directory supports rapid development. So expect frequent changes.
-
-Still to be done:
-* Add tabular.py as package in setup and not as code
-* [DONE] How to do Multi-device targeting (See TorchArrow state handling notebook)
-* An example program analysis (types/PPF?)
-* Add example UDFs
-* Add Tensors as example UDTs
-* [WORKS, example to be written] Using Numba for Jitting
+## Future Plans
+We hope to sufficiently expand the library, harden APIs, and gather feedback to enable a beta release at the time of the PyTorch 1.11 release (early 2022).
 
 ## License
 
