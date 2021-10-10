@@ -56,8 +56,40 @@ def from_pandas_dataframe(
     scope=None,
     device="",
 ):
-    """ "
-    Convert pandas dataframe to  torcharrow dataframe (drops indices).
+    """
+    Convert pandas dataframe to torcharrow dataframe (drops indices).
+
+    Parameters
+    ----------
+    df : Pandas dataframe
+
+    dtype : dtype, default None
+    Data type to force, if None will automatically infer.
+
+    columns : array-like
+    List of column names to extract from df.
+
+    scope : Scope or None
+    Scope to use, or None for default scope.
+
+    device : str or ""
+    Device to use, or default if blank.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> import torcharrow as ta
+    >>> pdf = pd.DataFrame({'a': [0, 1, 2, 3],'b': [0.1, 0.2, None, 0.3]})
+    >>> gdf = ta.from_pandas_dataframe(pdf)
+    >>> gdf
+      index    a    b
+    -------  ---  ---
+          0    0  0.1
+          1    1  0.2
+          2    2
+          3    3  0.3
+    dtype: Struct([Field('a', int64), Field('b', Float64(nullable=True))]), count: 4, null_count: 0
+
     """
     scope = scope or Scope.default
     device = device or scope.device

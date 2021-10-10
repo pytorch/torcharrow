@@ -63,7 +63,35 @@ class IStringMethods(abc.ABC):
         return self._vectorize_string(func)
 
     def split(self, sep=None, maxsplit=-1, expand=False):
-        """Split strings around given separator/delimiter."""
+        """
+        Split strings around given separator/delimiter.
+
+        Parameters
+        ----------
+        sep - str, default None
+            String literal to split on.  When None split according to whitespace.
+        maxsplit - number, default -1
+            Determines the number of substrings to return.
+        expand - bool, default False
+           Determines whether the string gets split into a list of substrings, or
+           spread over a set of columns.  When expand is false, returns a
+           column containing a list of substrings, when true returns a
+           DataFrame.
+
+        See Also
+        --------
+        list.join - Join lists contained as elements with passed delimiter.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> s = ta.Column(['what a wonderful world!', 'really?'])
+        >>> s.str.split(sep=' ')
+        0  ['what', 'a', 'wonderful', 'world!']
+        1  ['really?']
+        dtype: List(string), length: 2, null_count: 0
+
+        """
         me = self._parent
 
         if not expand:
@@ -204,6 +232,15 @@ class IStringMethods(abc.ABC):
         """
         Convert strings in the Column to be capitalized.
         Equivalent to :meth:`str.capitalize`.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> s = ta.Column(['what a wonderful world!', 'really?'])
+        >>> s.str.capitalize()
+        0  'What a wonderful world!'
+        1  'Really?'
+        dtype: string, length: 2, null_count: 0
         """
         return self._vectorize_string(str.capitalize)
 

@@ -40,7 +40,26 @@ class IListMethods(abc.ABC):
         return me._vectorize(len, dt.Int64(me.dtype.nullable))
 
     def join(self, sep):
-        """Join lists contained as elements with passed delimiter."""
+        """
+        Join lists contained as elements with passed delimiter.
+
+        Parameters
+        ----------
+        sep - string
+            Separator string placed between elements in the result
+
+        See Also
+        --------
+        str.split - Split strings around given separator/delimiter.
+
+        Examples
+        >>> import torcharrow as ta
+        >>> s = ta.Column(['what a wonderful world!', 'really?'])
+        >>> s.str.split(sep=' ').list.join(sep='-')
+        0  'what-a-wonderful-world!'
+        1  'really?'
+        dtype: string, length: 2, null_count: 0
+        """
         me = self._parent
         assert dt.is_string(me.dtype.item_dtype)
 

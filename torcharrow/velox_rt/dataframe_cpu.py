@@ -442,6 +442,27 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
         """
         Select rows where predicate is True.
         Different from Pandas. Use keep for Pandas filter.
+
+        Parameters
+        ----------
+        predicate - callable or iterable
+            A predicate function or iterable of booleans the same
+            length as the column.  If an n-ary predicate, use the
+            columns parameter to provide arguments.
+        columns - list of string names, default None
+            Which columns to invoke the filter with.  If None, apply to
+            all columns.
+
+        See Also
+        --------
+        map, reduce, flatmap
+
+        Examples
+        --------
+        >>> ta.Column([1,2,3,4]).filter([True, False, True, False]) == ta.Column([1,2,3,4]).filter(lambda x: x%2==1)
+        0  1
+        1  1
+        dtype: boolean, length: 2, null_count: 0
         """
         if columns is None:
             return super().filter(predicate)
@@ -1740,8 +1761,34 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
         """
         Analogous to SQL's where (NOT Pandas where)
 
-        Filter a dataframe to only include
-        rows satisfying a given set of conditions.
+        Filter a dataframe to only include rows satisfying a given set
+        of conditions. df.where(p) is equivalent to writing df[p].
+
+        Examples
+        --------
+
+        >>> from torcharrow import ta
+        >>> xf = ta.DataFrame({
+        >>>    'A':['a', 'b', 'a', 'b'],
+        >>>    'B': [1, 2, 3, 4],
+        >>>    'C': [10,11,12,13]})
+        >>> xf.where(xf['B']>2)
+          index  A      B    C
+        -------  ---  ---  ---
+              0  a      3   12
+              1  b      4   13
+        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64)]), count: 2, null_count: 0
+
+        When referring to self in an expression, the special value `me` can be
+        used.
+
+        >>> from torcharrow import me
+        >>> xf.where(me['B']>2)
+          index  A      B    C
+        -------  ---  ---  ---
+              0  a      3   12
+              1  b      4   13
+        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64)]), count: 2, null_count: 0
         """
 
         if len(conditions) == 0:
@@ -1763,6 +1810,43 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
 
         Transform a dataframe by selecting old columns and new (computed)
         columns.
+
+        args - positional string arguments
+            Column names to keep in the projection. A column name of "*" is a
+            shortcut to denote all columns. A column name beginning with "-"
+            means remove this column.
+
+        kwargs - named value arguments
+            New column name expressions to add to the projection
+
+        The special symbol me can  be used to refer to self.
+
+        Examples
+        --------
+        >>> from torcharrow import ta
+        >>> xf = ta.DataFrame({
+        >>>    'A': ['a', 'b', 'a', 'b'],
+        >>>    'B': [1, 2, 3, 4],
+        >>>    'C': [10,11,12,13]})
+        >>> xf.select(*xf.columns,D=me['B']+me['C'])
+          index  A      B    C    D
+        -------  ---  ---  ---  ---
+              0  a      1   10   11
+              1  b      2   11   13
+              2  a      3   12   15
+              3  b      4   13   17
+        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64), Field('D', int64)]), count: 4, null_count: 0
+
+        Using '*' and '-colname':
+
+        >>> xf.select('*','-B',D=me['B']+me['C'])
+          index  A      C    D
+        -------  ---  ---  ---
+              0  a     10   11
+              1  b     11   13
+              2  a     12   15
+              3  b     13   17
+        dtype: Struct([Field('A', string), Field('C', int64), Field('D', int64)]), count: 4, null_count: 0
         """
 
         input_columns = set(self.columns)
@@ -1837,6 +1921,73 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
         sort=False,
         dropna=True,
     ):
+        """
+        SQL like data grouping, supporting split-apply-combine paradigm.
+
+        Parameters
+        ----------
+        by - list of strings
+            List of column names to group by.
+
+        sort - bool
+            Whether the groups are in sorted order.
+
+        dropna - bool
+            Whether NULL/NaNs in group keys are dropped.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.DataFrame({'A': ['a', 'b', 'a', 'b'], 'B': [1, 2, 3, 4]})
+        >>> # group by A
+        >>> grouped = df.groupby(['A'])
+        >>> # apply sum on each of B's grouped column to create a new column
+        >>> grouped_sum = grouped['B'].sum()
+        >>> # combine a new dataframe from old and new columns
+        >>> res = ta.DataFrame()
+        >>> res['A'] = grouped['A']
+        >>> res['B.sum'] = grouped_sum
+        >>> res
+          index  A      B.sum
+        -------  ---  -------
+              0  a          4
+              1  b          6
+        dtype: Struct([Field('A', string), Field('B.sum', int64)]), count: 2, null_count: 0
+
+        The same as above, as a one-liner:
+
+        >>> df.groupby(['A']).sum()
+          index  A      B.sum
+        -------  ---  -------
+              0  a          4
+              1  b          6
+        dtype: Struct([Field('A', string), Field('B.sum', int64)]), count: 2, null_count: 0
+
+        To apply multiple aggregate functions to different parts of the
+        dataframe, use groupby followed by select.
+
+
+        >>> df = ta.DataFrame({
+        >>>    'A':['a', 'b', 'a', 'b'],
+        >>>    'B': [1, 2, 3, 4],
+        >>>    'C': [10,11,12,13]})
+        >>> df.groupby(['A']).select(b_sum=me['B'].sum(), c_count=me['C'].count())
+          index  A      b_sum    c_count
+        -------  ---  -------  ---------
+              0  a          4          2
+              1  b          6          2
+        dtype: Struct([Field('A', string), Field('b_sum', int64), Field('c_count', int64)]), count: 2, null_count: 0
+
+        To see what data groups contain:
+
+        >>> for g, df in grouped:
+                print(g)
+                print("   ", df)
+        ('a',)
+           self._fromdata({'B':Column([1, 3], id = c129), id = c130})
+        ('b',)
+           self._fromdata({'B':Column([2, 4], id = c131), id = c132})
+        """
         # TODO implement
         assert not sort
         assert dropna

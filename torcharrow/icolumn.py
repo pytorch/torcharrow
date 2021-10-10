@@ -190,7 +190,24 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     @trace
     def append(self, values):
-        """Returns column/dataframe with values appended."""
+        """
+        Returns column/dataframe with values appended.
+
+        Parameters
+        ----------
+        values: list of values or dataframe
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> sf = ta.Column([ ["hello", "world"], ["how", "are", "you"] ], dtype =dt.List(dt.string))
+        >>> sf = sf.append([["I", "am", "fine"]])
+        >>> sf
+        0  ['hello', 'world']
+        1  ['how', 'are', 'you']
+        2  ['I', 'am', 'fine']
+        dtype: List(string), length: 3, null_count: 0
+        """
         # TODO use _column_copy, but for now this works...
         res = self._EmptyColumn(self.dtype)
         for (m, d) in self.items():
@@ -396,13 +413,62 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @trace
     @expression
     def head(self, n=5):
-        """Return the first `n` rows."""
+        """
+        Return the first `n` rows.
+
+        Parameters
+        ----------
+        n : int
+            Number of rows to return.
+
+        See Also
+        --------
+        icolumn.tail : Return the last `n` rows.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.DataFrame({'a': list(range(7)),
+        >>>             'b': list(reversed(range(7))),
+        >>>             'c': list(range(7))
+        >>>            })
+        >>> df.head(2)
+          index    a    b    c    d
+        -------  ---  ---  ---  ---
+              0    0    6    0   99
+              1    1    5    1  100
+        dtype: Struct([Field('a', int64), Field('b', int64), Field('c', int64), Field('d', int64)]), count: 2, null_count: 0
+        """
         return self[:n]
 
     @trace
     @expression
     def tail(self, n=5):
-        """Return the last `n` rows."""
+        """
+        Return the last `n` rows.
+
+        Parameters
+        ----------
+        n : int
+            Number of rows to return.
+
+        See Also
+        --------
+        icolumn.head : Return the first `n` rows.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.DataFrame({'a': list(range(7)),
+        >>>             'b': list(reversed(range(7))),
+        >>>             'c': list(range(7))
+        >>>            })
+        >>> df.tail(1)
+          index    a    b    c    d
+        -------  ---  ---  ---  ---
+              0    6    0    6  105
+        dtype: Struct([Field('a', int64), Field('b', int64), Field('c', int64), Field('d', int64)]), count: 2, null_count: 0
+        """
         return self[-n:]
 
     @trace
@@ -447,7 +513,147 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     ):
         """
         Maps rows according to input correspondence.
-        dtype required if result type != item type.
+
+        Parameters
+        ----------
+        arg - dict or callable
+            If arg is a dict then input is mapped using this dict and
+            non-mapped values become null.  If arg is a callable, this
+            is treated as a user-defined function (UDF) which is
+            invoked on each element of the input.  Callables must be
+            global functions or methods on class instances, lambdas
+            are not supported.
+        na_action - "ignore" or None, default None
+            If your UDF returns null for null input, selecting
+            "ignore" is an efficiency improvement where map will avoid
+            calling your UDF on null values.  If None, aways calls the
+            UDF.
+        dtype - DType, default None
+            DType is used to force the output type.  DType is required
+            if result type != item type.
+        columns - list of column names, default None
+            Determines which columns to provide to the mapping dict or UDF.
+
+        See Also
+        --------
+        flatmap, filter, reduce
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> ta.Column([1,2,None,4]).map({1:111})
+        0  111
+        1  None
+        2  None
+        3  None
+        dtype: Int64(nullable=True), length: 4, null_count: 3
+
+        Using a defaultdict to provide a missing value:
+
+        >>> from collections import defaultdict
+        >>> ta.Column([1,2,None,4]).map(defaultdict(lambda: -1, {1:111}))
+        0  111
+        1   -1
+        2   -1
+        3   -1
+        dtype: Int64(nullable=True), length: 4, null_count: 0
+
+        Using user-supplied python function:
+
+        >>> def add_ten(num):
+        >>>     return num + 10
+        >>>
+        >>> ta.Column([1,2,None,4]).map(add_ten, na_action='ignore')
+        0  11
+        1  12
+        2  None
+        3  14
+        dtype: Int64(nullable=True), length: 4, null_count: 1
+
+        Note that .map(add_ten, na_action=None) in the example above
+        would fail with a type error since addten is not defined for
+        None/null.  To pass nulls to a UDF, the UDF needs to prepare
+        for it:
+
+        >>> def add_ten_or_0(num):
+        >>>     return 0 if num is None else num + 10
+        >>>
+        >>> ta.Column([1,2,None,4]).map(add_ten_or_0, na_action=None)
+        0  11
+        1  12
+        2   0
+        3  14
+        dtype: Int64(nullable=True), length: 4, null_count: 0
+
+        Mapping to different types requires a dtype parameter:
+
+        >>> ta.Column([1,2,None,4]).map(str, dtype=dt.string)
+        0  '1'
+        1  '2'
+        2  'None'
+        3  '4'
+        dtype: string, length: 4, null_count: 0
+
+        Mapping over a DataFrame, the UDF gets the whole row as a tuple:
+
+        >>> def add_unary(tup):
+        >>>     return tup[0]+tup[1]
+        >>>
+        >>> ta.DataFrame({'a': [1,2,3], 'b': [1,2,3]}).map(add_unary , dtype = dt.int64)
+        0  2
+        1  4
+        2  6
+        dtype: int64, length: 3, null_count: 0
+
+        Multi-parameter UDFs:
+
+        >>> def add_binary(a,b):
+        >>>     return a + b
+        >>>
+        >>> ta.DataFrame({'a': [1,2,3], 'b': ['a', 'b', 'c'], 'c':[1,2,3]}).map(add_binary, columns = ['a','c'], dtype = dt.int64)
+        0  2
+        1  4
+        2  6
+        dtype: int64, length: 3, null_count: 0
+
+        Multi-return UDFs - functions that return more than one column
+        can be specified by returning a DataFrame (also known as a
+        struct column); providing the return dtype is mandatory.
+
+        ta.DataFrame({'a': [17, 29, 30], 'b': [3,5,11]}).map(divmod, columns= ['a','b'], dtype = dt.Struct([dt.Field('quotient', dt.int64), dt.Field('remainder', dt.int64)]))
+          index    quotient    remainder
+        -------  ----------  -----------
+              0           5            2
+              1           5            4
+              2           2            8
+        dtype: Struct([Field('quotient', int64), Field('remainder', int64)]), count: 3, null_count: 0
+
+        UDFs with state can be written by capturing the state in a
+        (data)class and use a method as a delegate:
+
+        >>> def fib(n):
+        >>>     if n == 0:
+        >>>         return 0
+        >>>     elif n == 1 or n == 2:
+        >>>         return 1
+        >>>     else:
+        >>>         return fib(n-1) + fib(n-2)
+        >>>
+        >>> from dataclasses import dataclass
+        >>> @dataclass
+        >>> class State:
+        >>>     state: int
+        >>>     def __post_init__(self):
+        >>>         self.state = fib(self.state)
+        >>>     def add_fib(self, x):
+        >>>         return self.state+x
+        >>>
+        >>> m = State(10)
+        >>> ta.Column([1,2,3]).map(m.add_fib)
+        0  56
+        1  57
+        2  58
+        dtype: int64, length: 3, null_count: 0
         """
         # to avoid applying the function to missing values, use
         #   na_action == 'ignore'
@@ -595,6 +801,27 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """
         Select rows where predicate is True.
         Different from Pandas. Use keep for Pandas filter.
+
+        Parameters
+        ----------
+        predicate - callable or iterable
+            A predicate function or iterable of booleans the same
+            length as the column.  If an n-ary predicate, use the
+            columns parameter to provide arguments.
+        columns - list of string names, default None
+            Which columns to invoke the filter with.  If None, apply to
+            all columns.
+
+        See Also
+        --------
+        map, reduce, flatmap
+
+        Examples
+        --------
+        >>> ta.Column([1,2,3,4]).filter([True, False, True, False]) == ta.Column([1,2,3,4]).filter(lambda x: x%2==1)
+        0  1
+        1  1
+        dtype: boolean, length: 2, null_count: 0
         """
         if columns is not None:
             raise TypeError(f"columns parameter for flat columns not supported")
@@ -622,6 +849,24 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """
         Apply binary function cumulatively to the rows[0:],
         so as to reduce the column/dataframe to a single value
+
+        Parameters
+        ----------
+        fun - callable
+            Binary function to invoke via reduce.
+        initializer - element, or None
+            The initial value used for reduce.  If None, uses the
+            first element of the column.
+        finalizer - callable, or None
+            Function to call on the final value.  If None the last result
+            of invoking fun is returned
+
+        Examples
+        --------
+        >>> import operator
+        >>> import torcharrow
+        >>> ta.Column([1,2,3,4]).reduce(operator.mul)
+        24
         """
         if len(self) == 0:
             if initializer is not None:
@@ -676,7 +921,33 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         ascending=True,
         na_position: ty.Literal["last", "first"] = "last",
     ):
-        """Sort a column/a dataframe in ascending or descending order"""
+        """
+        Sort a column/a dataframe in ascending or descending order.
+
+        Parameters
+        ----------
+        by : array-like, default None
+            Columns to sort by, uses all columns for comparison if None.
+        ascending : bool, default True
+            If true, sort in ascending order, else descending.
+        na_position : {{'last', 'first'}}, default "last"
+            If 'last' order nulls after non-null values, if 'first' orders
+            nulls before non-null values.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.DataFrame({'a': list(range(7)),
+        >>>             'b': list(reversed(range(7))),
+        >>>             'c': list(range(7))
+        >>>            })
+        >>> df.sort(by=['c', 'b']).head(2)
+          index    a    b    c    d
+        -------  ---  ---  ---  ---
+              0    0    6    0   99
+              1    1    5    1  100
+        dtype: Struct([Field('a', int64), Field('b', int64), Field('c', int64), Field('d', int64)]), count: 2, null_count: 0
+        """
         if by is not None:
             raise TypeError("sorting a non-structured column can't have 'by' parameter")
         res = self._EmptyColumn(self.dtype)
@@ -912,7 +1183,33 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @trace
     @expression
     def isin(self, values: ty.Union[list, IColumn, dict]):
-        """Check whether values are contained in column."""
+        """
+        Check whether values are contained in column.
+
+        Parameters
+        ----------
+        values - array-like, column or dict
+            Which values to check the presence of.
+
+        Returns
+        -------
+        Boolean column of the same length as self where item x denotes if
+        member x has a value contained in values.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.DataFrame({'a': list(range(7)),
+        >>>             'b': list(reversed(range(7))),
+        >>>             'c': list(range(7))
+        >>>            })
+        >>> df[df['a'].isin([5])]
+          index    a    b    c    d
+        -------  ---  ---  ---  ---
+              0    5    1    5  104
+        dtype: Struct([Field('a', int64), Field('b', int64), Field('c', int64), Field('d', int64)]), count: 1, null_count: 0
+
+        """
         # note mask is True
         res = self._EmptyColumn(dt.boolean)
         for m, i in self.items():
@@ -1008,7 +1305,30 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @trace
     @expression
     def fillna(self, fill_value: ty.Union[dt.ScalarTypes, ty.Dict]):
-        """Fill NA/NaN values using the specified method."""
+        """
+        Fill NA/NaN values using the specified method.
+
+        Parameters
+        ----------
+        fill_value : int, float, bool, or str
+
+        See Also
+        --------
+        icolumn.dropna : Return a column/frame with rows removed where a
+        row has any or all nulls.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> s = ta.Column([1,2,None,4])
+        >>> s.fillna(999)
+        0    1
+        1    2
+        2  999
+        3    4
+        dtype: int64, length: 4, null_count: 0
+
+        """
         if not isinstance(fill_value, IColumn.scalar_types):
             raise TypeError(f"fillna with {type(fill_value)} is not supported")
         if isinstance(fill_value, IColumn.scalar_types):
@@ -1025,8 +1345,30 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @trace
     @expression
     def dropna(self, how: ty.Literal["any", "all"] = "any"):
-        """Return a column/frame with rows removed where a row has any or all
-        nulls."""
+        """
+        Return a column/frame with rows removed where a row has any or all
+        nulls.
+
+        Parameters
+        ----------
+        how : {{'any','all'}}, default "any"
+            If 'any' drop row if any column is null.  If 'all' drop row if
+            all columns are null.
+
+        See Also
+        --------
+        icolumn.fillna : Fill NA/NaN values using the specified method.
+
+        Examples
+        --------
+                >>> import torcharrow as ta
+        >>> s = ta.Column([1,2,None,4])
+        >>> s.dropna()
+        0    1
+        1    2
+        2    4
+        dtype: int64, length: 3, null_count: 0
+        """
         if dt.is_primitive(self.dtype):
             res = self._EmptyColumn(self.dtype.constructor(nullable=False))
             for m, i in self.items():
@@ -1061,13 +1403,43 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @trace
     @expression
     def min(self, fill_value=None):
-        """Return the minimum of the non-null values."""
+        """
+        Return the minimum of the non-null values.
+
+        Parameters
+        ----------
+        fill_value : int, float, bool, or str, default None
+            If None, NA/NaN values will be ignore, else they are replaced
+            with fill_value.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> s = ta.Column([1,2,None,4])
+        >>> s.min(fill_value=999)
+        1
+        """
+
         return min(self.data(fill_value))
 
     @trace
     @expression
     def max(self, fill_value=None):
-        """Return the maximum of the non-null values."""
+        """
+        Return the maximum of the non-null values.
+
+        Parameters
+        ----------
+        fill_value : int, float, bool, or str, default None
+            If None, NA/NaN values will be ignore, else they are replaced
+            with fill_value.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> s = ta.Column([1,2,None,4])
+        >>> s.max(fill_value=999)
+        """
         return max(self.data(fill_value))
 
     @trace
@@ -1085,7 +1457,22 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @trace
     @expression
     def sum(self):
-        """Return sum of all non-null elements"""
+        """
+        Return sum of all non-null elements.
+
+        Parameters
+        ----------
+        fill_value : int, float, bool, or str, default None
+            If None, NA/NaN values will be ignore, else they are replaced
+            with fill_value.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> s = ta.Column([1,2,None,4])
+        >>> s.sum(fill_value=999)
+        1006
+        """
         self._check(dt.is_numerical, "sum")
         return sum(self.data())
 
@@ -1126,7 +1513,22 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def mean(self):
         self._check(dt.is_numerical, "mean")
-        """Return the mean of the non-null values in the series."""
+        """
+        Return the mean of the non-null values in the series.
+
+        Parameters
+        ----------
+        fill_value : int, float, bool, or str, default None
+            If None, NA/NaN values will be ignore, else they are replaced
+            with fill_value.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> s = ta.Column([1,2,None,4])
+        >>> s.mean(fill_value=999)
+        251.5
+        """
         m = statistics.mean((float(i) for i in list(self.data())))
         return m
 
@@ -1199,7 +1601,30 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         include_columns: ty.Union[ty.List[dt.DType], ty.Literal[None]] = None,
         exclude_columns: ty.Union[ty.List[dt.DType], ty.Literal[None]] = None,
     ):
-        """Generate descriptive statistics."""
+        """
+        Generate descriptive statistics.
+
+        Parameters
+        ----------
+        percentiles_ - array-like, default None
+            Defines which percentiles to calculate.  If None, uses [25,50,75].
+
+        Examples
+        --------
+        >>> import torcharrow
+        >>> t = ta.Column([1,2,999,4])
+        >>> t.describe()
+          index  statistic      value
+        -------  -----------  -------
+              0  count          4
+              1  mean         251.5
+              2  std          498.335
+              3  min            1
+              4  25%            1.5
+              5  50%            3
+              6  75%          501.5
+              7  max          999
+        """
         import torcharrow.idataframe
 
         # Not supported: datetime_is_numeric=False,
