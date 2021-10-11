@@ -397,10 +397,13 @@ template <
     typename T = typename velox::TypeTraits<kind>::NativeType>
 py::class_<SimpleColumn<T>, BaseColumn> declareIntegralType(py::module& m) {
   py::class_<SimpleColumn<T>, BaseColumn> pyClass =
-      declareNumericalType<kind>(m).def(
-          "append", [](SimpleColumn<T>& self, py::int_ value) {
-            self.append(py::cast<T>(value));
-          });
+      declareNumericalType<kind>(m)
+          .def(
+              "append",
+              [](SimpleColumn<T>& self, py::int_ value) {
+                self.append(py::cast<T>(value));
+              })
+          .def("invert", &SimpleColumn<T>::invert);
   declareBitwiseOperations(pyClass);
 
   return pyClass;

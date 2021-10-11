@@ -614,7 +614,13 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             other, "bitwise_rxor", IColumn.swap(operator.__xor__)
         )
 
-    # TODO __invert__
+    @trace
+    @expression
+    def __invert__(self):
+        """Vectorized: ~a."""
+        return ColumnFromVelox.from_velox(
+            self.scope, self.device, self.dtype, self._data.invert(), True
+        )
 
     @trace
     @expression

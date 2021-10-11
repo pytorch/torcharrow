@@ -1162,6 +1162,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __invert__(self):
         """Vectorized bitwise inverse operation: ~a."""
+        if dt.is_boolean(self.dtype):
+            return self._vectorize(lambda a: not a, self.dtype)
         return self._vectorize(operator.__invert__, self.dtype)
 
     @trace

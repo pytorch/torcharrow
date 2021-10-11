@@ -431,8 +431,15 @@ class SimpleColumn : public BaseColumn {
   std::unique_ptr<BaseColumn> invert() {
     const static auto inputRowType =
         velox::ROW({"c0"}, {velox::CppToType<T>::create()});
-    const static auto exprSet = BaseColumn::genUnaryExprSet(
-        inputRowType, velox::CppToType<T>::create(), "not");
+    const static auto exprSet = []() -> std::shared_ptr<velox::exec::ExprSet> {
+      if constexpr (std::is_same_v<T, bool>) {
+        return BaseColumn::genUnaryExprSet(
+            inputRowType, velox::CppToType<T>::create(), "not");
+      } else {
+        return BaseColumn::genUnaryExprSet(
+            inputRowType, velox::CppToType<T>::create(), "bitwise_not");
+      }
+    }();
     return this->applyUnaryExprSet(inputRowType, exprSet);
   }
 

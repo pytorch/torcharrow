@@ -340,7 +340,7 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(True & g, [True, False, True, False])
         self.assertEqual(True | g, [True, True, True, True])
         self.assertEqual(True ^ g, [False, True, False, True])
-        self.assertEqual(~g, [True, True, True, True])
+        self.assertEqual(~g, [False, True, False, True])
 
         i = self.ts.Column([1, 2, 0])
         j = self.ts.Column([3, 2, 3])
