@@ -911,7 +911,7 @@ def dtype_of_type(typ: ty.Union[ty.Type, DType]) -> DType:
         return Tuple([dtype_of_type(a) for a in typing_inspect.get_args(typ)])
     if inspect.isclass(typ) and issubclass(typ, tuple) and hasattr(typ, "_fields"):
         fields = typ._fields
-        field_types = getattr(typ, "_field_types", None)
+        field_types = getattr(typ, "__annotations__", None)
         if field_types is None or any(n not in field_types for n in fields):
             raise TypeError(
                 f"Can't infer type from namedtuple without type hints: {typ}"
