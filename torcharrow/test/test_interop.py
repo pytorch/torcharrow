@@ -11,7 +11,7 @@ import pandas as pd  # type: ignore
 import pyarrow as pa  # type: ignore
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as tap
-from torcharrow.interop import (
+from torcharrow._interop import (
     from_arrow_table,
     from_arrow_array,
     from_pandas_dataframe,
