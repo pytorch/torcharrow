@@ -68,6 +68,14 @@ class NumericalColumnDemo(INumericalColumn):
             col._append(i)
         return col._finalize()
 
+    @staticmethod
+    def _fromarrow(scope, device, data, dtype):
+        import pyarrow as pa
+        from torcharrow._interop import from_arrow_array
+
+        assert isinstance(data, pa.Array)
+        return from_arrow_array(data, dtype, scope, device)
+
     def _append_null(self):
         self._mask.append(True)
         self._data.append(self.dtype.default)
@@ -836,4 +844,9 @@ for dtype in _primitive_types:
 for dtype in _primitive_types:
     ColumnFactory.register(
         (dtype.typecode + "_fromlist", "demo"), NumericalColumnDemo._fromlist
+    )
+
+for dtype in _primitive_types:
+    ColumnFactory.register(
+        (dtype.typecode + "_fromarrow", "demo"), NumericalColumnDemo._fromarrow
     )

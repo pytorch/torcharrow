@@ -131,6 +131,7 @@ class Scope:
 
         return call(self, device, data, dtype, mask)
 
+    # TODO: Make this a public interface from_pylist
     def _FromPyList(self, data: ty.List, dtype: dt.DType, device=""):
         """
         Convert from plain Python container (list of scalars or containers).
@@ -354,6 +355,23 @@ but data only provides {len(data)} fields: {data.keys()}
                 )
         else:
             raise AssertionError("unexpected case")
+
+    # interop -----------------------------------------------------------------
+    def from_arrow(self, data, dtype: ty.Optional[dt.DType] = None, device=""):
+        """
+        Convert from arrow array or table
+        """
+        import pyarrow as pa
+        from torcharrow._interop import _arrowtype_to_dtype
+
+        assert isinstance(data, pa.Array) or isinstance(data, pa.Table)
+
+        dtype = dtype or _arrowtype_to_dtype(data.type, data.null_count > 0)
+        device = device or self.device
+
+        call = ColumnFactory.lookup((dtype.typecode + "_fromarrow", device))
+
+        return call(self, device, data, dtype)
 
     Frame = DataFrame
 

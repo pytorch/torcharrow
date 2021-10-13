@@ -113,7 +113,7 @@ def from_pandas_dataframe(
 
 
 def from_arrow_array(array, dtype=None, scope=None, device=""):
-    """ "
+    """
     Convert arrow array to a torcharrow column.
     """
     scope = scope or Scope.default

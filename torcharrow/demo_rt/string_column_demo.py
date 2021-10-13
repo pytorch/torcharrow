@@ -65,6 +65,14 @@ class StringColumnDemo(IStringColumn):
             col._append(i)
         return col._finalize()
 
+    @staticmethod
+    def _fromarrow(scope, device, data, dtype):
+        import pyarrow as pa
+        from torcharrow._interop import from_arrow_array
+
+        assert isinstance(data, pa.Array)
+        return from_arrow_array(data, dtype, scope, device)
+
     def _append_null(self):
         self._mask.append(True)
         self._data.append(dt.String.default)
@@ -207,7 +215,9 @@ ColumnFactory.register((dt.String.typecode + "_full", "demo"), StringColumnDemo.
 ColumnFactory.register(
     (dt.String.typecode + "_fromlist", "demo"), StringColumnDemo._fromlist
 )
-
+ColumnFactory.register(
+    (dt.String.typecode + "_fromarrow", "demo"), StringColumnDemo._fromarrow
+)
 
 def _is_not_str(s):
     return not isinstance(s, str)
