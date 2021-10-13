@@ -45,13 +45,6 @@ class IStringMethods(abc.ABC):
     def length(self):
         return self._vectorize_int64(len)
 
-    @abc.abstractmethod
-    def cat(self, others=None, sep: str = "", fill_value: str = None) -> IStringColumn:
-        """
-        Concatenate strings with given separator and n/a substitition.
-        """
-        raise self._not_supported("cat")
-
     def slice(self, start: int = None, stop: int = None) -> IStringColumn:
         """Slice substrings from each element in the Column."""
 
