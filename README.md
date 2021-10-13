@@ -2,7 +2,7 @@
 
 **This is a prototype library currently under heavy development. It does not currently have stable releases, and as such will likely be modified significantly in backwards compatibility breaking ways until beta release (targeting early 2022). If you have suggestions on the API or use cases you would like to be covered, please open a GitHub issue. We would love to hear thoughts and feedback.**
 
-TorchArrow is a [torch](https://github.com/pytorch/pytorch).Tensor-like, [Pandas](https://github.com/pandas-dev/pandas) inspired Python DataFrame library for data preprocessing in deep learning. It supports multiple execution runtimes and [Arrow](https://github.com/apache/arrow) as a common format.
+TorchArrow is a [torch](https://github.com/pytorch/pytorch).Tensor-like Python DataFrame library for data preprocessing in deep learning. It supports multiple execution runtimes and [Arrow](https://github.com/apache/arrow) as a common format.
 
 It plans to provide:
 
@@ -84,4 +84,3 @@ We hope to sufficiently expand the library, harden APIs, and gather feedback to 
 ## License
 
 TorchArrow is BSD licensed, as found in the [LICENSE](LICENSE) file.
-
