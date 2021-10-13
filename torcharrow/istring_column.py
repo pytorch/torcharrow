@@ -52,13 +52,11 @@ class IStringMethods(abc.ABC):
         """
         raise self._not_supported("cat")
 
-    def slice(
-        self, start: int = None, stop: int = None, step: int = None
-    ) -> IStringColumn:
+    def slice(self, start: int = None, stop: int = None) -> IStringColumn:
         """Slice substrings from each element in the Column."""
 
         def func(i):
-            return i[start:stop:step]
+            return i[start:stop]
 
         return self._vectorize_string(func)
 
