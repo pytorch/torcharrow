@@ -212,26 +212,26 @@ class StringMethodsCpu(IStringMethods):
             res._append_value(sep.join(ws))
         return res._finalize()
 
+    def slice(self, start: int = None, stop: int = None) -> IStringColumn:
+        start = start or 0
+        if stop is None:
+            return functional.substr(self._parent, start + 1).with_null(
+                self._parent.dtype.nullable
+            )
+        else:
+            return functional.substr(self._parent, start + 1, stop - start).with_null(
+                self._parent.dtype.nullable
+            )
+
     def lower(self) -> IStringColumn:
-        # return ColumnFromVelox.from_velox(self._parent.scope, self._parent.device, self._parent.dtype, self._parent._data.lower(), True)
         return functional.lower(self._parent).with_null(self._parent.dtype.nullable)
 
     def upper(self) -> IStringColumn:
-        return ColumnFromVelox.from_velox(
-            self._parent.scope,
-            self._parent.device,
-            self._parent.dtype,
-            self._parent._data.upper(),
-            True,
-        )
+        return functional.upper(self._parent).with_null(self._parent.dtype.nullable)
 
     def isalpha(self) -> IStringColumn:
-        return ColumnFromVelox.from_velox(
-            self._parent.scope,
-            self._parent.device,
-            dt.Boolean(self._parent.dtype.nullable),
-            self._parent._data.isalpha(),
-            True,
+        return functional.torcharrow_isalpha(self._parent).with_null(
+            self._parent.dtype.nullable
         )
 
     def isalnum(self) -> IStringColumn:

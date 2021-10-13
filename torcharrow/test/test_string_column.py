@@ -95,7 +95,9 @@ class TestStringColumn(unittest.TestCase):
         s = ["abc", "de", "", "f"]
         c = c.append(s)
         self.assertEqual(list(c.str.length()), [len(i) for i in s])
-        self.assertEqual(list(c.str.slice(0, 2)), [i[0:2] for i in s])
+        self.assertEqual(list(c.str.slice(stop=2)), [i[:2] for i in s])
+        self.assertEqual(list(c.str.slice(1, 2)), [i[1:2] for i in s])
+        self.assertEqual(list(c.str.slice(1)), [i[1:] for i in s])
 
         c = self.ts.Column(dt.string)
         s = ["hello.this", "is.interesting.", "this.is_24", "paradise"]
