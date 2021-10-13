@@ -53,7 +53,7 @@ class IStringMethods(abc.ABC):
 
         return self._vectorize_string(func)
 
-    def split(self, sep=None, maxsplit=-1, expand=False):
+    def split(self, sep=None, maxsplit=-1):
         """
         Split strings around given separator/delimiter.
 
@@ -61,13 +61,6 @@ class IStringMethods(abc.ABC):
         ----------
         sep - str, default None
             String literal to split on.  When None split according to whitespace.
-        maxsplit - number, default -1
-            Determines the number of substrings to return.
-        expand - bool, default False
-           Determines whether the string gets split into a list of substrings, or
-           spread over a set of columns.  When expand is false, returns a
-           column containing a list of substrings, when true returns a
-           DataFrame.
 
         See Also
         --------
@@ -84,77 +77,10 @@ class IStringMethods(abc.ABC):
 
         """
         me = self._parent
-
-        if not expand:
-
-            def fun(i):
-                return i.split(sep, maxsplit)
-
-            return self._vectorize_list_string(fun)
-        else:
-            if maxsplit < 1:
-                raise ValueError("maxsplit must be >0")
-
-            def fun(i):
-                ws = i.split(sep, maxsplit)
-                return tuple(ws + ([None] * (maxsplit + 1 - len(ws))))
-
-            dtype = dt.Struct(
-                [
-                    dt.Field(str(i), dt.String(nullable=True))
-                    for i in range(maxsplit + 1)
-                ],
-                nullable=me.dtype.nullable,
-            )
-
-            return me._vectorize(fun, dtype=dtype)
-
-    def rsplit(self, sep=None, maxsplit=-1, expand=False):
-        """Split strings around given separator/delimiter."""
-        me = self._parent
-
-        if not expand:
-
-            def fun(i):
-                return i.rsplit(sep, maxsplit)
-
-            return self._vectorize_list_string(fun)
-        else:
-            if maxsplit < 1:
-                raise ValueError("maxsplit must be >0")
-
-            def fun(i):
-                ws = i.rsplit(sep, maxsplit)
-                return tuple(
-                    ([None] * (maxsplit + 1 - len(ws))) + i.rsplit(sep, maxsplit)
-                )
-
-            dtype = dt.Struct(
-                [
-                    dt.Field(str(i), dt.String(nullable=True))
-                    for i in range(maxsplit + 1)
-                ],
-                nullable=me.dtype.nullable,
-            )
-
-            return me._vectorize(fun, dtype=dtype)
-
-    def repeat(self, repeats):
-        """
-        Repeat elements of a Column.
-        """
-        return self._vectorize_string(lambda s: s * repeats)
-
-    def translate(self, table):
-        """
-        Map all characters in the string through the given mapping table.
-        Equivalent to standard :meth:`str.translate`.
-        """
-
         def fun(i):
-            return i.translate(table)
+            return i.split(sep, maxsplit)
 
-        return self._vectorize_string(fun)
+        return self._vectorize_list_string(fun)
 
     def strip(self, chars=None):
         """

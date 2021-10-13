@@ -198,6 +198,12 @@ class StringMethodsCpu(IStringMethods):
                 self._parent.dtype.nullable
             )
 
+    def split(self, sep=None):
+        sep = sep or " "
+        return functional.split(self._parent, sep).with_null(
+            self._parent.dtype.nullable
+        )
+
     def lower(self) -> IStringColumn:
         return functional.lower(self._parent).with_null(self._parent.dtype.nullable)
 
