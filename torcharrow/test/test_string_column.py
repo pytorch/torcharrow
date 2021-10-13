@@ -28,20 +28,12 @@ class TestStringColumn(unittest.TestCase):
         # self.assertEqual(list(c._offsets), [0, 3, 5, 5, 6, 6])
         self.assertEqual(list(c), ["abc", "de", "", "f", None])
 
-    # TODO add once dataframe is done..
     def base_test_string_split_methods(self):
-        c = self.ts.Column(dt.string)
-        s = ["hello.this", "is.interesting.", "this.is_24", "paradise"]
-        c = c.append(s)
-        self.assertEqual(
-            list(c.str.split(".", 2, expand=True)),
-            [
-                ("hello", "this", None),
-                ("is", "interesting", ""),
-                ("this", "is_24", None),
-                ("paradise", None, None),
-            ],
-        )
+        s = ["a b c", "1,2,3", "d e f g h", "hello.this.is.very.very.very.very.long"]
+        c = self.ts.Column(s)
+        self.assertEqual(list(c.str.split(".")), [v.split(".") for v in s])
+        self.assertEqual(list(c.str.split()), [v.split() for v in s])
+        self.assertEqual(list(c.str.split(",")), [v.split(",") for v in s])
 
     def base_test_string_categorization_methods(self):
         # isalpha/isnumeric/isalnum/isdigit/isdecimal/isspace/islower/isupper
@@ -112,12 +104,6 @@ class TestStringColumn(unittest.TestCase):
         self.assertEqual(list(c.str.slice(1, 2)), [i[1:2] for i in s])
         self.assertEqual(list(c.str.slice(1)), [i[1:] for i in s])
 
-        c = self.ts.Column(dt.string)
-        s = ["hello.this", "is.interesting.", "this.is_24", "paradise"]
-        c = c.append(s)
-
-        self.assertEqual(list(c.str.split(".")), [v.split(".") for v in s])
-
         self.assertEqual(
             list(self.ts.Column(["UPPER", "lower"]).str.capitalize()),
             ["Upper", "Lower"],
@@ -136,9 +122,6 @@ class TestStringColumn(unittest.TestCase):
             ["upper", "lower", "midwife"],
         )
         self.assertEqual(
-            list(self.ts.Column(["a", "1", "b2"]).str.repeat(2)), ["aa", "11", "b2b2"]
-        )
-        self.assertEqual(
             list(
                 self.ts.Column(["UPPER", "lower", "midWife"]).str.pad(
                     width=10, side="center", fillchar="_"
@@ -148,10 +131,6 @@ class TestStringColumn(unittest.TestCase):
         )
         # ljust, rjust, center
         self.assertEqual(list(self.ts.Column(["1", "22"]).str.zfill(3)), ["001", "022"])
-        self.assertEqual(
-            list(self.ts.Column(s).str.translate({ord("."): ord("_")})),
-            ["hello_this", "is_interesting_", "this_is_24", "paradise"],
-        )
 
         # strip
         self.assertEqual(
