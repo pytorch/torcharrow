@@ -129,6 +129,15 @@ class StringColumnCpu(IStringColumn, ColumnFromVelox):
         )
 
     # operators ---------------------------------------------------------------
+    def __add__(self, other):
+        if isinstance(other, StringColumnCpu):
+            return functional.concat(self, other).with_null(
+                self.dtype.nullable or other.dtype.nullable
+            )
+        else:
+            assert isinstance(other, str)
+            return functional.concat(self, other).with_null(self.dtype.nullable)
+
     @expression
     def __eq__(self, other):
         if isinstance(other, StringColumnCpu):
@@ -177,40 +186,6 @@ class StringMethodsCpu(IStringMethods):
 
     def __init__(self, parent: StringColumnCpu):
         super().__init__(parent)
-
-    def cat(self, others=None, sep: str = "", fill_value: str = None) -> IStringColumn:
-        """
-        Concatenate strings with given separator and n/a substitition.
-        """
-        me = cast(StringColumnCpu, self._parent)
-        assert all(me.device == other.device for other in others)
-
-        _all = [me] + others
-
-        # mask
-        res_mask = me._mask
-        if fill_value is None:
-            for one in _all:
-                if res_mask is None:
-                    res_mak = one.mask
-                elif one.mask is not None:
-                    res_mask = res_mask | one.mask
-
-        # fill
-        res_filled = []
-        for one in _all:
-            if fill_value is None:
-                res_filled.append(one.fillna(fill_value))
-            else:
-                res_filled.append(one)
-        # join
-        has_nulls = fill_value is None and any(one.nullable for one in _all)
-        res = me._EmptyColumn(dt.String(has_nulls))
-
-        for ws in zip(res_filled):
-            # will throw if join is applied on null
-            res._append_value(sep.join(ws))
-        return res._finalize()
 
     def slice(self, start: int = None, stop: int = None) -> IStringColumn:
         start = start or 0

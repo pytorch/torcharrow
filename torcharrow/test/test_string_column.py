@@ -90,6 +90,19 @@ class TestStringColumn(unittest.TestCase):
             [True, False, False, True, False],
         )
 
+    def base_test_concat(self):
+        s1 = ["abc", "de", "", "f", None]
+        s2 = ["12", "567", "77", None, "55"]
+        c1 = self.ts.Column(s1)
+        c2 = self.ts.Column(s2)
+        concat1 = [x + y for (x, y) in zip(s1[:-2], s2[:-2])] + [None, None]
+        self.assertEqual(list(c1 + c2), concat1)
+
+        concat2 = [x + "_suffix" for x in s1[:-1]] + [None]
+        self.assertEqual(list(c1 + "_suffix"), concat2)
+
+        # TODO: also support str + IColumn
+
     def base_test_string_lifted_methods(self):
         c = self.ts.Column(dt.string)
         s = ["abc", "de", "", "f"]

@@ -126,6 +126,26 @@ class StringColumnDemo(IStringColumn):
         )
 
     # operators ---------------------------------------------------------------
+    def __add__(self, other):
+        res = self.to_python()
+        if isinstance(other, StringColumnDemo):
+            other_str = other.to_python()
+            assert len(res) == len(other_str)
+            for i in range(len(res)):
+                if res[i] is None or other_str[i] is None:
+                    res[i] = None
+                else:
+                    res[i] += other_str[i]
+            return self._FromPyList(
+                res, dt.String(self.dtype.nullable or other.dtype.nullable)
+            )
+        else:
+            assert isinstance(other, str)
+            for i in range(len(res)):
+                if res[i] is not None:
+                    res[i] += other
+            return self._FromPyList(res, self.dtype)
+
     @expression
     def __eq__(self, other):
         if isinstance(other, StringColumnDemo):
@@ -139,7 +159,7 @@ class StringColumnDemo(IStringColumn):
                     res._append_value(i == j)
             return res._finalize()
         else:
-            res = self._EmptyColumn(dt.Boolean(self.dtype.nullable), self._mask)
+            res = self._EmptyColumn(dt.Boolean(self.dtype.nullable))
             for (m, i) in self.items():
                 if m:
                     res._append_null()
@@ -178,40 +198,6 @@ class StringMethodsStd(IStringMethods):
 
     def __init__(self, parent: StringColumnDemo):
         super().__init__(parent)
-
-    def cat(self, others=None, sep: str = "", fill_value: str = None) -> IStringColumn:
-        """
-        Concatenate strings with given separator and n/a substitition.
-        """
-        me = cast(StringColumnDemo, self._parent)
-        assert all(me.device == other.device for other in others)
-
-        _all = [me] + others
-
-        # mask
-        res_mask = me._mask
-        if fill_value is None:
-            for one in _all:
-                if res_mask is None:
-                    res_mak = one.mask
-                elif one.mask is not None:
-                    res_mask = res_mask | one.mask
-
-        # fill
-        res_filled = []
-        for one in _all:
-            if fill_value is None:
-                res_filled.append(one.fillna(fill_value))
-            else:
-                res_filled.append(one)
-        # join
-        has_nulls = fill_value is None and any(one.nullable for one in _all)
-        res = me._EmptyColumn(dt.String(has_nulls))
-
-        for ws in zip(res_filled):
-            # will throw if join is applied on null
-            res._append_value(sep.join(ws))
-        return res._finalize()
 
 
 # ------------------------------------------------------------------------------
