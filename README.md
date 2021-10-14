@@ -6,11 +6,12 @@ TorchArrow is a [torch](https://github.com/pytorch/pytorch).Tensor-like Python D
 
 It plans to provide:
 
-* Python Dataframe library implementing streaming-friendly [Pandas](https://github.com/pandas-dev/pandas) subset
+* Python Dataframe library focusing on streaming-friendly APIs for data preprocessing in deep learning
 * Seamless handoff with [PyTorch](https://github.com/pytorch/pytorch) or other model authoring, such as Tensor collation and easily plugging into PyTorch DataLoader and [DataPipes](https://github.com/pytorch/data#what-are-datapipes)
 * Zero copy for external readers via [Arrow](https://github.com/apache/arrow) in-memory columnar format
-* High-performance CPU backend via [Velox](https://github.com/facebookincubator/velox/)
-* GPU backend via [libcudf](https://docs.rapids.ai/api/libcudf/stable/)
+* Multiple execution runtimes support:
+    - High-performance CPU backend via [Velox](https://github.com/facebookincubator/velox/)
+    - GPU backend via [libcudf](https://docs.rapids.ai/api/libcudf/stable/)
 * High-performance C++ UDF support with vectorization
 
 ## Installation
@@ -59,6 +60,12 @@ scripts/install_ubuntu_folly.sh
 ```
 
 #### Install TorchArrow
+First, set up an environment. If you are using conda, create a conda environment:
+```
+conda create --name torcharrow python=3.8
+conda activate torcharrow
+```
+
 For local development, you can build with debug mode:
 ```
 DEBUG=1 python setup.py develop
