@@ -37,4 +37,4 @@ jobs:
         run: pip3 install pytest --user
 
       - name : Run TorchArrow unit tests
-        run: pytest --no-header -v torcharrow
+        run: pytest --no-header -v torcharrow/test
