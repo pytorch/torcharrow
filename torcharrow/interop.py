@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import pandas as pd  # type: ignore
 import pyarrow as pa  # type: ignore
 import torcharrow.dtypes as dt
