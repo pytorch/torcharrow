@@ -53,4 +53,3 @@ class TestInterop(unittest.TestCase):
         self.assertEqual([i.as_py() for i in s], list(t))
 
     # TODO: migrate other tests from test_legacy_interop.py
-

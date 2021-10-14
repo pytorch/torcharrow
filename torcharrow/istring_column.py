@@ -77,6 +77,7 @@ class IStringMethods(abc.ABC):
 
         """
         me = self._parent
+
         def fun(i):
             return i.split(sep, maxsplit)
 

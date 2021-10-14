@@ -219,5 +219,6 @@ ColumnFactory.register(
     (dt.String.typecode + "_fromarrow", "demo"), StringColumnDemo._fromarrow
 )
 
+
 def _is_not_str(s):
     return not isinstance(s, str)
