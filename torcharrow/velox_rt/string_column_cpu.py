@@ -141,23 +141,12 @@ class StringColumnCpu(IStringColumn, ColumnFromVelox):
     @expression
     def __eq__(self, other):
         if isinstance(other, StringColumnCpu):
-            res = self._EmptyColumn(
-                dt.Boolean(self.dtype.nullable or other.dtype.nullable),
+            return functional.eq(self, other).with_null(
+                self.dtype.nullable or other.dtype.nullable
             )
-            for (m, i), (n, j) in zip(self.items(), other.items()):
-                if m or n:
-                    res._data.append_null()
-                else:
-                    res._data.append(i == j)
-            return res._finalize()
         else:
-            res = self._EmptyColumn(dt.Boolean(self.dtype.nullable))
-            for (m, i) in self.items():
-                if m:
-                    res._data.append_null()
-                else:
-                    res._data.append(i == other)
-            return res._finalize()
+            assert isinstance(other, str)
+            return functional.eq(self, other).with_null(self.dtype.nullable)
 
     # printing ----------------------------------------------------------------
 
@@ -187,6 +176,9 @@ class StringMethodsCpu(IStringMethods):
     def __init__(self, parent: StringColumnCpu):
         super().__init__(parent)
 
+    def length(self):
+        return functional.length(self._parent).with_null(self._parent.dtype.nullable)
+
     def slice(self, start: int = None, stop: int = None) -> IStringColumn:
         start = start or 0
         if stop is None:
@@ -204,11 +196,17 @@ class StringMethodsCpu(IStringMethods):
             self._parent.dtype.nullable
         )
 
+    def strip(self):
+        return functional.trim(self._parent).with_null(self._parent.dtype.nullable)
+
     def lower(self) -> IStringColumn:
         return functional.lower(self._parent).with_null(self._parent.dtype.nullable)
 
     def upper(self) -> IStringColumn:
         return functional.upper(self._parent).with_null(self._parent.dtype.nullable)
+
+    # Check whether all characters in each string are  -----------------------------------------------------
+    # alphabetic/numeric/digits/decimal...
 
     def isalpha(self) -> IStringColumn:
         return functional.torcharrow_isalpha(self._parent).with_null(
@@ -231,14 +229,6 @@ class StringMethodsCpu(IStringMethods):
     def isupper(self) -> IStringColumn:
         return functional.isupper(self._parent).with_null(self._parent.dtype.nullable)
 
-    def startswith(self, pat):
-        return (
-            functional.substr(self._parent, 1, len(pat)).with_null(
-                self._parent.dtype.nullable
-            )
-            == pat
-        )
-
     def isspace(self) -> IStringColumn:
         return functional.torcharrow_isspace(self._parent).with_null(
             self._parent.dtype.nullable
@@ -251,6 +241,37 @@ class StringMethodsCpu(IStringMethods):
 
     def isnumeric(self) -> IStringColumn:
         return functional.isnumeric(self._parent).with_null(self._parent.dtype.nullable)
+
+    # Pattern matching related methods  -----------------------------------------------------
+
+    def startswith(self, pat):
+        return (
+            functional.substr(self._parent, 1, len(pat)).with_null(
+                self._parent.dtype.nullable
+            )
+            == pat
+        )
+
+    def endswith(self, pat):
+        return (
+            functional.substr(
+                self._parent, self._parent.str.length() - len(pat) + 1
+            ).with_null(self._parent.dtype.nullable)
+            == pat
+        )
+
+    def find(self, sub):
+        return (
+            functional.strpos(self._parent, sub).with_null(self._parent.dtype.nullable)
+            - 1
+        )
+
+    def replace(self, old, new):
+        return functional.replace(self._parent, old, new).with_null(
+            self._parent.dtype.nullable
+        )
+
+    # Regular expressions -----------------------------------------------------
 
     def match_re(self, pattern: str):
         return functional.match_re(self._parent, pattern).with_null(

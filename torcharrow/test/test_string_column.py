@@ -95,42 +95,31 @@ class TestStringColumn(unittest.TestCase):
 
         # TODO: also support str + IColumn
 
+    def base_test_comparision(self):
+        s1 = ["abc", "de", "", "f", None]
+        s2 = ["abc", "77", "", None, "55"]
+        c1 = self.ts.Column(s1)
+        c2 = self.ts.Column(s2)
+        self.assertEqual(c1 == c2, [True, False, True, None, None])
+        self.assertEqual(c1 == "abc", [True, False, False, False, None])
+        self.assertEqual(c1 == "de", [False, True, False, False, None])
+
+        # TODO: other comparision, and str == IColumn support
+
     def base_test_string_lifted_methods(self):
-        c = self.ts.Column(dt.string)
         s = ["abc", "de", "", "f"]
-        c = c.append(s)
+        c = self.ts.Column(s)
         self.assertEqual(list(c.str.length()), [len(i) for i in s])
         self.assertEqual(list(c.str.slice(stop=2)), [i[:2] for i in s])
         self.assertEqual(list(c.str.slice(1, 2)), [i[1:2] for i in s])
         self.assertEqual(list(c.str.slice(1)), [i[1:] for i in s])
 
         self.assertEqual(
-            list(self.ts.Column(["UPPER", "lower"]).str.capitalize()),
-            ["Upper", "Lower"],
-        )
-        self.assertEqual(
-            list(self.ts.Column(["UPPER", "lower"]).str.swapcase()), ["upper", "LOWER"]
-        )
-        self.assertEqual(
             list(self.ts.Column(["UPPER", "lower"]).str.lower()), ["upper", "lower"]
         )
         self.assertEqual(
             list(self.ts.Column(["UPPER", "lower"]).str.upper()), ["UPPER", "LOWER"]
         )
-        self.assertEqual(
-            list(self.ts.Column(["UPPER", "lower", "midWife"]).str.casefold()),
-            ["upper", "lower", "midwife"],
-        )
-        self.assertEqual(
-            list(
-                self.ts.Column(["UPPER", "lower", "midWife"]).str.pad(
-                    width=10, side="center", fillchar="_"
-                )
-            ),
-            ["__UPPER___", "__lower___", "_midWife__"],
-        )
-        # ljust, rjust, center
-        self.assertEqual(list(self.ts.Column(["1", "22"]).str.zfill(3)), ["001", "022"])
 
         # strip
         self.assertEqual(
@@ -138,17 +127,19 @@ class TestStringColumn(unittest.TestCase):
         )
 
     def base_test_string_pattern_matching_methods(self):
-        s = ["hello.this", "is.interesting.", "this.is_24", "paradise"]
+        s = ["hello.this", "is.interesting.", "this.is_24", "paradise", "h", ""]
 
-        self.assertEqual(list(self.ts.Column(s).str.count(".")), [1, 2, 1, 0])
         self.assertEqual(
-            list(self.ts.Column(s).str.startswith("h")), [True, False, False, False]
+            list(self.ts.Column(s).str.startswith("h")),
+            [True, False, False, False, True, False],
         )
         self.assertEqual(
-            list(self.ts.Column(s).str.endswith("this")), [True, False, False, False]
+            list(self.ts.Column(s).str.endswith("this")),
+            [True, False, False, False, False, False],
         )
-        self.assertEqual(list(self.ts.Column(s).str.find("this")), [6, -1, 0, -1])
-        self.assertEqual(list(self.ts.Column(s).str.rfind("this")), [6, -1, 0, -1])
+        self.assertEqual(
+            list(self.ts.Column(s).str.find("this")), [6, -1, 0, -1, -1, -1]
+        )
 
         self.assertEqual(
             list(self.ts.Column(s).str.replace("this", "that")),
