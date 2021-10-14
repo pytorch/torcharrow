@@ -53,7 +53,7 @@ class IStringMethods(abc.ABC):
 
         return self._vectorize_string(func)
 
-    def split(self, sep=None, maxsplit=-1):
+    def split(self, sep=None):
         """
         Split strings around given separator/delimiter.
 
@@ -79,19 +79,18 @@ class IStringMethods(abc.ABC):
         me = self._parent
 
         def fun(i):
-            return i.split(sep, maxsplit)
+            return i.split(sep)
 
         return self._vectorize_list_string(fun)
 
-    def strip(self, chars=None):
+    def strip(self):
         """
-        Remove leading and trailing characters.
+        Remove leading and trailing whitespaces.
 
-        Strip whitespaces (including newlines) or a set of specified characters
-        from each string in the Column from left and right sides.
-        Equivalent to :meth:`str.strip`.
+        Strip whitespaces (including newlines) from each string in the Column
+        from left and right sides.
         """
-        return self._vectorize_string(lambda s: s.strip(chars))
+        return self._vectorize_string(lambda s: s.strip())
 
     # Check whether all characters in each string are  -----------------------------------------------------
     # alphabetic/numeric/digits/decimal...
@@ -139,97 +138,7 @@ class IStringMethods(abc.ABC):
         """
         return self._vectorize_string(str.upper)
 
-    def title(self) -> IStringColumn:
-        """
-        Convert strings in the Column to titlecase.
-        Equivalent to :meth:`str.title`.
-        """
-        return self._vectorize_string(str.title)
-
-    def capitalize(self):
-        """
-        Convert strings in the Column to be capitalized.
-        Equivalent to :meth:`str.capitalize`.
-
-        Examples
-        --------
-        >>> import torcharrow as ta
-        >>> s = ta.Column(['what a wonderful world!', 'really?'])
-        >>> s.str.capitalize()
-        0  'What a wonderful world!'
-        1  'Really?'
-        dtype: string, length: 2, null_count: 0
-        """
-        return self._vectorize_string(str.capitalize)
-
-    def swapcase(self) -> IStringColumn:
-        """
-        Convert strings in the Column to be swapcased.
-        Equivalent to :meth:`str.swapcase`.
-        """
-        return self._vectorize_string(str.swapcase)
-
-    def casefold(self) -> IStringColumn:
-        """
-        Convert strings in the Column to be casefolded.
-        Equivalent to :meth:`str.casefold`.
-        """
-        return self._vectorize_string(str.casefold)
-
-    # Pad strings in the Column -----------------------------------------------------
-    def pad(self, width, side="left", fillchar=" "):
-        fun = None
-        if side == "left":
-
-            def fun(i):
-                return i.ljust(width, fillchar)
-
-        if side == "right":
-
-            def fun(i):
-                return i.rjust(width, fillchar)
-
-        if side == "center":
-
-            def fun(i):
-                return i.center(width, fillchar)
-
-        return self._vectorize_string(fun)
-
-    def ljust(self, width, fillchar=" "):
-        def fun(i):
-            return i.ljust(width, fillchar)
-
-        return self._vectorize_string(fun)
-
-    def rjust(self, width, fillchar=" "):
-        def fun(i):
-            return i.rjust(width, fillchar)
-
-        return self._vectorize_string(fun)
-
-    def center(self, width, fillchar=" "):
-        def fun(i):
-            return i.center(width, fillchar)
-
-        return self._vectorize_string(fun)
-
-    def zfill(self, width):
-        def fun(i):
-            return i.zfill(width)
-
-        return self._vectorize_string(fun)
-
     # Pattern matching related methods  -----------------------------------------------------
-
-    def count(self, pat):
-        """Count occurrences of pattern in each string"""
-
-        def fun(i):
-            return i.count(pat)
-
-        return self._vectorize_int64(fun)
-
     def startswith(self, pat):
         """Test if the beginning of each string element matches a pattern."""
 
@@ -246,42 +155,17 @@ class IStringMethods(abc.ABC):
 
         return self._vectorize_boolean(pred)
 
-    def find(self, sub, start=0, end=None):
+    def find(self, sub):
         def fun(i):
-            return i.find(sub, start, end)
+            return i.find(sub)
 
         return self._vectorize_int64(fun)
 
-    def rfind(self, sub, start=0, end=None):
-        def fun(i):
-            return i.rfind(sub, start, end)
-
-        return self._vectorize_int64(fun)
-
-    def replace(self, old, new, count=-1):
+    def replace(self, old, new):
         """
         Replace each occurrence of pattern in the Column.
         """
-        return self._vectorize_string(lambda s: s.replace(old, new, count))
-
-    # helper -----------------------------------------------------
-
-    def _vectorize_boolean(self, pred):
-        return self._parent._vectorize(pred, dt.Boolean(self._parent.dtype.nullable))
-
-    def _vectorize_string(self, func):
-        return self._parent._vectorize(func, dt.String(self._parent.dtype.nullable))
-
-    def _vectorize_list_string(self, func):
-        return self._parent._vectorize(
-            func, dt.List(dt.string, self._parent.dtype.nullable)
-        )
-
-    def _vectorize_int64(self, func):
-        return self._parent._vectorize(func, dt.Int64(self._parent.dtype.nullable))
-
-    def _not_supported(self, name):
-        raise TypeError(f"{name} for type {type(self).__name__} is not supported")
+        return self._vectorize_string(lambda s: s.replace(old, new))
 
     # Regular expressions -----------------------------------------------------
     #
@@ -333,3 +217,22 @@ class IStringMethods(abc.ABC):
             return pattern.findall(text)
 
         return self._vectorize_list_string(func)
+
+    # helper -----------------------------------------------------
+
+    def _vectorize_boolean(self, pred):
+        return self._parent._vectorize(pred, dt.Boolean(self._parent.dtype.nullable))
+
+    def _vectorize_string(self, func):
+        return self._parent._vectorize(func, dt.String(self._parent.dtype.nullable))
+
+    def _vectorize_list_string(self, func):
+        return self._parent._vectorize(
+            func, dt.List(dt.string, self._parent.dtype.nullable)
+        )
+
+    def _vectorize_int64(self, func):
+        return self._parent._vectorize(func, dt.Int64(self._parent.dtype.nullable))
+
+    def _not_supported(self, name):
+        raise TypeError(f"{name} for type {type(self).__name__} is not supported")

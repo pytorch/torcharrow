@@ -591,9 +591,7 @@ class TestDataFrame(unittest.TestCase):
         df["b"] = [11, 22, 33]
         df["c"] = ["a", "b", "C"]
 
-        self.assertEqual(
-            list(df.where(me["c"].str.capitalize() == me["c"])), [(3, 33, "C")]
-        )
+        self.assertEqual(list(df.where(me["c"].str.upper() == me["c"])), [(3, 33, "C")])
 
     def base_test_locals_and_me_equivalence(self):
         df = self.ts.DataFrame()
