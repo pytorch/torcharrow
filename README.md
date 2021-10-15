@@ -76,7 +76,7 @@ python setup.py install
 
 
 ## Documentation
-This [10 minutes tutorial](https://github.com/facebookresearch/torcharrow/blob/main/tutorial.ipynb) provides a short introduction to TorchArrow. More documents on advanced topics are coming soon!
+This [10 minutes tutorial](https://github.com/facebookresearch/torcharrow/blob/main/tutorial/tutorial.ipynb) provides a short introduction to TorchArrow. More documents on advanced topics are coming soon!
 
 ## Future Plans
 We hope to sufficiently expand the library, harden APIs, and gather feedback to enable a beta release at the time of the PyTorch 1.11 release (early 2022).
