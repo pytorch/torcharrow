@@ -12,7 +12,7 @@
 #include "column.h"
 #include "functions/functions.h" // @manual=//pytorch/torcharrow/csrc/velox/functions:torcharrow_functions
 #include "velox/buffer/StringViewBufferHolder.h"
-#include "velox/functions/prestosql/CoreFunctions.h"
+#include "velox/functions/prestosql/SimpleFunctions.h"
 #include "velox/functions/prestosql/VectorFunctions.h"
 #include "velox/vector/TypeAliases.h"
 
