@@ -85,21 +85,11 @@ class Scope:
 
     @staticmethod
     def _require_column_constructors_to_be_registered():
-        from .demo_rt import (
-            NumericalColumnDemo,
-            StringColumnDemo,
-            MapColumnDemo,
-            ListColumnDemo,
-            DataFrameDemo,
-        )
         from .idataframe import DataFrame
         from .ilist_column import IListColumn
         from .imap_column import IMapColumn
         from .istring_column import IStringColumn
 
-        # pass
-        # requires that all columns have registered their factory methods...
-        # handles cyclic references...
         from .velox_rt import NumericalColumnCpu
 
     # private column/dataframe constructors -----------------------------------
@@ -131,7 +121,6 @@ class Scope:
 
         return call(self, device, data, dtype, mask)
 
-    # TODO: Make this a public interface from_pylist
     def _FromPyList(self, data: ty.List, dtype: dt.DType, device=""):
         """
         Convert from plain Python container (list of scalars or containers).
