@@ -10,7 +10,6 @@ import numpy as np
 import torcharrow.dtypes as dt
 
 from .icolumn import IColumn
-from .scope import ColumnFactory
 
 # -----------------------------------------------------------------------------
 # IListColumn

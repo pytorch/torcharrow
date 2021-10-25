@@ -11,7 +11,7 @@ import torcharrow.dtypes as dt
 from tabulate import tabulate
 from torcharrow.icolumn import IColumn
 from torcharrow.imap_column import IMapColumn, IMapMethods
-from torcharrow.scope import ColumnFactory
+from torcharrow.dispatcher import Dispatcher
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type
@@ -155,9 +155,9 @@ class MapColumnCpu(IMapColumn, ColumnFromVelox):
 
 # ------------------------------------------------------------------------------
 # registering the factory
-ColumnFactory.register((dt.Map.typecode + "_empty", "cpu"), MapColumnCpu._empty)
-ColumnFactory.register((dt.Map.typecode + "_full", "cpu"), MapColumnCpu._full)
-ColumnFactory.register((dt.Map.typecode + "_fromlist", "cpu"), MapColumnCpu._fromlist)
+Dispatcher.register((dt.Map.typecode + "_empty", "cpu"), MapColumnCpu._empty)
+Dispatcher.register((dt.Map.typecode + "_full", "cpu"), MapColumnCpu._full)
+Dispatcher.register((dt.Map.typecode + "_fromlist", "cpu"), MapColumnCpu._fromlist)
 # -----------------------------------------------------------------------------
 # MapMethods
 
@@ -180,14 +180,3 @@ class MapMethodsCpu(IMapMethods):
         return ColumnFromVelox.from_velox(
             me.scope, me.device, dt.List(me._dtype.item_dtype), me._data.values(), True
         )
-
-
-# ops on maps --------------------------------------------------------------
-#  'get',
-#  'items',
-#  'keys',
-#  'pop',
-#  'popitem',
-#  'setdefault',
-#  'update',
-#  'values'
