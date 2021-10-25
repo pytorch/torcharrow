@@ -45,7 +45,7 @@ class DF:
 
 class TestDFNoTrace(unittest.TestCase):
     def setUp(self):
-        self.ts = Scope({"device": "demo"})
+        self.ts = Scope.default
 
     def test_tracing_off(self):
         trace = self.ts.trace
@@ -148,7 +148,6 @@ class TestColumnTrace(unittest.TestCase):
     def setUp(self):
         self.ts = Scope(
             {
-                "device": "demo",
                 "tracing": True,
                 "types_to_trace": [Scope, IColumn],
             }
@@ -202,23 +201,23 @@ class TestColumnTrace(unittest.TestCase):
         # print("TRACE", cmds(self.ts.trace.statements()))
         verdict = [
             "c0 = torcharrow.scope.Scope.Column(s0, int64)",
-            "c2 = torcharrow.demo_rt.numerical_column_demo.NumericalColumnDemo.append(c0, [13])",
-            "c4 = torcharrow.demo_rt.numerical_column_demo.NumericalColumnDemo.append(c2, [14])",
-            "c6 = torcharrow.demo_rt.numerical_column_demo.NumericalColumnDemo.append(c4, [16, 19])",
-            "_ = torcharrow.icolumn.IColumn.count(c6)",
-            "_ = torcharrow.icolumn.IColumn.__getitem__(c6, 0)",
-            "c7 = torcharrow.icolumn.IColumn.__getitem__(c6, slice(None, 1, None))",
-            "c8 = torcharrow.icolumn.IColumn.__getitem__(c6, [0, 1])",
-            "c9 = torcharrow.scope.Scope.Column(s0, [True, True])",
-            "c10 = torcharrow.demo_rt.numerical_column_demo.NumericalColumnDemo.__ne__(c6, c6)",
-            "c11 = torcharrow.icolumn.IColumn.__getitem__(c6, c10)",
-            "c12 = torcharrow.icolumn.IColumn.head(c6, 17)",
-            "c13 = torcharrow.icolumn.IColumn.tail(c8, -12)",
-            "c14 = torcharrow.icolumn.IColumn.map(c6, {13: 133}, dtype=Int64(nullable=True))",
-            "c15 = torcharrow.icolumn.IColumn.map(c6, h)",
-            "_ = torcharrow.icolumn.IColumn.reduce(c6, operator.add, 0)",
-            "c16 = torcharrow.demo_rt.numerical_column_demo.NumericalColumnDemo.sort(c6, ascending=False)",
-            "c18 = torcharrow.demo_rt.numerical_column_demo.NumericalColumnDemo.nlargest(c16)",
+            "c1 = torcharrow.icolumn.IColumn.append(c0, [13])",
+            "c2 = torcharrow.icolumn.IColumn.append(c1, [14])",
+            "c3 = torcharrow.icolumn.IColumn.append(c2, [16, 19])",
+            "_ = torcharrow.icolumn.IColumn.count(c3)",
+            "_ = torcharrow.icolumn.IColumn.__getitem__(c3, 0)",
+            "c4 = torcharrow.icolumn.IColumn.__getitem__(c3, slice(None, 1, None))",
+            "c5 = torcharrow.icolumn.IColumn.__getitem__(c3, [0, 1])",
+            "c6 = torcharrow.scope.Scope.Column(s0, [True, True])",
+            "c7 = torcharrow.velox_rt.numerical_column_cpu.NumericalColumnCpu.__ne__(c3, c3)",
+            "c8 = torcharrow.icolumn.IColumn.__getitem__(c3, c7)",
+            "c9 = torcharrow.icolumn.IColumn.head(c3, 17)",
+            "c10 = torcharrow.icolumn.IColumn.tail(c5, -12)",
+            "c11 = torcharrow.icolumn.IColumn.map(c3, {13: 133}, dtype=Int64(nullable=True))",
+            "c12 = torcharrow.icolumn.IColumn.map(c3, h)",
+            "_ = torcharrow.icolumn.IColumn.reduce(c3, operator.add, 0)",
+            "c13 = torcharrow.velox_rt.numerical_column_cpu.NumericalColumnCpu.sort(c3, ascending=False)",
+            "c15 = torcharrow.velox_rt.numerical_column_cpu.NumericalColumnCpu.nlargest(c13)",
         ]
 
         self.assertEqual(self.ts.trace.statements(), verdict)
@@ -238,7 +237,7 @@ def add(tup):
 class TestDataframeTrace(unittest.TestCase):
     def setUp(self):
         types = [Scope, IColumn, GroupedDataFrame]
-        self.ts = Scope({"device": "demo", "tracing": True, "types_to_trace": types})
+        self.ts = Scope({"tracing": True, "types_to_trace": types})
 
     def test_simple_df_ops_fail(self):
 
@@ -281,12 +280,12 @@ class TestDataframeTrace(unittest.TestCase):
             "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'a', [1, 2, 3])",
             "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'b', [11, 22, 33])",
             "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'c', [111, 222, 333])",
-            "c1 = torcharrow.icolumn.IColumn.__getitem__(c0, 'a')",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'd', c1)",
-            "c4 = torcharrow.demo_rt.dataframe_demo.DataFrameDemo.drop(c0, ['a'])",
-            "c5 = torcharrow.demo_rt.dataframe_demo.DataFrameDemo.keep(c0, ['a', 'c'])",
-            "c6 = torcharrow.demo_rt.dataframe_demo.DataFrameDemo.rename(c5, {'c': 'e'})",
-            "c9 = torcharrow.demo_rt.dataframe_demo.DataFrameDemo.min(c6)",
+            "c4 = torcharrow.icolumn.IColumn.__getitem__(c0, 'a')",
+            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'd', c4)",
+            "c11 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.drop(c0, ['a'])",
+            "c16 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.keep(c0, ['a', 'c'])",
+            "c21 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.rename(c16, {'c': 'e'})",
+            "c24 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.min(c21)",
         ]
 
         self.assertEqual(self.ts.trace.statements(), verdict)
@@ -313,7 +312,7 @@ class TestDataframeTrace(unittest.TestCase):
             "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'a', [1, 2, 3])",
             "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'b', [11, 22, 33])",
             "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'c', [111, 222, 333])",
-            "c8 = torcharrow.demo_rt.dataframe_demo.DataFrameDemo.where(c0, torcharrow.idataframe.me.__getitem__('a').__gt__(1))",
+            "c9 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.where(c0, torcharrow.idataframe.me.__getitem__('a').__gt__(1))",
         ]
 
         self.assertEqual(self.ts.trace.statements(), verdict)
@@ -395,6 +394,7 @@ class TestDataframeTrace(unittest.TestCase):
         # exec(";".join(stms))
         # self.assertEqual(list(eval(d1_result)), list(eval(d2_result)))
 
+    @unittest.skip("fix https://github.com/facebookresearch/torcharrow/issues/35")
     def test_df_without_input(self):
         d0 = self.ts.DataFrame(
             dtype=dt.Struct([dt.Field(i, dt.int64) for i in ["a", "b", "c"]])
