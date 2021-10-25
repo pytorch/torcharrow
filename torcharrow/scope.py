@@ -5,7 +5,7 @@ import warnings
 
 import torcharrow.dtypes as dt
 
-from .column_factory import ColumnFactory, Device
+from .dispatcher import Dispatcher, Device
 from .trace import Trace, trace
 
 # ---------------------------------------------------------------------------
@@ -106,7 +106,7 @@ class Scope:
         Scope._require_column_constructors_to_be_registered()
 
         device = device if device != "" else self.device
-        call = ColumnFactory.lookup((dtype.typecode + "_empty", device))
+        call = Dispatcher.lookup((dtype.typecode + "_empty", device))
 
         return call(self, device, dtype)
 
@@ -117,7 +117,7 @@ class Scope:
         Scope._require_column_constructors_to_be_registered()
 
         device = device if device != "" else self.device
-        call = ColumnFactory.lookup((dtype.typecode + "_full", device))
+        call = Dispatcher.lookup((dtype.typecode + "_full", device))
 
         return call(self, device, data, dtype, mask)
 
@@ -129,7 +129,7 @@ class Scope:
 
         device = device if device != "" else self.device
         # TODO: rename the dispatch key to be "_from_python"
-        call = ColumnFactory.lookup((dtype.typecode + "_fromlist", device))
+        call = Dispatcher.lookup((dtype.typecode + "_fromlist", device))
 
         return call(self, device, data, dtype)
 
@@ -358,7 +358,7 @@ but data only provides {len(data)} fields: {data.keys()}
         dtype = dtype or _arrowtype_to_dtype(data.type, data.null_count > 0)
         device = device or self.device
 
-        call = ColumnFactory.lookup((dtype.typecode + "_fromarrow", device))
+        call = Dispatcher.lookup((dtype.typecode + "_fromarrow", device))
 
         return call(self, device, data, dtype)
 
