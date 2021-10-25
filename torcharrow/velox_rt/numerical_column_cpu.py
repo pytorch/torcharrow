@@ -3,15 +3,15 @@ import array as ar
 import math
 import operator
 import statistics
-from typing import Dict, List, Literal, Optional, Union, cast, Callable
+from typing import Dict, List, Literal, Optional, Union, Callable
 
 import numpy as np
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
+from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
 from torcharrow.icolumn import IColumn
 from torcharrow.inumerical_column import INumericalColumn
-from torcharrow.scope import ColumnFactory
 from torcharrow.trace import trace
 
 from .column import ColumnFromVelox
@@ -1000,8 +1000,6 @@ _primitive_types: List[dt.DType] = [
     dt.Boolean(),
 ]
 for t in _primitive_types:
-    ColumnFactory.register((t.typecode + "_empty", "cpu"), NumericalColumnCpu._empty)
-    ColumnFactory.register((t.typecode + "_full", "cpu"), NumericalColumnCpu._full)
-    ColumnFactory.register(
-        (t.typecode + "_fromlist", "cpu"), NumericalColumnCpu._fromlist
-    )
+    Dispatcher.register((t.typecode + "_empty", "cpu"), NumericalColumnCpu._empty)
+    Dispatcher.register((t.typecode + "_full", "cpu"), NumericalColumnCpu._full)
+    Dispatcher.register((t.typecode + "_fromlist", "cpu"), NumericalColumnCpu._fromlist)

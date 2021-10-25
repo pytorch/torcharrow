@@ -11,7 +11,8 @@ from tabulate import tabulate
 from torcharrow.expression import expression
 from torcharrow.functional import functional
 from torcharrow.istring_column import IStringColumn, IStringMethods
-from torcharrow.scope import ColumnFactory, Scope, Device
+from torcharrow.scope import Scope, Device
+from torcharrow.dispatcher import Dispatcher
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type
@@ -289,9 +290,9 @@ class StringMethodsCpu(IStringMethods):
 
 # ------------------------------------------------------------------------------
 # registering the factory
-ColumnFactory.register((dt.String.typecode + "_empty", "cpu"), StringColumnCpu._empty)
-ColumnFactory.register((dt.String.typecode + "_full", "cpu"), StringColumnCpu._full)
-ColumnFactory.register(
+Dispatcher.register((dt.String.typecode + "_empty", "cpu"), StringColumnCpu._empty)
+Dispatcher.register((dt.String.typecode + "_full", "cpu"), StringColumnCpu._full)
+Dispatcher.register(
     (dt.String.typecode + "_fromlist", "cpu"), StringColumnCpu._fromlist
 )
 

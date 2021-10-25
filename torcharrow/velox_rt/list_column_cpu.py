@@ -8,7 +8,7 @@ import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 from tabulate import tabulate
 from torcharrow.ilist_column import IListColumn, IListMethods
-from torcharrow.scope import ColumnFactory
+from torcharrow.dispatcher import Dispatcher
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type
@@ -154,5 +154,5 @@ class ListMethodsCpu(IListMethods):
 
 # ------------------------------------------------------------------------------
 # registering the factory
-ColumnFactory.register((dt.List.typecode + "_empty", "cpu"), ListColumnCpu._empty)
-ColumnFactory.register((dt.List.typecode + "_fromlist", "cpu"), ListColumnCpu._fromlist)
+Dispatcher.register((dt.List.typecode + "_empty", "cpu"), ListColumnCpu._empty)
+Dispatcher.register((dt.List.typecode + "_fromlist", "cpu"), ListColumnCpu._fromlist)

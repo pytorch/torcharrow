@@ -28,7 +28,7 @@ import numpy as np
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 from tabulate import tabulate
-from torcharrow.column_factory import ColumnFactory, Device
+from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import eval_expression, expression
 from torcharrow.icolumn import IColumn
 from torcharrow.idataframe import IDataFrame
@@ -2257,11 +2257,9 @@ class GroupedDataFrame:
 # ------------------------------------------------------------------------------
 # registering the factory
 
-ColumnFactory.register((dt.Struct.typecode + "_empty", "cpu"), DataFrameCpu._empty)
-ColumnFactory.register((dt.Struct.typecode + "_full", "cpu"), DataFrameCpu._full)
-ColumnFactory.register(
-    (dt.Struct.typecode + "_fromlist", "cpu"), DataFrameCpu._fromlist
-)
+Dispatcher.register((dt.Struct.typecode + "_empty", "cpu"), DataFrameCpu._empty)
+Dispatcher.register((dt.Struct.typecode + "_full", "cpu"), DataFrameCpu._full)
+Dispatcher.register((dt.Struct.typecode + "_fromlist", "cpu"), DataFrameCpu._fromlist)
 
 
 # ------------------------------------------------------------------------------

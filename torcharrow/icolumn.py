@@ -15,7 +15,7 @@ import numpy as np
 import torcharrow.dtypes as dt
 from tabulate import tabulate
 
-from .column_factory import Device
+from .dispatcher import Device
 from .expression import expression
 from .scope import Scope
 from .trace import trace, traceproperty

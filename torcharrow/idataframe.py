@@ -24,8 +24,8 @@ from typing import (
 
 import numpy as np
 import torcharrow.dtypes as dt
+from torcharrow.dispatcher import Device
 
-from .column_factory import ColumnFactory, Device
 from .expression import Var, eval_expression, expression
 from .icolumn import IColumn
 from .scope import Scope

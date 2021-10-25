@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torcharrow._torcharrow as velox
-from torcharrow.column_factory import Device
+from torcharrow.dispatcher import Device
 from torcharrow.dtypes import DType
 from torcharrow.icolumn import IColumn
 from torcharrow.scope import Scope

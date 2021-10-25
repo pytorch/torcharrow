@@ -1,22 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import abc
-import array as ar
 
 # TODO: use re2
 import re
-import typing as ty
-from dataclasses import dataclass
 
-# import re2 as re  # type: ignore
-
-import numpy as np
 import numpy.ma as ma
 import torcharrow.dtypes as dt
-from torcharrow.expression import Call
 
 from .expression import expression
 from .icolumn import IColumn
-from .scope import ColumnFactory
 
 # ------------------------------------------------------------------------------
 # IStringColumn
