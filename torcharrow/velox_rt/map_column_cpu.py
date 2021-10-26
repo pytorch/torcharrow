@@ -9,9 +9,9 @@ import numpy as np
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 from tabulate import tabulate
+from torcharrow.dispatcher import Dispatcher
 from torcharrow.icolumn import IColumn
 from torcharrow.imap_column import IMapColumn, IMapMethods
-from torcharrow.dispatcher import Dispatcher
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type
