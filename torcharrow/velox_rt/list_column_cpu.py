@@ -7,8 +7,8 @@ import numpy as np
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 from tabulate import tabulate
-from torcharrow.ilist_column import IListColumn, IListMethods
 from torcharrow.dispatcher import Dispatcher
+from torcharrow.ilist_column import IListColumn, IListMethods
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type

@@ -89,7 +89,6 @@ class Scope:
         from .ilist_column import IListColumn
         from .imap_column import IMapColumn
         from .istring_column import IStringColumn
-
         from .velox_rt import NumericalColumnCpu
 
     # private column/dataframe constructors -----------------------------------

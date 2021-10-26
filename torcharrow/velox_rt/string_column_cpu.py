@@ -8,11 +8,11 @@ import numpy.ma as ma
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 from tabulate import tabulate
+from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
 from torcharrow.functional import functional
 from torcharrow.istring_column import IStringColumn, IStringMethods
 from torcharrow.scope import Scope, Device
-from torcharrow.dispatcher import Dispatcher
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type
