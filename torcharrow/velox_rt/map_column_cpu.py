@@ -12,6 +12,9 @@ from tabulate import tabulate
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.icolumn import IColumn
 from torcharrow.imap_column import IMapColumn, IMapMethods
+from torcharrow.dispatcher import Dispatcher
+from torcharrow import Scope
+import torcharrow as ta
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type
@@ -21,9 +24,9 @@ from .typing import get_velox_type
 
 
 class MapColumnCpu(IMapColumn, ColumnFromVelox):
-    def __init__(self, scope, device, dtype, key_data, item_data, mask):
+    def __init__(self, device, dtype, key_data, item_data, mask):
         assert dt.is_map(dtype)
-        super().__init__(scope, device, dtype)
+        super().__init__(device, dtype)
 
         self._data = velox.Column(
             velox.VeloxMapType(
@@ -38,17 +41,17 @@ class MapColumnCpu(IMapColumn, ColumnFromVelox):
     # Lifecycle: _empty -> _append* -> _finalize; no other ops are allowed during this time
 
     @staticmethod
-    def _empty(scope, device, dtype):
-        key_data = scope._EmptyColumn(
+    def _empty(device, dtype):
+        key_data = Scope._EmptyColumn(
             dt.List(dtype.key_dtype).with_null(dtype.nullable)
         )
-        item_data = scope._EmptyColumn(
+        item_data = Scope._EmptyColumn(
             dt.List(dtype.item_dtype).with_null(dtype.nullable)
         )
-        return MapColumnCpu(scope, device, dtype, key_data, item_data, ar.array("b"))
+        return MapColumnCpu(device, dtype, key_data, item_data, ar.array("b"))
 
     @staticmethod
-    def _full(scope, device, data, dtype=None, mask=None):
+    def _full(device, data, dtype=None, mask=None):
         assert isinstance(data, tuple) and len(data) == 2
         key_data, item_data = data
         assert isinstance(key_data, IColumn)
@@ -74,12 +77,12 @@ class MapColumnCpu(IMapColumn, ColumnFromVelox):
                 f"data length {len(key_data)} must be the same as mask length {len(mask)}"
             )
         # TODO check that all non-masked items are legal numbers (i.e not nan)
-        return MapColumnCpu(scope, device, dtype, key_data, item_data, mask)
+        return MapColumnCpu(device, dtype, key_data, item_data, mask)
 
     @staticmethod
-    def _fromlist(scope, device, data: List, dtype):
+    def _fromlist(device, data: List, dtype):
         # default implementation
-        col = MapColumnCpu._empty(scope, device, dtype)
+        col = MapColumnCpu._empty(device, dtype)
         for i in data:
             col._append(i)
         return col._finalize()
@@ -91,8 +94,8 @@ class MapColumnCpu(IMapColumn, ColumnFromVelox):
         if value is None:
             raise NotImplementedError()
         else:
-            new_key = self.scope.Column(self._dtype.key_dtype)
-            new_value = self.scope.Column(self._dtype.item_dtype)
+            new_key = ta.Column(self._dtype.key_dtype)
+            new_value = ta.Column(self._dtype.item_dtype)
             new_key = new_key.append(value.keys())
             new_value = new_value.append(value.values())
             self._data.append(new_key._data, new_value._data)
@@ -119,14 +122,12 @@ class MapColumnCpu(IMapColumn, ColumnFromVelox):
             return self.dtype.default
         else:
             key_col = ColumnFromVelox.from_velox(
-                self.scope,
                 self.device,
                 self._dtype.key_dtype,
                 self._data.keys()[i],
                 True,
             )
             value_col = ColumnFromVelox.from_velox(
-                self.scope,
                 self.device,
                 self._dtype.item_dtype,
                 self._data.values()[i],
@@ -172,11 +173,11 @@ class MapMethodsCpu(IMapMethods):
     def keys(self):
         me = self._parent
         return ColumnFromVelox.from_velox(
-            me.scope, me.device, dt.List(me._dtype.key_dtype), me._data.keys(), True
+            me.device, dt.List(me._dtype.key_dtype), me._data.keys(), True
         )
 
     def values(self):
         me = self._parent
         return ColumnFromVelox.from_velox(
-            me.scope, me.device, dt.List(me._dtype.item_dtype), me._data.values(), True
+            me.device, dt.List(me._dtype.item_dtype), me._data.values(), True
         )

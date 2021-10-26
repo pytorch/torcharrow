@@ -35,7 +35,7 @@ class _Functional(ModuleType):
             op = self.get_backend_functional(backend).__getattr__(op_name)
             return op(*args)
 
-        def factory_dispatch(*args, size=None, device="cpu", scope=Scope.default):
+        def factory_dispatch(*args, size=None, device="cpu"):
             if size is None:
                 raise AssertionError(
                     f"Factory method call {op_name} requires expclit size parameter"
@@ -50,7 +50,7 @@ class _Functional(ModuleType):
 
             # dispatch to backend functional namespace
             op = self.get_backend_functional(backend).__getattr__(op_name)
-            return op(*args, size=size, device=device, scope=scope)
+            return op(*args, size=size, device=device)
 
         if op_name in self._factory_methods:
             return factory_dispatch

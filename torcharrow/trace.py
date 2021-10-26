@@ -79,14 +79,7 @@ class Trace:
 def get_trace(*args, **kwargs):
     from .scope import Scope
 
-    for arg in args:
-        if isinstance(arg, Scope):
-            return arg.trace
-        if hasattr(arg, "_scope") and isinstance(arg._scope, Scope):
-            return arg._scope.trace
-        elif "scope" in kwargs and isinstance(kwargs["scope"], Scope):
-            return kwargs["scope"].trace
-    return None
+    return Scope.default.trace
 
 
 def trace(fn):

@@ -17,9 +17,9 @@ from .icolumn import IColumn
 class IStringColumn(IColumn):
 
     # private constructor
-    def __init__(self, scope, device, dtype):  # REP offsets
+    def __init__(self, device, dtype):  # REP offsets
         assert dt.is_string(dtype)
-        super().__init__(scope, device, dtype)
+        super().__init__(device, dtype)
         # must be set by subclass
         self.str: IStringMethods = None
 

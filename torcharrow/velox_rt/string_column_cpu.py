@@ -24,9 +24,9 @@ from .typing import get_velox_type
 class StringColumnCpu(IStringColumn, ColumnFromVelox):
 
     # private constructor
-    def __init__(self, scope, device, dtype, data, mask):  # REP offsets
+    def __init__(self, device, dtype, data, mask):  # REP offsets
         assert dt.is_string(dtype)
-        super().__init__(scope, device, dtype)
+        super().__init__(device, dtype)
 
         self._data = velox.Column(get_velox_type(dtype))
         for m, d in zip(mask.tolist(), data):
@@ -42,12 +42,12 @@ class StringColumnCpu(IStringColumn, ColumnFromVelox):
     # Any _empty must be followed by a _finalize; no other ops are allowed during this time
 
     @staticmethod
-    def _empty(scope, device, dtype):
+    def _empty(device, dtype):
         # REP  ar.array("I", [0])
-        return StringColumnCpu(scope, device, dtype, [], ar.array("b"))
+        return StringColumnCpu(device, dtype, [], ar.array("b"))
 
     @staticmethod
-    def _full(scope, device, data, dtype=None, mask=None):
+    def _full(device, data, dtype=None, mask=None):
         assert isinstance(data, np.ndarray) and data.ndim == 1
         if dtype is None:
             dtype = dt.typeof_np_ndarray(data.dtype)
@@ -67,13 +67,12 @@ class StringColumnCpu(IStringColumn, ColumnFromVelox):
         elif len(data) != len(mask):
             raise ValueError(f"data length {len(data)} must be mask length {len(mask)}")
         # TODO check that all non-masked items are strings
-        return StringColumnCpu(scope, device, dtype, data, mask)
+        return StringColumnCpu(device, dtype, data, mask)
 
     @staticmethod
-    def _fromlist(scope, device: str, data: List[str], dtype: dt.DType):
+    def _fromlist(device: str, data: List[str], dtype: dt.DType):
         velox_column = velox.Column(get_velox_type(dtype), data)
         return ColumnFromVelox.from_velox(
-            scope,
             device,
             dtype,
             velox_column,
@@ -121,11 +120,11 @@ class StringColumnCpu(IStringColumn, ColumnFromVelox):
     def gets(self, indices):
         data = self._data[indices]
         mask = self._mask[indices]
-        return self.scope._FullColumn(data, self.dtype, self.device, mask)
+        return self._scope._FullColumn(data, self.dtype, self.device, mask)
 
     def slice(self, start, stop, step):
         range = slice(start, stop, step)
-        return self.scope._FullColumn(
+        return self._scope._FullColumn(
             self._data[range], self.dtype, self.device, self._mask[range]
         )
 
