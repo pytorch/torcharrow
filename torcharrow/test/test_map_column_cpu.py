@@ -10,7 +10,7 @@ from .test_map_column import TestMapColumn
 
 class TestMapColumnCpu(TestMapColumn):
     def setUp(self):
-        self.ts = Scope({"device": "cpu"})
+        self.device = "cpu"
 
     def test_map(self):
         self.base_test_map()

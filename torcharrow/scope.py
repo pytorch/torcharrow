@@ -28,6 +28,8 @@ class Counter:
         return n
 
 
+# Scope will be deprecated in the future.
+# Please DON'T use it in user-level code.
 class Scope:
 
     default: ty.ClassVar["Scope"]
@@ -81,8 +83,7 @@ class Scope:
         ):
             raise TypeError("scope and device must be the same")
 
-    # column factory -----------------------------------------------------------
-
+    # TODO: refactor these static methods out of scope.py
     @staticmethod
     def _require_column_constructors_to_be_registered():
         from .idataframe import DataFrame
@@ -92,7 +93,8 @@ class Scope:
         from .velox_rt import NumericalColumnCpu
 
     # private column/dataframe constructors -----------------------------------
-    def _EmptyColumn(self, dtype, device=""):
+    @staticmethod
+    def _EmptyColumn(dtype, device=""):
         """
         Column row builder method
 
@@ -104,48 +106,39 @@ class Scope:
         """
         Scope._require_column_constructors_to_be_registered()
 
-        device = device if device != "" else self.device
+        device = device or Scope.default.device
         call = Dispatcher.lookup((dtype.typecode + "_empty", device))
 
-        return call(self, device, dtype)
+        return call(device, dtype)
 
-    def _FullColumn(self, data, dtype, device="", mask=None):
+    @staticmethod
+    def _FullColumn(data, dtype, device="", mask=None):
         """
         Column vector builder method -- data is already in right form
         """
         Scope._require_column_constructors_to_be_registered()
 
-        device = device if device != "" else self.device
+        device = device or Scope.default.device
         call = Dispatcher.lookup((dtype.typecode + "_full", device))
 
-        return call(self, device, data, dtype, mask)
+        return call(device, data, dtype, mask)
 
-    def _FromPyList(self, data: ty.List, dtype: dt.DType, device=""):
+    @staticmethod
+    def _FromPyList(data: ty.List, dtype: dt.DType, device=""):
         """
         Convert from plain Python container (list of scalars or containers).
         """
         Scope._require_column_constructors_to_be_registered()
 
-        device = device if device != "" else self.device
-        # TODO: rename the dispatch key to be "_from_python"
+        device = device or Scope.default.device
+        # TODO: rename the dispatch key to be "_from_pylist"
         call = Dispatcher.lookup((dtype.typecode + "_fromlist", device))
 
-        return call(self, device, data, dtype)
+        return call(device, data, dtype)
 
-    # public column (dataframe) constructors ----------------------------------
-    def arrange(
-        self,
-        start: int,
-        stop: int,
-        step: int = 1,
-        dtype: ty.Optional[dt.DType] = None,
-        device: ty.Optional[Device] = None,
-    ):
-        return self.Column(list(range(start, stop, step)), dtype, device)
-
+    @staticmethod
     @trace
-    def Column(
-        self,
+    def _Column(
         data=None,
         dtype: ty.Optional[dt.DType] = None,
         device: Device = "",
@@ -154,7 +147,7 @@ class Scope:
         Column factory method
         """
 
-        device = self.device if device is None else device
+        device = device or Scope.default.device
 
         if (data is None) and (dtype is None):
             raise TypeError(
@@ -175,7 +168,7 @@ class Scope:
                 raise ValueError("Column cannot infer type from data")
             if dt.contains_tuple(dtype):
                 raise TypeError("Cannot infer type from Python tuple")
-            return self._FromPyList(data, dtype, device)
+            return Scope._FromPyList(data, dtype, device)
 
         if data is not None:
             warnings.warn(
@@ -184,12 +177,12 @@ class Scope:
             # TODO: Shall we only allow constructing Column from list?
 
         # data is already IColumn
-        if self._is_column(data):
+        if Scope._is_column(data):
             raise ValueError("data is already IColumn")
 
         # dtype given, optional data
         if isinstance(dtype, dt.DType):
-            col = self._EmptyColumn(dtype, device)
+            col = Scope._EmptyColumn(dtype, device)
             if data is not None:
                 for i in data:
                     col._append(i)
@@ -214,7 +207,7 @@ class Scope:
                     raise TypeError(
                         "Column cannot be used to created structs, use Dataframe constructor instead"
                     )
-                col = self._EmptyColumn(dtype, device=device)
+                col = Scope._EmptyColumn(dtype, device=device)
                 # add prefix and ...
                 for p in prefix:
                     col._append(p)
@@ -230,9 +223,9 @@ class Scope:
             raise AssertionError("unexpected case")
 
     # public dataframe (column)) constructor
+    @staticmethod
     @trace
-    def DataFrame(
-        self,
+    def _DataFrame(
         data=None,  # : DataOrDTypeOrNone = None,
         dtype=None,  # : ty.Optional[dt.DType] = None,
         columns=None,  # : ty.Optional[List[str]] = None,
@@ -244,7 +237,7 @@ class Scope:
 
         if data is None and dtype is None:
             assert columns is None
-            return self._EmptyColumn(dt.Struct([]), device=device)._finalize()
+            return Scope._EmptyColumn(dt.Struct([]), device=device)._finalize()
 
         if data is not None and isinstance(data, dt.DType):
             if dtype is not None and isinstance(dtype, dt.DType):
@@ -260,10 +253,10 @@ class Scope:
                 )
             dtype = ty.cast(dt.Struct, dtype)
             if data is None:
-                return self._EmptyColumn(dtype, device=device)._finalize()
+                return Scope._EmptyColumn(dtype, device=device)._finalize()
             else:
                 if isinstance(data, ty.Sequence):
-                    res = self._EmptyColumn(dtype, device=device)
+                    res = Scope._EmptyColumn(dtype, device=device)
                     for i in data:
                         res._append(i)
                     return res._finalize()
@@ -289,10 +282,10 @@ but data only provides {len(data)} fields: {data.keys()}
                                     f"Wrong type for column {n}: dtype specifies {dtype_fields[n]} while column of {c.dtype} is provided"
                                 )
                         else:
-                            c = self.Column(c, dtype_fields[n])
+                            c = Scope._Column(c, dtype_fields[n])
                         res[n] = c
 
-                    return self._FullColumn(res, dtype)
+                    return Scope._FullColumn(res, dtype)
 
                 else:
                     raise TypeError(
@@ -317,7 +310,7 @@ but data only provides {len(data)} fields: {data.keys()}
                 dtype = dt.Struct(
                     [dt.Field(n, t) for n, t in zip(columns, dtype.fields)]
                 )
-                res = self._EmptyColumn(dtype, device=device)
+                res = Scope._EmptyColumn(dtype, device=device)
                 for i in data:
                     res._append(i)
                 return res._finalize()
@@ -327,15 +320,15 @@ but data only provides {len(data)} fields: {data.keys()}
                     if Scope._is_column(c):
                         res[n] = c
                     elif isinstance(c, ty.Sequence):
-                        res[n] = self.Column(c, device=device)
+                        res[n] = Scope._Column(c, device=device)
                     else:
                         raise TypeError(
                             f"dataframe does not support constructor for column data of type {type(c).__name__}"
                         )
-                return self._FullColumn(
+                return Scope._FullColumn(
                     res, dtype=dt.Struct([dt.Field(n, c.dtype) for n, c in res.items()])
                 )
-            elif Scope.is_dataframe(data):
+            elif Scope._is_dataframe(data):
                 return data
             else:
                 raise TypeError(
@@ -344,41 +337,19 @@ but data only provides {len(data)} fields: {data.keys()}
         else:
             raise AssertionError("unexpected case")
 
-    # interop -----------------------------------------------------------------
-    def from_arrow(self, data, dtype: ty.Optional[dt.DType] = None, device=""):
-        """
-        Convert from arrow array or table
-        """
-        import pyarrow as pa
-        from torcharrow._interop import _arrowtype_to_dtype
-
-        assert isinstance(data, pa.Array) or isinstance(data, pa.Table)
-
-        dtype = dtype or _arrowtype_to_dtype(data.type, data.null_count > 0)
-        device = device or self.device
-
-        call = Dispatcher.lookup((dtype.typecode + "_fromarrow", device))
-
-        return call(self, device, data, dtype)
-
-    Frame = DataFrame
-
     # helper ------------------------------------------------------------------
     @staticmethod
     def _is_column(c):
         # NOTE: should be isinstance(c, IColumn)
         # But can't do tha due to cyclic reference, so we use ...
-        return hasattr(c, "_dtype") and hasattr(c, "_scope") and hasattr(c, "_device")
+        return hasattr(c, "_dtype") and hasattr(c, "_device")
 
     @staticmethod
     def _is_dataframe(c):
         # NOTE: should be isinstance(c, DataFrame)
         # But can't do tha due to cyclic reference, so we use ...
         return (
-            hasattr(c, "_dtype")
-            and hasattr(c, "_scope")
-            and hasattr(c, "_device")
-            and hasattr(c, "_field_data")
+            hasattr(c, "_dtype") and hasattr(c, "_device") and hasattr(c, "_field_data")
         )
 
 

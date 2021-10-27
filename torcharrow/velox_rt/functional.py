@@ -38,10 +38,10 @@ class VeloxFunctional(types.ModuleType):
             result_dtype = result_col.dtype().with_null(True)
 
             return ColumnFromVelox.from_velox(
-                first_col.scope, first_col.device, result_dtype, result_col, True
+                first_col.device, result_dtype, result_col, True
             )
 
-        def factory_dispatch(*args, size=None, device="cpu", scope=Scope.default):
+        def factory_dispatch(*args, size=None, device="cpu"):
             if size is None:
                 raise AssertionError(
                     f"Factory method call {op_name} requires expclit size parameter"
@@ -57,9 +57,7 @@ class VeloxFunctional(types.ModuleType):
             # Generic dispatch always assumes nullable
             result_dtype = result_col.dtype().with_null(True)
 
-            return ColumnFromVelox.from_velox(
-                scope, device, result_dtype, result_col, True
-            )
+            return ColumnFromVelox.from_velox(device, result_dtype, result_col, True)
 
         if op_name in functional_registry._factory_methods:
             return factory_dispatch

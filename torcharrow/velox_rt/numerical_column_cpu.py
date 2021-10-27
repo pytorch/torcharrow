@@ -6,8 +6,10 @@ import statistics
 from typing import Dict, List, Literal, Optional, Union, Callable
 
 import numpy as np
+import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
+from torcharrow import Scope
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
 from torcharrow.icolumn import IColumn
@@ -24,10 +26,10 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     """A Numerical Column"""
 
     # private
-    def __init__(self, scope, device, dtype, data, mask):
+    def __init__(self, device, dtype, data, mask):
         # TODO: Refactor the constructors (remove mask, data should be velox.BaseColumn)
         assert dt.is_boolean_or_numerical(dtype)
-        super().__init__(scope, device, dtype)
+        super().__init__(device, dtype)
         self._data = velox.Column(get_velox_type(dtype))
         for m, d in zip(mask.tolist(), data.tolist()):
             if m:
@@ -37,7 +39,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         self._finialized = False
 
     @staticmethod
-    def _full(scope, device, data, dtype=None, mask=None):
+    def _full(device, data, dtype=None, mask=None):
         assert isinstance(data, np.ndarray) and data.ndim == 1
         if dtype is None:
             dtype = dt.typeof_np_ndarray(data.dtype)
@@ -55,22 +57,19 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                 f"data length {len(data)} must be the same as mask length {len(mask)}"
             )
         # TODO check that all non-masked items are legal numbers (i.e not nan)
-        return NumericalColumnCpu(scope, device, dtype, data, mask)
+        return NumericalColumnCpu(device, dtype, data, mask)
 
     # Any _empty must be followed by a _finalize; no other ops are allowed during this time
     @staticmethod
-    def _empty(scope, device, dtype):
+    def _empty(device, dtype):
         return NumericalColumnCpu(
-            scope, device, dtype, ar.array(dtype.arraycode), ar.array("b")
+            device, dtype, ar.array(dtype.arraycode), ar.array("b")
         )
 
     @staticmethod
-    def _fromlist(
-        scope, device: str, data: List[Union[int, float, bool]], dtype: dt.DType
-    ):
+    def _fromlist(device: str, data: List[Union[int, float, bool]], dtype: dt.DType):
         velox_column = velox.Column(get_velox_type(dtype), data)
         return ColumnFromVelox.from_velox(
-            scope,
             device,
             dtype,
             velox_column,
@@ -103,7 +102,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
 
     @trace
     def copy(self):
-        return self.scope._FullColumn(self._data.copy(), self.mask.copy())
+        return Scope._FullColumn(self._data.copy(), self.mask.copy())
 
     def getdata(self, i):
         if i < 0:
@@ -125,9 +124,9 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         if not dt.is_boolean(self.dtype):
             raise TypeError("condition must be a boolean vector")
         if not isinstance(then_, IColumn):
-            then_ = self._Column(then_)
+            then_ = ta.Column(then_)
         if not isinstance(else_, IColumn):
-            else_ = self._Column(else_)
+            else_ = ta.Column(else_)
         lub = dt.common_dtype(then_.dtype, else_.dtype)
 
         if lub is None or dt.is_void(lub):
@@ -145,7 +144,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     col.append(
                         then_.getdata(i) if self.getdata(i) else else_.getdata(i)
                     )
-            return ColumnFromVelox.from_velox(self.scope, self.device, lub, col, True)
+            return ColumnFromVelox.from_velox(self.device, lub, col, True)
 
         else:
             # refer back to default handling...
@@ -183,9 +182,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             for i in range(none_count):
                 col.append_null()
 
-        return ColumnFromVelox.from_velox(
-            self.scope, self.device, self.dtype, col, True
-        )
+        return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
 
     @trace
     @expression
@@ -230,16 +227,13 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def _checked_binary_op_call(
         self, other: Union[INumericalColumn, int, float, bool], op_name: str
     ) -> INumericalColumn:
-        if isinstance(other, INumericalColumn):
-            self.scope.check_is_same(other.scope)
-
         if isinstance(other, NumericalColumnCpu):
             result_col = getattr(self._data, op_name)(other._data)
             result_dtype = result_col.dtype().with_null(
                 self.dtype.nullable or other.dtype.nullable
             )
             return ColumnFromVelox.from_velox(
-                self.scope, self.device, result_dtype, result_col, True
+                self.device, result_dtype, result_col, True
             )
         else:
             # other is scalar
@@ -251,7 +245,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             result_col = getattr(self._data, op_name)(other)
             result_dtype = result_col.dtype().with_null(self.dtype.nullable)
             return ColumnFromVelox.from_velox(
-                self.scope, self.device, result_dtype, result_col, True
+                self.device, result_dtype, result_col, True
             )
 
     def _checked_comparison_op_call(
@@ -261,7 +255,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     ) -> INumericalColumn:
         if isinstance(other, list):
             # Reuse the fromlist construction path
-            other = self.scope.Column(other)
+            other = ta.Column(other)
         return self._checked_binary_op_call(other, op_name)
 
     def _checked_arithmetic_op_call(
@@ -335,8 +329,6 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     @expression
     def __floordiv__(self, other):
         """Vectorized a // b."""
-        if isinstance(other, INumericalColumn):
-            self.scope.check_is_same(other.scope)
         if isinstance(other, NumericalColumnCpu):
             col = velox.Column(get_velox_type(dt.float64))
             assert len(self) == len(other)
@@ -346,7 +338,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                 else:
                     col.append(self.getdata(i) // other.getdata(i))
             return ColumnFromVelox.from_velox(
-                self.scope, self.device, dt.float64, col, True
+                self.device, dt.float64, col, True
             )
         else:
             col = velox.Column(get_velox_type(dt.float64))
@@ -355,16 +347,12 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     col.append_null()
                 else:
                     col.append(self.getdata(i) // other)
-            return ColumnFromVelox.from_velox(
-                self.scope, self.device, dt.float64, col, True
-            )
+            return ColumnFromVelox.from_velox(self.device, dt.float64, col, True)
 
     @trace
     @expression
     def __rfloordiv__(self, other):
         """Vectorized b // a."""
-        if isinstance(other, INumericalColumn):
-            self.scope.check_is_same(other.scope)
         if isinstance(other, NumericalColumnCpu):
             col = velox.Column(get_velox_type(self.dtype))
             assert len(self) == len(other)
@@ -373,9 +361,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     col.append_null()
                 else:
                     col.append(other.getdata(i) // self.getdata(i))
-            return ColumnFromVelox.from_velox(
-                self.scope, self.device, self.dtype, col, True
-            )
+            return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
         else:
             col = velox.Column(get_velox_type(self.dtype))
             for i in range(len(self)):
@@ -383,16 +369,12 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     col.append_null()
                 else:
                     col.append(other // self.getdata(i))
-            return ColumnFromVelox.from_velox(
-                self.scope, self.device, self.dtype, col, True
-            )
+            return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
 
     @trace
     @expression
     def __truediv__(self, other):
         """Vectorized a / b."""
-        if isinstance(other, INumericalColumn):
-            self.scope.check_is_same(other.scope)
         if isinstance(other, NumericalColumnCpu):
             col = velox.Column(get_velox_type(dt.float64))
             assert len(self) == len(other)
@@ -404,9 +386,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     col.append_null()
                 else:
                     col.append(self.getdata(i) / other_data)
-            return ColumnFromVelox.from_velox(
-                self.scope, self.device, dt.float64, col, True
-            )
+            return ColumnFromVelox.from_velox(self.device, dt.float64, col, True)
         else:
             col = velox.Column(get_velox_type(dt.float64))
             for i in range(len(self)):
@@ -416,16 +396,12 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     col.append_null()
                 else:
                     col.append(self.getdata(i) / other)
-            return ColumnFromVelox.from_velox(
-                self.scope, self.device, dt.float64, col, True
-            )
+            return ColumnFromVelox.from_velox(self.device, dt.float64, col, True)
 
     @trace
     @expression
     def __rtruediv__(self, other):
         """Vectorized b / a."""
-        if isinstance(other, INumericalColumn):
-            self.scope.check_is_same(other.scope)
         if isinstance(other, NumericalColumnCpu):
             col = velox.Column(get_velox_type(dt.float64))
             assert len(self) == len(other)
@@ -437,9 +413,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     col.append_null()
                 else:
                     col.append(other.getdata(i) / self_data)
-            return ColumnFromVelox.from_velox(
-                self.scope, self.device, dt.float64, col, True
-            )
+            return ColumnFromVelox.from_velox(self.device, dt.float64, col, True)
         else:
             col = velox.Column(get_velox_type(dt.float64))
             for i in range(len(self)):
@@ -450,9 +424,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     col.append_null()
                 else:
                     col.append(other / self_data)
-            return ColumnFromVelox.from_velox(
-                self.scope, self.device, dt.float64, col, True
-            )
+            return ColumnFromVelox.from_velox(self.device, dt.float64, col, True)
 
     @trace
     @expression
@@ -472,8 +444,6 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     @expression
     def __pow__(self, other):
         """Vectorized a ** b."""
-        if isinstance(other, INumericalColumn):
-            self.scope.check_is_same(other.scope)
         if isinstance(other, NumericalColumnCpu):
             col = velox.Column(get_velox_type(self.dtype))
             assert len(self) == len(other)
@@ -482,9 +452,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     col.append_null()
                 else:
                     col.append(self.getdata(i) ** other.getdata(i))
-            return ColumnFromVelox.from_velox(
-                self.scope, self.device, self.dtype, col, True
-            )
+            return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
         else:
             col = velox.Column(get_velox_type(self.dtype))
             for i in range(len(self)):
@@ -492,16 +460,12 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     col.append_null()
                 else:
                     col.append(self.getdata(i) ** other)
-            return ColumnFromVelox.from_velox(
-                self.scope, self.device, self.dtype, col, True
-            )
+            return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
 
     @trace
     @expression
     def __rpow__(self, other):
         """Vectorized b ** a."""
-        if isinstance(other, INumericalColumn):
-            self.scope.check_is_same(other.scope)
         if isinstance(other, NumericalColumnCpu):
             col = velox.Column(get_velox_type(self.dtype))
             assert len(self) == len(other)
@@ -511,7 +475,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                 else:
                     col.append(other.getdata(i) ** self.getdata(i))
             return ColumnFromVelox.from_velox(
-                self.scope, self.device, self.dtype, col, True
+                self.device, self.dtype, col, True
             )
         else:
             col = velox.Column(get_velox_type(self.dtype))
@@ -521,7 +485,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                 else:
                     col.append(other ** self.getdata(i))
             return ColumnFromVelox.from_velox(
-                self.scope, self.device, self.dtype, col, True
+                self.device, self.dtype, col, True
             )
 
     @trace
@@ -619,7 +583,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def __invert__(self):
         """Vectorized: ~a."""
         return ColumnFromVelox.from_velox(
-            self.scope, self.device, self.dtype, self._data.invert(), True
+            self.device, self.dtype, self._data.invert(), True
         )
 
     @trace
@@ -627,7 +591,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def __neg__(self):
         """Vectorized: - a."""
         return ColumnFromVelox.from_velox(
-            self.scope, self.device, self.dtype, self._data.neg(), True
+            self.device, self.dtype, self._data.neg(), True
         )
 
     @trace
@@ -650,7 +614,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             else:
                 col.append(self.getdata(i) in values)
         return ColumnFromVelox.from_velox(
-            self.scope, self.device, dt.Boolean(self.dtype.nullable), col, True
+            self.device, dt.Boolean(self.dtype.nullable), col, True
         )
 
     @trace
@@ -658,7 +622,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def abs(self):
         """Absolute value of each element of the series."""
         return ColumnFromVelox.from_velox(
-            self.scope, self.device, self.dtype, self._data.abs(), True
+            self.device, self.dtype, self._data.abs(), True
         )
 
     @trace
@@ -666,7 +630,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def ceil(self):
         """Rounds each value upward to the smallest integral"""
         return ColumnFromVelox.from_velox(
-            self.scope, self.device, self.dtype, self._data.ceil(), True
+            self.device, self.dtype, self._data.ceil(), True
         )
 
     @trace
@@ -674,7 +638,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def floor(self):
         """Rounds each value downward to the largest integral value"""
         return ColumnFromVelox.from_velox(
-            self.scope, self.device, self.dtype, self._data.floor(), True
+            self.device, self.dtype, self._data.floor(), True
         )
 
     @trace
@@ -682,7 +646,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def round(self, decimals=0):
         """Round each value in a data to the given number of decimals."""
         # TODO: round(-2.5) returns -2.0 in Numpy/PyTorch but returns -3.0 in Velox
-        # return ColumnFromVelox.from_velox(self.scope, self.device, self.dtype, self._data.round(), True)
+        # return ColumnFromVelox.from_velox(self.device, self.dtype, self._data.round(), True)
 
         col = velox.Column(get_velox_type(self.dtype))
         for i in range(len(self)):
@@ -690,9 +654,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                 col.append_null()
             else:
                 col.append(round(self.getdata(i), decimals))
-        return ColumnFromVelox.from_velox(
-            self.scope, self.device, self.dtype, col, True
-        )
+        return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
 
     # data cleaning -----------------------------------------------------------
 
@@ -714,9 +676,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                         col.append(fill_value)
                 else:
                     col.append(self.getdata(i))
-            return ColumnFromVelox.from_velox(
-                self.scope, self.device, self.dtype, col, True
-            )
+            return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
 
     @trace
     @expression
@@ -731,9 +691,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     pass
                 else:
                     col.append(self.getdata(i))
-            return ColumnFromVelox.from_velox(
-                self.scope, self.device, self.dtype, col, True
-            )
+            return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
 
     @trace
     @expression
@@ -754,9 +712,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                 if current not in seen:
                     col.append(current)
                     seen.add(current)
-        return ColumnFromVelox.from_velox(
-            self.scope, self.device, self.dtype, col, True
-        )
+        return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
 
     # universal  ---------------------------------------------------------------
 
@@ -829,7 +785,6 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
 
     def _accumulate_column(self, func, *, skipna=True, initial=None):
         it = iter(self)
-        # res = self.scope.Column(self.dtype)
         res = []
         total = initial
         rest_is_null = False
@@ -855,7 +810,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             else:
                 total = func(total, element)
                 res.append(total)
-        return self.scope.Column(res, self.dtype)
+        return ta.Column(res, self.dtype)
 
     @trace
     @expression

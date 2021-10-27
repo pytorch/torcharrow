@@ -3,26 +3,19 @@
 from __future__ import annotations
 
 import abc
-import array as ar
-import functools
-from dataclasses import dataclass
 from typing import (
     Any,
     Callable,
-    Dict,
     Iterable,
     List,
     Literal,
     Mapping,
     Optional,
     Sequence,
-    Tuple,
     Union,
-    cast,
     get_type_hints,
 )
 
-import numpy as np
 import torcharrow.dtypes as dt
 from torcharrow.dispatcher import Device
 
@@ -30,6 +23,7 @@ from .expression import Var, eval_expression, expression
 from .icolumn import IColumn
 from .scope import Scope
 from .trace import trace, traceproperty
+import torcharrow as ta
 
 # assumes that these have been imported already:
 # from .inumerical_column import INumericalColumn
@@ -44,7 +38,7 @@ from .trace import trace, traceproperty
 def DataFrame(
     data: Union[Iterable, dt.DType, Literal[None]] = None,
     dtype: Optional[dt.DType] = None,
-    scope: Optional[Scope] = None,
+    columns: Optional[List[str]] = None,
     device: Device = "",
 ):
     """Creates a TorchArrow DataFrame.
@@ -62,18 +56,11 @@ def DataFrame(
         where possible.  Should be a dt.Struct() providing a list of
         dt.Fields.
 
-    scope : Scope, default None
-        scope provides the runtime context used for evaluation. Use
-        None for the default scope.  Scopes can provide context
-        related configuration and pytorch-style tracing to build
-        deferred execution graphs (e.g. for privacy analysis or batch
-        optimization).
-
     device: Device, default ""
         Device selects which runtime to use from scope.  TorchArrow supports
         multiple runtimes (CPU and GPU).  If not supplied, uses the Velox
         vectorized runtime.  Valid values are "cpu" (Velox), "gpu" (coming
-        soon), "demo" (Numpy).
+        soon).
 
     Examples
     --------
@@ -141,9 +128,8 @@ def DataFrame(
 
     """
 
-    scope = scope or Scope.default
-    device = device or scope.device
-    return scope.Frame(data, dtype=dtype, device=device)
+    device = device or Scope.default.device
+    return Scope._DataFrame(data, dtype=dtype, columns=columns, device=device)
 
 
 # -----------------------------------------------------------------------------
@@ -155,9 +141,9 @@ DataOrDTypeOrNone = Union[Mapping, Sequence, dt.DType, Literal[None]]
 class IDataFrame(IColumn):
     """Dataframe, ordered dict of typed columns of the same length"""
 
-    def __init__(self, scope, device, dtype):
+    def __init__(self, device, dtype):
         assert dt.is_struct(dtype)
-        super().__init__(scope, device, dtype)
+        super().__init__(device, dtype)
 
     @property  # type: ignore
     def columns(self):
@@ -178,7 +164,7 @@ class IDataFrame(IColumn):
             assert self.device == value.device
             col = value
         else:
-            col = self.scope.Column(value)
+            col = ta.Column(value)
 
         empty_df = len(self.dtype.fields) == 0
 

@@ -10,7 +10,7 @@ from .test_list_column import TestListColumn
 
 class TestListColumnCpu(TestListColumn):
     def setUp(self):
-        self.ts = Scope({"device": "cpu"})
+        self.device = "cpu"
 
     def test_empty(self):
         self.base_test_empty()
