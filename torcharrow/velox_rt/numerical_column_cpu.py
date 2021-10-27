@@ -337,9 +337,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     col.append_null()
                 else:
                     col.append(self.getdata(i) // other.getdata(i))
-            return ColumnFromVelox.from_velox(
-                self.device, dt.float64, col, True
-            )
+            return ColumnFromVelox.from_velox(self.device, dt.float64, col, True)
         else:
             col = velox.Column(get_velox_type(dt.float64))
             for i in range(len(self)):
@@ -474,9 +472,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     col.append_null()
                 else:
                     col.append(other.getdata(i) ** self.getdata(i))
-            return ColumnFromVelox.from_velox(
-                self.device, self.dtype, col, True
-            )
+            return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
         else:
             col = velox.Column(get_velox_type(self.dtype))
             for i in range(len(self)):
@@ -484,9 +480,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     col.append_null()
                 else:
                     col.append(other ** self.getdata(i))
-            return ColumnFromVelox.from_velox(
-                self.device, self.dtype, col, True
-            )
+            return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
 
     @trace
     @expression

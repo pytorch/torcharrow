@@ -618,14 +618,20 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(df.select("a")), list(df.keep(["a"])))
         self.assertEqual(list(df.select("*", "-a")), list(df.drop(["a"])))
 
-        gf = ta.DataFrame({"a": df["a"], "b": df["b"], "c": df["a"] + df["b"]}, device=self.device)
+        gf = ta.DataFrame(
+            {"a": df["a"], "b": df["b"], "c": df["a"] + df["b"]}, device=self.device
+        )
         self.assertEqual(list(df.select("*", d=me["a"] + me["b"])), list(gf))
 
     def base_test_groupby_size_pipe(self):
-        df = ta.DataFrame({"a": [1, 1, 2], "b": [1, 2, 3], "c": [2, 2, 1]}, device=self.device)
+        df = ta.DataFrame(
+            {"a": [1, 1, 2], "b": [1, 2, 3], "c": [2, 2, 1]}, device=self.device
+        )
         self.assertEqual(list(df.groupby("a").size), [(1, 2), (2, 1)])
 
-        df = ta.DataFrame({"A": ["a", "b", "a", "b"], "B": [1, 2, 3, 4]}, device=self.device)
+        df = ta.DataFrame(
+            {"A": ["a", "b", "a", "b"], "B": [1, 2, 3, 4]}, device=self.device
+        )
 
         # TODO have to add type inference here
         # self.assertEqual(list(df.groupby('A').pipe({'B': lambda x: x.max() - x.min()})),
@@ -635,11 +641,15 @@ class TestDataFrame(unittest.TestCase):
         #                  [('a',  2), ('b', 2)])
 
     def base_test_groupby_agg(self):
-        df = ta.DataFrame({"A": ["a", "b", "a", "b"], "B": [1, 2, 3, 4]}, device=self.device)
+        df = ta.DataFrame(
+            {"A": ["a", "b", "a", "b"], "B": [1, 2, 3, 4]}, device=self.device
+        )
 
         self.assertEqual(list(df.groupby("A").agg("sum")), [("a", 4), ("b", 6)])
 
-        df = ta.DataFrame({"a": [1, 1, 2], "b": [1, 2, 3], "c": [2, 2, 1]}, device=self.device)
+        df = ta.DataFrame(
+            {"a": [1, 1, 2], "b": [1, 2, 3], "c": [2, 2, 1]}, device=self.device
+        )
 
         self.assertEqual(list(df.groupby("a").agg("sum")), [(1, 3, 4), (2, 3, 1)])
 
@@ -654,7 +664,9 @@ class TestDataFrame(unittest.TestCase):
         )
 
     def base_test_groupby_iter_get_item_ops(self):
-        df = ta.DataFrame({"A": ["a", "b", "a", "b"], "B": [1, 2, 3, 4]}, device=self.device)
+        df = ta.DataFrame(
+            {"A": ["a", "b", "a", "b"], "B": [1, 2, 3, 4]}, device=self.device
+        )
         for g, gf in df.groupby("A"):
             if g == ("a",):
                 self.assertEqual(list(gf), [(1,), (3,)])

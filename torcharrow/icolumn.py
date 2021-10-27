@@ -12,6 +12,7 @@ from collections import OrderedDict, defaultdict
 from functools import partial, reduce
 
 import numpy as np
+import torcharrow as ta
 import torcharrow.dtypes as dt
 from tabulate import tabulate
 
@@ -19,7 +20,6 @@ from .dispatcher import Device
 from .expression import expression
 from .scope import Scope
 from .trace import trace, traceproperty
-import torcharrow as ta
 
 # ------------------------------------------------------------------------------
 # Column Factory with default scope and device

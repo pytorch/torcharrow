@@ -16,6 +16,7 @@ from typing import (
     get_type_hints,
 )
 
+import torcharrow as ta
 import torcharrow.dtypes as dt
 from torcharrow.dispatcher import Device
 
@@ -23,7 +24,6 @@ from .expression import Var, eval_expression, expression
 from .icolumn import IColumn
 from .scope import Scope
 from .trace import trace, traceproperty
-import torcharrow as ta
 
 # assumes that these have been imported already:
 # from .inumerical_column import INumericalColumn

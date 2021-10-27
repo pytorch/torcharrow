@@ -102,6 +102,7 @@ class TestDFWithTrace(unittest.TestCase):
         exec(";".join(stms))
         self.assertEqual(df4.value, eval(result).value)
 
+
 # aux: global function --------------------------------------------------------
 
 
