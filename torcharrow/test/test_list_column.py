@@ -2,13 +2,14 @@
 import operator
 import unittest
 
+import torcharrow as ta
 import torcharrow.dtypes as dt
 from torcharrow import IListColumn, INumericalColumn, Scope
 
 
 class TestListColumn(unittest.TestCase):
     def base_test_empty(self):
-        c = self.ts.Column(dt.List(dt.int64))
+        c = ta.Column(dt.List(dt.int64), device=self.device)
 
         self.assertTrue(isinstance(c, IListColumn))
         self.assertEqual(c.dtype, dt.List(dt.int64))
@@ -17,7 +18,7 @@ class TestListColumn(unittest.TestCase):
         self.assertEqual(c.null_count(), 0)
 
     def base_test_nonempty(self):
-        c = self.ts.Column(dt.List(dt.int64))
+        c = ta.Column(dt.List(dt.int64), device=self.device)
         for i in range(4):
             c = c.append([list(range(i))])
 
@@ -27,7 +28,7 @@ class TestListColumn(unittest.TestCase):
 
     def base_test_append_concat(self):
         base_list = [["hello", "world"], ["how", "are", "you"]]
-        sf1 = self.ts.Column(base_list, dtype=dt.List(dt.string))
+        sf1 = ta.Column(base_list, dtype=dt.List(dt.string), device=self.device)
         self.assertEqual(list(sf1), base_list)
 
         append1 = [["I", "am", "fine", "and", "you"]]
@@ -35,7 +36,7 @@ class TestListColumn(unittest.TestCase):
         self.assertEqual(list(sf2), base_list + append1)
 
         append2 = [["I", "am", "fine", "too"]]
-        sf3 = sf2.concat([self.ts.Column(append2)])
+        sf3 = sf2.concat([ta.Column(append2, device=self.device)])
         self.assertEqual(list(sf3), base_list + append1 + append2)
 
         # concat everything
@@ -43,29 +44,34 @@ class TestListColumn(unittest.TestCase):
         self.assertEqual(list(sf_all), list(sf1) + list(sf2) + list(sf3))
 
     def base_test_nested_numerical_twice(self):
-        c = self.ts.Column(
-            dt.List(dt.List(dt.Int64(nullable=False), nullable=True), nullable=False)
+        c = ta.Column(
+            dt.List(dt.List(dt.Int64(nullable=False), nullable=True), nullable=False),
+            device=self.device,
         )
         vals = [[[1, 2], None, [3, 4]], [[4], [5]]]
         c = c.append(vals)
         self.assertEqual(vals, list(c))
 
-        d = self.ts.Column(
-            dt.List(dt.List(dt.Int64(nullable=False), nullable=True), nullable=False)
+        d = ta.Column(
+            dt.List(
+                dt.List(dt.Int64(nullable=False), nullable=True),
+                nullable=False,
+            ),
+            device=self.device,
         )
         for val in vals:
             d = d.append([val])
         self.assertEqual(vals, list(d))
 
     def base_test_nested_string_once(self):
-        c = self.ts.Column(dt.List(dt.string))
+        c = ta.Column(dt.List(dt.string), device=self.device)
         c = c.append([[]])
         c = c.append([["a"]])
         c = c.append([["b", "c"]])
         self.assertEqual(list([[], ["a"], ["b", "c"]]), list(c))
 
     def base_test_nested_string_twice(self):
-        c = self.ts.Column(dt.List(dt.List(dt.string)))
+        c = ta.Column(dt.List(dt.List(dt.string)), device=self.device)
         c = c.append([[]])
         c = c.append([[[]]])
         c = c.append([[["a"]]])
@@ -73,7 +79,7 @@ class TestListColumn(unittest.TestCase):
         self.assertEqual([[], [[]], [["a"]], [["b", "c"], ["d", "e", "f"]]], list(c))
 
     def base_test_get_count_join(self):
-        c = self.ts.Column(dt.List(dt.string))
+        c = ta.Column(dt.List(dt.string), device=self.device)
         c = c.append([["The", "fox"], ["jumps"], ["over", "the", "river"]])
 
         self.assertEqual(list(c.list.get(0)), ["The", "jumps", "over"])
@@ -81,14 +87,16 @@ class TestListColumn(unittest.TestCase):
         self.assertEqual(list(c.list.join(" ")), ["The fox", "jumps", "over the river"])
 
     def base_test_slice(self):
-        c = self.ts.Column([list(range(5)), list(range(5, 10)), list(range(3))])
+        c = ta.Column(
+            [list(range(5)), list(range(5, 10)), list(range(3))], device=self.device
+        )
         self.assertEqual(
             list(c.list.slice(0, 4)),
             [list(range(4)), list(range(5, 9)), list(range(3))],
         )
 
     def base_test_map_reduce_etc(self):
-        c = self.ts.Column(dt.List(dt.string))
+        c = ta.Column(dt.List(dt.string), device=self.device)
         c = c.append([["The", "fox"], ["jumps"], ["over", "the", "river"]])
         self.assertEqual(
             list(c.list.map(str.upper)),
@@ -98,11 +106,13 @@ class TestListColumn(unittest.TestCase):
             list(c.list.filter(lambda x: x.endswith("fox"))), [["fox"], [], []]
         )
 
-        c = self.ts.Column(dt.List(dt.int64))
+        c = ta.Column(dt.List(dt.int64), device=self.device)
         c = c.append([list(range(1, i)) for i in range(1, 6)])
         self.assertEqual(list(c.list.reduce(operator.mul, 1)), [1, 1, 2, 6, 24])
 
-        c = self.ts.Column([["what", "a", "wonderful", "world!"], ["really?"]])
+        c = ta.Column(
+            [["what", "a", "wonderful", "world!"], ["really?"]], device=self.device
+        )
         self.assertEqual(
             list(c.list.map(len, dtype=dt.List(dt.int64))), [[4, 1, 9, 6], [7]]
         )
@@ -110,10 +120,10 @@ class TestListColumn(unittest.TestCase):
         # flat map on original columns (not on list)
         fst = ["what", "a", "wonderful", "world!"]
         snd = ["really?"]
-        c = self.ts.Column([fst, snd])
+        c = ta.Column([fst, snd], device=self.device)
         self.assertEqual(list(c.flatmap(lambda xs: [xs, xs])), [fst, fst, snd, snd])
 
-        self.ts.Column([1, 2, 3, 4]).map(str, dtype=dt.string)
+        ta.Column([1, 2, 3, 4], device=self.device).map(str, dtype=dt.string)
 
 
 if __name__ == "__main__":

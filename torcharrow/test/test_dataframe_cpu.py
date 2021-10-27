@@ -13,7 +13,7 @@ from .test_dataframe import TestDataFrame
 
 class TestDataFrameCpu(TestDataFrame):
     def setUp(self):
-        self.ts = Scope({"device": "cpu"})
+        self.device = "cpu"
 
     def test_internals_empty(self):
         return self.base_test_internals_empty()
@@ -81,6 +81,8 @@ class TestDataFrameCpu(TestDataFrame):
     def test_column_overriden(self):
         return self.base_test_column_overriden()
 
+    def test_infer_func_output_dtype(self):
+        return self.base_test_infer_func_output_dtype()
 
 if __name__ == "__main__":
     unittest.main()

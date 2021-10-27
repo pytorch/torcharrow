@@ -19,6 +19,7 @@ from .dispatcher import Device
 from .expression import expression
 from .scope import Scope
 from .trace import trace, traceproperty
+import torcharrow as ta
 
 # ------------------------------------------------------------------------------
 # Column Factory with default scope and device
@@ -27,12 +28,10 @@ from .trace import trace, traceproperty
 def Column(
     data: ty.Union[ty.Iterable, dt.DType, ty.Literal[None]] = None,
     dtype: ty.Optional[dt.DType] = None,
-    scope: ty.Optional[Scope] = None,
     device: Device = "",
 ):
     """
-    Creates a TorchArrow Column.  Allocates memory on device (or
-    Scope.default.device) device.
+    Creates a TorchArrow Column.  Allocates memory on device or default device.
 
     Parameters
     ----------
@@ -43,18 +42,11 @@ def Column(
         Data type to force.  If None the type will be automatically
         inferred where possible.
 
-    scope : Scope, default None
-        scope provides the runtime context used for evaluation. Use
-        None for the default scope.  Scopes can provide context
-        related configuration and pytorch-style tracing to build
-        deferred execution graphs (e.g. for privacy analysis or batch
-        optimization).
-
     device: Device, default ""
         Device selects which runtime to use from scope.  TorchArrow supports
         multiple runtimes (CPU and GPU).  If not supplied, uses the Velox
         vectorized runtime.  Valid values are "cpu" (Velox), "gpu" (coming
-        soon), "demo" (Numpy).
+        soon).
 
     Examples
     --------
@@ -90,9 +82,8 @@ def Column(
     dtype: Map(string, List(float64)), length: 2, null_count: 0
 
     """
-    scope = scope or Scope.default
-    device = device or scope.device
-    return scope.Column(data, dtype=dtype, device=device)
+    device = device or Scope.default.device
+    return Scope._Column(data, dtype=dtype, device=device)
 
 
 # TODO: Add interop related column factory methods such as from_python, from_torch, from_arrow, from_pandas, etc
@@ -104,20 +95,14 @@ def Column(
 class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     """Interface for Column are n vectors (n>=1) of columns"""
 
-    def __init__(self, scope, device, dtype: dt.DType):
-
-        self._scope: Scope = scope
+    def __init__(self, device, dtype: dt.DType):
         self._device = device
         self._dtype: dt.DType = dtype
 
         # id handling, used for tracing...
-        self.id = f"c{scope.ct.next()}"
+        self.id = f"c{Scope.default.ct.next()}"
 
     # getters ---------------------------------------------------------------
-
-    @property
-    def scope(self) -> Scope:
-        return self._scope
 
     @property
     def device(self):
@@ -134,32 +119,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def isnullable(self):
         """A boolean indicating whether column/frame can have nulls"""
         return self.dtype.nullable
-
-    # private builders -------------------------------------------------------
-
-    def _EmptyColumn(self, dtype):
-        """PRIVATE Column factory; must be follwed by _append... and _finalize"""
-        return self.scope._EmptyColumn(dtype, self.device)
-
-    def _FullColumn(self, data, dtype=None, mask=None):
-        """PRIVATE Column factory; data must be in the expected representation"""
-        return self.scope._FullColumn(data, dtype, self.device, mask)
-
-    def _FromPyList(self, data: ty.List, dtype: dt.DType):
-        """
-        Convert from plain Python container (list of scalars or containers).
-        Corresponding to :meth:`IColumn.to_python`.
-        """
-        return self.scope._FromPyList(data, dtype, self.device)
-
-    def _Column(self, data=None, dtype: ty.Optional[dt.DType] = None):
-        return self.scope.Column(data, dtype, device=self.device)
-
-    def _DataFrame(self, data, dtype=None, columns=None):
-        """PRIVATE Column factory; data must be in the expected representation"""
-        return self.scope.DataFrame(data, dtype, columns, device=self.device)
-
-    # private builders -------------------------------------------------------
 
     @trace
     @abc.abstractmethod
@@ -209,7 +168,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         dtype: List(string), length: 3, null_count: 0
         """
         # TODO use _column_copy, but for now this works...
-        res = self._EmptyColumn(self.dtype)
+        res = Scope._EmptyColumn(self.dtype)
         for (m, d) in self.items():
             if m:
                 res._append_null()
@@ -225,7 +184,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         concat_list = self.to_python()
         for column in columns:
             concat_list += column.to_python()
-        return self._FromPyList(concat_list, self.dtype)
+        return Scope._FromPyList(concat_list, self.dtype)
 
     @trace
     def copy(self):
@@ -237,7 +196,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         if dt.is_primitive(self.dtype):
             if dt.is_primitive(dtype):
                 fun = dt.cast_as(dtype)
-                res = self._EmptyColumn(dtype)
+                res = Scope._EmptyColumn(dtype)
                 for m, i in self.item():
                     if m:
                         res._append_null()
@@ -378,7 +337,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     def gets(self, indices):
         """Return a new column with the rows[indices[0]],..,rows[indices[-1]]"""
-        res = self._EmptyColumn(self.dtype)
+        res = Scope._EmptyColumn(self.dtype)
         for i in indices:
             (m, d) = (self.getmask(i), self.getdata(i))
             if m:
@@ -389,7 +348,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     def slice(self, start, stop, step):
         """Return a new column with the slice rows[start:stop:step]"""
-        res = self._EmptyColumn(self.dtype)
+        res = Scope._EmptyColumn(self.dtype)
         for i in list(range(len(self)))[start:stop:step]:
             m = self.getmask(i)
             if m:
@@ -695,7 +654,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                     res.append(None)
 
         dtype = dtype or self._dtype
-        return self._FromPyList(res, dtype)
+        return Scope._FromPyList(res, dtype)
 
     @staticmethod
     def _format_transform_column(c: IColumn, format: str):
@@ -716,7 +675,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             pytorch.ensure_available()
             ret = pytorch.from_torch(raw, dtype=dtype)
         elif format == "python" or format == "column":
-            ret = self._Column(raw, dtype=dtype)
+            ret = ta.Column(raw, dtype=dtype)
         else:
             raise ValueError(f"Invalid value for `format` argument: {format}")
 
@@ -781,7 +740,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             return arg.get(x, None) if isinstance(arg, dict) else arg(x)
 
         dtype = dtype or self.dtype
-        res = self._EmptyColumn(dtype)
+        res = Scope._EmptyColumn(dtype)
         for masked, i in self.items():
             if not masked:
                 res._extend(func(i))
@@ -830,7 +789,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             raise TypeError(
                 "predicate must be a unary boolean predicate or iterable of booleans"
             )
-        res = self._EmptyColumn(self._dtype)
+        res = Scope._EmptyColumn(self._dtype)
         if callable(predicate):
             for x in self:
                 if predicate(x):
@@ -901,7 +860,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             raise TypeError(
                 "then and else branches must have compatible types, got {then_.dtype} and {else_.dtype}, respectively"
             )
-        res = self._EmptyColumn(lub)
+        res = Scope._EmptyColumn(lub)
         for (m, b), t, e in zip(self.items(), then_, else_):
             if m:
                 res._append_null()
@@ -950,7 +909,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """
         if by is not None:
             raise TypeError("sorting a non-structured column can't have 'by' parameter")
-        res = self._EmptyColumn(self.dtype)
+        res = Scope._EmptyColumn(self.dtype)
         if na_position == "first":
             res._extend([None] * self.null_count())
         res._extend(sorted((i for i in self if i is not None), reverse=not ascending))
@@ -1213,7 +1172,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         """
         # note mask is True
-        res = self._EmptyColumn(dt.boolean)
+        res = Scope._EmptyColumn(dt.boolean)
         for m, i in self.items():
             if m:
                 res._append_value(False)
@@ -1282,7 +1241,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                     res.append(None)
                 else:
                     res.append(fun(i, j))
-        return self._FromPyList(res, res_dtype)
+        return Scope._FromPyList(res, res_dtype)
 
     def _py_comparison_op(self, other, pred):
         others = None
@@ -1334,7 +1293,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         if not isinstance(fill_value, IColumn.scalar_types):
             raise TypeError(f"fillna with {type(fill_value)} is not supported")
         if isinstance(fill_value, IColumn.scalar_types):
-            res = self._EmptyColumn(self.dtype.constructor(nullable=False))
+            res = Scope._EmptyColumn(self.dtype.constructor(nullable=False))
             for m, i in self.items():
                 if not m:
                     res._append_value(i)
@@ -1372,7 +1331,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         dtype: int64, length: 3, null_count: 0
         """
         if dt.is_primitive(self.dtype):
-            res = self._EmptyColumn(self.dtype.constructor(nullable=False))
+            res = Scope._EmptyColumn(self.dtype.constructor(nullable=False))
             for m, i in self.items():
                 if not m:
                     res._append_value(i)
@@ -1392,7 +1351,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         assert keep == "first"
         if subset is not None:
             raise TypeError(f"subset parameter for flat columns not supported")
-        res = self._EmptyColumn(self._dtype)
+        res = Scope._EmptyColumn(self._dtype)
         res._extend(list(OrderedDict.fromkeys(self)))
         return res._finalize()
 
@@ -1557,7 +1516,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     def _accumulate(self, func):
         total = None
-        res = self._EmptyColumn(self.dtype)
+        res = Scope._EmptyColumn(self.dtype)
         for m, i in self.items():
             if m:
                 res._append_null()
@@ -1642,7 +1601,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 raise ValueError("percentiles must be betwen 0 and 100")
 
         if dt.is_numerical(self.dtype):
-            res = self._EmptyColumn(
+            res = Scope._EmptyColumn(
                 dt.Struct(
                     [dt.Field("statistic", dt.string), dt.Field("value", dt.float64)]
                 )

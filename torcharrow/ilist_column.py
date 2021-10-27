@@ -18,9 +18,9 @@ from .icolumn import IColumn
 class IListColumn(IColumn):
 
     # private constructor
-    def __init__(self, scope, device, dtype):
+    def __init__(self, device, dtype):
         assert dt.is_list(dtype)
-        super().__init__(scope, device, dtype)
+        super().__init__(device, dtype)
         self.list = IListMethods(self)
 
 

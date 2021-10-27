@@ -9,6 +9,8 @@ import torcharrow.dtypes as dt
 from tabulate import tabulate
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.ilist_column import IListColumn, IListMethods
+from torcharrow import Scope
+import torcharrow as ta
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type
@@ -20,9 +22,9 @@ from .typing import get_velox_type
 class ListColumnCpu(IListColumn, ColumnFromVelox):
 
     # private constructor
-    def __init__(self, scope, device, dtype, data, offsets, mask):
+    def __init__(self, device, dtype, data, offsets, mask):
         assert dt.is_list(dtype)
-        super().__init__(scope, device, dtype)
+        super().__init__(device, dtype)
 
         self._data = velox.Column(
             velox.VeloxArrayType(get_velox_type(dtype.item_dtype))
@@ -35,22 +37,20 @@ class ListColumnCpu(IListColumn, ColumnFromVelox):
 
     # Any _empty must be followed by a _finalize; no other ops are allowed during this time
     @staticmethod
-    def _empty(scope, device, dtype: dt.List):
+    def _empty(device, dtype: dt.List):
         return ListColumnCpu(
-            scope,
             device,
             dtype,
-            scope._EmptyColumn(dtype.item_dtype, device),
+            Scope._EmptyColumn(dtype.item_dtype, device),
             ar.array("I", [0]),
             ar.array("b"),
         )
 
     @staticmethod
-    def _fromlist(scope, device: str, data: List[List], dtype: dt.List):
+    def _fromlist(device: str, data: List[List], dtype: dt.List):
         if dt.is_primitive(dtype.item_dtype):
             velox_column = velox.Column(get_velox_type(dtype), data)
             return ColumnFromVelox.from_velox(
-                scope,
                 device,
                 dtype,
                 velox_column,
@@ -66,7 +66,7 @@ class ListColumnCpu(IListColumn, ColumnFromVelox):
                 "The default _fromlist implementation "
                 f"will be too slow for {len(data)} elements"
             )
-            col = ListColumnCpu._empty(scope, device, dtype)
+            col = ListColumnCpu._empty(device, dtype)
             for i in data:
                 col._append(i)
             return col._finalize()
@@ -82,7 +82,7 @@ class ListColumnCpu(IListColumn, ColumnFromVelox):
         elif value is None:
             self._data.append_null()
         else:
-            new_element_column = self._scope.Column(self._dtype.item_dtype)
+            new_element_column = ta.Column(self._dtype.item_dtype)
             new_element_column = new_element_column.append(value)
             self._data.append(new_element_column._data)
 
@@ -109,7 +109,6 @@ class ListColumnCpu(IListColumn, ColumnFromVelox):
         else:
             return list(
                 ColumnFromVelox.from_velox(
-                    self.scope,
                     self.device,
                     self._dtype.item_dtype,
                     self._data[i],

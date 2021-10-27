@@ -11,9 +11,9 @@ from .icolumn import IColumn
 
 
 class IMapColumn(IColumn):
-    def __init__(self, scope, device, dtype):
+    def __init__(self, device, dtype):
         assert dt.is_map(dtype)
-        super().__init__(scope, device, dtype)
+        super().__init__(device, dtype)
         # must be set by subclasses
         self.maps: IMapMethods = None
 

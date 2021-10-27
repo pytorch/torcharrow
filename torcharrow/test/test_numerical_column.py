@@ -4,23 +4,15 @@ import unittest
 from math import ceil, floor
 
 import numpy.testing
+import torcharrow as ta
 import torcharrow.dtypes as dt
 from torcharrow import IColumn, INumericalColumn
+from torcharrow import Scope
 
 
 class TestNumericalColumn(unittest.TestCase):
-    # same base tests will be called by
-    # - TestNumericalColumnCpu
-    # - TestNumericalColumnTest
-    # but with different setups
-    # def setUp(self):
-    #     self.ts = Scope({"device": "cpu"})
-
-    # Note all tests have to be against public API
-    # test internals in implementation specific tests
-
     def base_test_empty(self):
-        empty_i64_column = self.ts.Column(dtype=dt.int64)
+        empty_i64_column = ta.Column(dtype=dt.int64, device=self.device)
 
         # testing internals...
         self.assertTrue(isinstance(empty_i64_column, INumericalColumn))
@@ -32,7 +24,7 @@ class TestNumericalColumn(unittest.TestCase):
         return empty_i64_column
 
     def base_test_full(self):
-        col = self.ts.Column([i for i in range(4)], dtype=dt.int64)
+        col = ta.Column([i for i in range(4)], dtype=dt.int64, device=self.device)
 
         # self.assertEqual(col._offset, 0)
         self.assertEqual(len(col), 4)
@@ -43,13 +35,13 @@ class TestNumericalColumn(unittest.TestCase):
         return col
 
     def base_test_is_immutable(self):
-        col = self.ts.Column([i for i in range(4)], dtype=dt.int64)
+        col = ta.Column([i for i in range(4)], dtype=dt.int64, device=self.device)
         with self.assertRaises(AttributeError):
             # AssertionError: can't append a finalized list
             col._append(None)
 
     def base_test_full_nullable(self):
-        col = self.ts.Column(dtype=dt.Int64(nullable=True))
+        col = ta.Column(dtype=dt.Int64(nullable=True), device=self.device)
 
         col = col.append([None, None, None])
         self.assertEqual(col[-1], None)
@@ -66,7 +58,9 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(list(col), [None, None, None, 3])
 
     def base_test_indexing(self):
-        col = self.ts.Column([None] * 3 + [3, 4, 5], dtype=dt.Int64(nullable=True))
+        col = ta.Column(
+            [None] * 3 + [3, 4, 5], dtype=dt.Int64(nullable=True), device=self.device
+        )
 
         # index
         self.assertEqual(col[0], None)
@@ -98,7 +92,7 @@ class TestNumericalColumn(unittest.TestCase):
 
     def base_test_boolean_column(self):
 
-        col = self.ts.Column(dt.boolean)
+        col = ta.Column(dt.boolean, device=self.device)
         self.assertIsInstance(col, INumericalColumn)
 
         col = col.append([True, False, False])
@@ -109,48 +103,37 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(list(col), [True, False, False, True])
 
     def base_test_infer(self):
-
         # not enough info
         with self.assertRaises(ValueError):
-            self.ts.Column([])
+            ta.Column([], device=self.device)
 
         # int
-        c = self.ts.Column([1])
+        c = ta.Column([1], device=self.device)
         self.assertEqual(c.dtype, dt.int64)
         self.assertEqual(list(c), [1])
 
         # bool
-        c = self.ts.Column([True, None])
+        c = ta.Column([True, None], device=self.device)
         self.assertEqual(c.dtype, dt.Boolean(nullable=True))
         self.assertEqual(list(c), [True, None])
 
         # note implicit promotion of bool to int
-        c = self.ts.Column([True, 1])
+        c = ta.Column([True, 1], device=self.device)
         self.assertEqual(c.dtype, dt.int64)
         self.assertEqual(list(c), [1, 1])
 
         # float
-        c = self.ts.Column([1.0, 2.0])
+        c = ta.Column([1.0, 2.0], device=self.device)
         self.assertEqual(c.dtype, dt.float32)
         self.assertEqual(list(c), [1.0, 2.0])
-        c = self.ts.Column([1, 2.0])
+        c = ta.Column([1, 2.0], device=self.device)
         self.assertEqual(c.dtype, dt.float32)
         self.assertEqual(list(c), [1.0, 2.0])
-
-        # dt.string:: to do in a different tests
-        # ...
-
-        # list:: to do in a different tests
-        # ...
-
-        # map:: to do in a different tests
-        # ...
-
-        # dataframe:: to do in a different tests
-        # ...
 
     def base_test_map_where_filter(self):
-        col = self.ts.Column([None] * 3 + [3, 4, 5], dtype=dt.Int64(nullable=True))
+        col = ta.Column(
+            [None] * 3 + [3, 4, 5], dtype=dt.Int64(nullable=True), device=self.device
+        )
 
         # Values that are not found in the dict are converted to None
         self.assertEqual(list(col.map({3: 33})), [None, None, None, 33, None, None])
@@ -197,49 +180,63 @@ class TestNumericalColumn(unittest.TestCase):
         return col._finalize()
 
     def base_test_reduce(self):
-        c = self.ts.Column([1, 2, 3])
+        c = ta.Column([1, 2, 3], device=self.device)
         d = c.reduce(
             fun=TestNumericalColumn._accumulate,
-            initializer=self.ts._EmptyColumn(dt.int64),
+            initializer=Scope._EmptyColumn(dt.int64, device=self.device),
             finalizer=TestNumericalColumn._finalize,
         )
         self.assertEqual(d, [1, 3, 6])
 
     def base_test_sort_stuff(self):
-        col = self.ts.Column([2, 1, 3])
+        col = ta.Column([2, 1, 3], device=self.device)
 
         self.assertEqual(list(col.sort()), [1, 2, 3])
         self.assertEqual(list(col.sort(ascending=False)), [3, 2, 1])
-        self.assertEqual(list(self.ts.Column([None, 1, 5, 2]).sort()), [1, 2, 5, None])
         self.assertEqual(
-            list(self.ts.Column([None, 1, 5, 2]).sort(na_position="first")),
+            list(ta.Column([None, 1, 5, 2], device=self.device).sort()), [1, 2, 5, None]
+        )
+        self.assertEqual(
+            list(
+                ta.Column([None, 1, 5, 2], device=self.device).sort(na_position="first")
+            ),
             [None, 1, 2, 5],
         )
         self.assertEqual(
-            list(self.ts.Column([None, 1, 5, 2]).sort(na_position="last")),
+            list(
+                ta.Column([None, 1, 5, 2], device=self.device).sort(na_position="last")
+            ),
             [1, 2, 5, None],
         )
 
         self.assertEqual(
-            list(self.ts.Column([None, 1, 5, 2]).sort(na_position="last")),
+            list(
+                ta.Column([None, 1, 5, 2], device=self.device).sort(na_position="last")
+            ),
             [1, 2, 5, None],
         )
 
         # self.assertEqual(
-        #     list(self.ts.Column([None, 1, 5, 2]).nlargest(n=2, keep="first")), [5, 2] # TODO zhongxu
+        #     list(ta.Column([None, 1, 5, 2]).nlargest(n=2, keep="first")), [5, 2] # TODO zhongxu
         # )
         self.assertEqual(
-            list(self.ts.Column([None, 1, 5, 2]).nsmallest(n=2, keep="last")), [1, 2]
+            list(
+                ta.Column([None, 1, 5, 2], device=self.device).nsmallest(
+                    n=2, keep="last"
+                )
+            ),
+            [1, 2],
         )
         self.assertEqual(
-            list(self.ts.Column([None, 1, 5, 2]).reverse()), [2, 5, 1, None]
+            list(ta.Column([None, 1, 5, 2], device=self.device).reverse()),
+            [2, 5, 1, None],
         )
 
     def base_test_operators(self):
         # without None
-        c = self.ts.Column([0, 1, 3])
-        d = self.ts.Column([5, 5, 6])
-        e = self.ts.Column([1.0, 1, 7])
+        c = ta.Column([0, 1, 3], device=self.device)
+        d = ta.Column([5, 5, 6], device=self.device)
+        e = ta.Column([1.0, 1, 7], device=self.device)
 
         # ==, !=
 
@@ -250,8 +247,12 @@ class TestNumericalColumn(unittest.TestCase):
 
         self.assertEqual(c == 1, [False, True, False])
         self.assertEqual(1 == c, [False, True, False])
-        self.assertTrue((c == 1) == self.ts.Column([False, True, False]).all())
-        self.assertTrue((1 == c) == self.ts.Column([False, True, False]).all())
+        self.assertTrue(
+            (c == 1) == ta.Column([False, True, False], device=self.device).all()
+        )
+        self.assertTrue(
+            (1 == c) == ta.Column([False, True, False], device=self.device).all()
+        )
 
         # <, <=, >=, >
 
@@ -323,17 +324,17 @@ class TestNumericalColumn(unittest.TestCase):
 
         # TODO: Decide ...null handling.., bring back or ignore
 
-        # c = self.ts.Column([0, 1, 3, None])
+        # c = ta.Column([0, 1, 3, None])
         # self.assertEqual(list(c.add(1)), [1, 2, 4, None])
 
         # self.assertEqual(list(c.add(1, fill_value=17)), [1, 2, 4, 18])
         # self.assertEqual(list(c.radd(1, fill_value=-1)), [1, 2, 4, 0])
-        # f = self.ts.Column([None, 1, 3, None])
+        # f = ta.Column([None, 1, 3, None])
         # self.assertEqual(list(c.radd(f, fill_value=100)), [100, 2, 6, 200])
 
         # &, |, ^, ~
-        g = self.ts.Column([True, False, True, False])
-        h = self.ts.Column([False, False, True, True])
+        g = ta.Column([True, False, True, False], device=self.device)
+        h = ta.Column([False, False, True, True], device=self.device)
         self.assertEqual(g & h, [False, False, True, False])
         self.assertEqual(g | h, [True, False, True, True])
         self.assertEqual(g ^ h, [True, False, False, True])
@@ -342,8 +343,8 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(True ^ g, [False, True, False, True])
         self.assertEqual(~g, [False, True, False, True])
 
-        i = self.ts.Column([1, 2, 0])
-        j = self.ts.Column([3, 2, 3])
+        i = ta.Column([1, 2, 0], device=self.device)
+        j = ta.Column([3, 2, 3], device=self.device)
         self.assertEqual(i & j, [1, 2, 0])
         self.assertEqual(i | j, [3, 2, 3])
         self.assertEqual(i ^ j, [2, 0, 3])
@@ -355,7 +356,7 @@ class TestNumericalColumn(unittest.TestCase):
     # TODO Test type promotion rules
 
     def base_test_na_handling(self):
-        c = self.ts.Column([None, 2, 17.0])
+        c = ta.Column([None, 2, 17.0], device=self.device)
 
         self.assertEqual(c.fillna(99.0), [99.0, 2, 17.0])
         self.assertEqual(c.dropna(), [2.0, 17.0])
@@ -368,8 +369,8 @@ class TestNumericalColumn(unittest.TestCase):
         import operator
 
         c = [1, 4, 2, 7, 9, 0]
-        D = self.ts.Column(c)
-        C = self.ts.Column(c + [None])
+        D = ta.Column(c, device=self.device)
+        C = ta.Column(c + [None], device=self.device)
 
         self.assertEqual(C.dtype, dt.Int64(nullable=True))
         self.assertEqual(C.min(), min(c))
@@ -402,7 +403,7 @@ class TestNumericalColumn(unittest.TestCase):
 
     def base_test_in_nunique(self):
         c = [1, 4, 2, 7]
-        C = self.ts.Column(c + [None])
+        C = ta.Column(c + [None])
         self.assertEqual(list(C.isin([1, 2, 3])), [True, False, True, False, False])
         C = C.append(c)
         d = set(c)
@@ -411,14 +412,16 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(C.nunique(dropna=False), len(set(C)))
 
         self.assertEqual(C.is_unique(), False)
-        self.assertEqual(self.ts.Column([1, 2, 3]).is_unique(), True)
+        self.assertEqual(ta.Column([1, 2, 3], device=self.device).is_unique(), True)
 
-        self.assertEqual(self.ts.Column([1, 2, 3]).is_monotonic_increasing(), True)
-        self.assertEqual(self.ts.Column(dtype=dt.int64).is_monotonic_decreasing(), True)
+        self.assertEqual(
+            ta.Column([1, 2, 3], device=self.device).is_monotonic_increasing(), True
+        )
+        self.assertEqual(ta.Column(dtype=dt.int64).is_monotonic_decreasing(), True)
 
     def base_test_math_ops(self):
         c = [1.0, 4.2, 2, 7, -9, -2.5]
-        C = self.ts.Column(c + [None])
+        C = ta.Column(c + [None], device=self.device)
         self.assertEqual(C.dtype, dt.Float32(nullable=True))
 
         numpy.testing.assert_almost_equal(list(C.abs())[:-1], [abs(i) for i in c], 6)
@@ -440,7 +443,7 @@ class TestNumericalColumn(unittest.TestCase):
 
     def base_test_describe(self):
         # requires 'implicitly' torcharrow.dataframe import DataFrame
-        c = self.ts.Column([1, 2, 3])
+        c = ta.Column([1, 2, 3], device=self.device)
         self.assertEqual(
             list(c.describe()),
             [
@@ -457,7 +460,7 @@ class TestNumericalColumn(unittest.TestCase):
 
     # experimental
     def base_test_batch_collate(self):
-        c = self.ts.Column([1, 2, 3, 4, 5, 6, 7])
+        c = ta.Column([1, 2, 3, 4, 5, 6, 7], device=self.device)
         # test iter
         it = c.batch(2)
         res = []

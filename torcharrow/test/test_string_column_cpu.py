@@ -9,7 +9,7 @@ from .test_string_column import TestStringColumn
 
 class TestStringColumnCpu(TestStringColumn):
     def setUp(self):
-        self.ts = Scope({"device": "cpu"})
+        self.device = "cpu"
 
     def test_empty(self):
         self.base_test_empty()

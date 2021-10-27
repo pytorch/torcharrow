@@ -1,13 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
+import torcharrow as ta
 import torcharrow.dtypes as dt
-from torcharrow import Scope, IStringColumn
+from torcharrow import IStringColumn
 
 
 class TestStringColumn(unittest.TestCase):
     def base_test_empty(self):
-        empty = self.ts.Column(dt.string)
+        empty = ta.Column(dt.string, device=self.device)
         self.assertTrue(isinstance(empty, IStringColumn))
         self.assertEqual(empty.dtype, dt.string)
         self.assertEqual(empty.length(), 0)
@@ -15,7 +16,7 @@ class TestStringColumn(unittest.TestCase):
         # self.assertEqual(empty._offsets[0], 0)
 
     def base_test_append_offsets(self):
-        c = self.ts.Column(dt.string)
+        c = ta.Column(dt.string, device=self.device)
         c = c.append(["abc", "de", "", "f"])
         # self.assertEqual(list(c._offsets), [0, 3, 5, 5, 6])
         self.assertEqual(list(c), ["abc", "de", "", "f"])
@@ -24,13 +25,13 @@ class TestStringColumn(unittest.TestCase):
         #     # TypeError: a dt.string is required (got type NoneType)
         #     c.append(None)
 
-        c = self.ts.Column(["abc", "de", "", "f", None])
+        c = ta.Column(["abc", "de", "", "f", None])
         # self.assertEqual(list(c._offsets), [0, 3, 5, 5, 6, 6])
         self.assertEqual(list(c), ["abc", "de", "", "f", None])
 
     def base_test_string_split_methods(self):
         s = ["a b c", "1,2,3", "d e f g h", "hello.this.is.very.very.very.very.long"]
-        c = self.ts.Column(s)
+        c = ta.Column(s, device=self.device)
         self.assertEqual(list(c.str.split(".")), [v.split(".") for v in s])
         self.assertEqual(list(c.str.split()), [v.split() for v in s])
         self.assertEqual(list(c.str.split(",")), [v.split(",") for v in s])
@@ -39,16 +40,18 @@ class TestStringColumn(unittest.TestCase):
         # isalpha/isnumeric/isalnum/isdigit/isdecimal/isspace/islower/isupper
         self.assertEqual(
             list(
-                self.ts.Column(
-                    ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", None]
+                ta.Column(
+                    ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", None],
+                    device=self.device,
                 ).str.isalpha()
             ),
             [False, True, True, False, False, True, False, None],
         )
         self.assertEqual(
             list(
-                self.ts.Column(
-                    ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", None]
+                ta.Column(
+                    ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", None],
+                    device=self.device,
                 ).str.isalnum()
             ),
             [False, True, True, True, True, True, False, None],
@@ -56,28 +59,35 @@ class TestStringColumn(unittest.TestCase):
 
         self.assertEqual(
             list(
-                self.ts.Column(
-                    ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", "\u00B2", None]
+                ta.Column(
+                    ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", "\u00B2", None],
+                    device=self.device,
                 ).str.isdecimal()
             ),
             [False, False, False, True, False, False, False, False, None],
         )
-        self.assertEqual(list(self.ts.Column([".abc"]).str.islower()), [True])
         self.assertEqual(
-            list(self.ts.Column(["+3.e12", "abc", "0"]).str.isnumeric()),
+            list(ta.Column([".abc"], device=self.device).str.islower()), [True]
+        )
+        self.assertEqual(
+            list(ta.Column(["+3.e12", "abc", "0"], device=self.device).str.isnumeric()),
             [False, False, True],
         )
         self.assertEqual(
-            list(self.ts.Column(["\n", "\t", " ", "", "a"]).str.isspace()),
+            list(
+                ta.Column(["\n", "\t", " ", "", "a"], device=self.device).str.isspace()
+            ),
             [True, True, True, False, False],
         )
         self.assertEqual(
-            list(self.ts.Column(["A B C", "abc", " "]).str.istitle()),
+            list(ta.Column(["A B C", "abc", " "], device=self.device).str.istitle()),
             [True, False, False],
         )
         self.assertEqual(
             list(
-                self.ts.Column(["UPPER", "lower", ".abc", ".ABC", "123"]).str.isupper()
+                ta.Column(
+                    ["UPPER", "lower", ".abc", ".ABC", "123"], device=self.device
+                ).str.isupper()
             ),
             [True, False, False, True, False],
         )
@@ -85,8 +95,8 @@ class TestStringColumn(unittest.TestCase):
     def base_test_concat(self):
         s1 = ["abc", "de", "", "f", None]
         s2 = ["12", "567", "77", None, "55"]
-        c1 = self.ts.Column(s1)
-        c2 = self.ts.Column(s2)
+        c1 = ta.Column(s1, device=self.device)
+        c2 = ta.Column(s2, device=self.device)
         concat1 = [x + y for (x, y) in zip(s1[:-2], s2[:-2])] + [None, None]
         self.assertEqual(list(c1 + c2), concat1)
 
@@ -98,8 +108,8 @@ class TestStringColumn(unittest.TestCase):
     def base_test_comparision(self):
         s1 = ["abc", "de", "", "f", None]
         s2 = ["abc", "77", "", None, "55"]
-        c1 = self.ts.Column(s1)
-        c2 = self.ts.Column(s2)
+        c1 = ta.Column(s1, device=self.device)
+        c2 = ta.Column(s2, device=self.device)
         self.assertEqual(c1 == c2, [True, False, True, None, None])
         self.assertEqual(c1 == "abc", [True, False, False, False, None])
         self.assertEqual(c1 == "de", [False, True, False, False, None])
@@ -108,46 +118,50 @@ class TestStringColumn(unittest.TestCase):
 
     def base_test_string_lifted_methods(self):
         s = ["abc", "de", "", "f"]
-        c = self.ts.Column(s)
+        c = ta.Column(s, device=self.device)
         self.assertEqual(list(c.str.length()), [len(i) for i in s])
         self.assertEqual(list(c.str.slice(stop=2)), [i[:2] for i in s])
         self.assertEqual(list(c.str.slice(1, 2)), [i[1:2] for i in s])
         self.assertEqual(list(c.str.slice(1)), [i[1:] for i in s])
 
         self.assertEqual(
-            list(self.ts.Column(["UPPER", "lower"]).str.lower()), ["upper", "lower"]
+            list(ta.Column(["UPPER", "lower"], device=self.device).str.lower()),
+            ["upper", "lower"],
         )
         self.assertEqual(
-            list(self.ts.Column(["UPPER", "lower"]).str.upper()), ["UPPER", "LOWER"]
+            list(ta.Column(["UPPER", "lower"], device=self.device).str.upper()),
+            ["UPPER", "LOWER"],
         )
 
         # strip
         self.assertEqual(
-            list(self.ts.Column(["  ab", " cde\n  "]).str.strip()), ["ab", "cde"]
+            list(ta.Column(["  ab", " cde\n  "], device=self.device).str.strip()),
+            ["ab", "cde"],
         )
 
     def base_test_string_pattern_matching_methods(self):
         s = ["hello.this", "is.interesting.", "this.is_24", "paradise", "h", ""]
 
         self.assertEqual(
-            list(self.ts.Column(s).str.startswith("h")),
+            list(ta.Column(s, device=self.device).str.startswith("h")),
             [True, False, False, False, True, False],
         )
         self.assertEqual(
-            list(self.ts.Column(s).str.endswith("this")),
+            list(ta.Column(s, device=self.device).str.endswith("this")),
             [True, False, False, False, False, False],
         )
         self.assertEqual(
-            list(self.ts.Column(s).str.find("this")), [6, -1, 0, -1, -1, -1]
+            list(ta.Column(s, device=self.device).str.find("this")),
+            [6, -1, 0, -1, -1, -1],
         )
 
         self.assertEqual(
-            list(self.ts.Column(s).str.replace("this", "that")),
+            list(ta.Column(s, device=self.device).str.replace("this", "that")),
             [v.replace("this", "that") for v in s],
         )
 
     def base_test_regular_expressions(self):
-        S = self.ts.Column(
+        S = ta.Column(
             [
                 "Finland",
                 "Colombia",
@@ -156,7 +170,8 @@ class TestStringColumn(unittest.TestCase):
                 "Puerto Rico",
                 "Russia",
                 "france",
-            ]
+            ],
+            device=self.device,
         )
         # count
         self.assertEqual(

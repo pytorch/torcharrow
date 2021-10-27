@@ -10,7 +10,7 @@ from .test_numerical_column import TestNumericalColumn
 
 class TestNumericalColumnCpu(TestNumericalColumn):
     def setUp(self):
-        self.ts = Scope({"device": "cpu"})
+        self.device = "cpu"
 
     def test_internal_empty(self):
         c = self.base_test_empty()

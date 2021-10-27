@@ -1,9 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torcharrow._torcharrow as velox
+from torcharrow import Scope
 from torcharrow.dispatcher import Device
 from torcharrow.dtypes import DType
 from torcharrow.icolumn import IColumn
-from torcharrow.scope import Scope
 
 
 class ColumnFromVelox:
@@ -12,13 +12,12 @@ class ColumnFromVelox:
 
     @staticmethod
     def from_velox(
-        scope: Scope,
         device: Device,
         dtype: DType,
         data: velox.BaseColumn,
         finialized: bool,
     ) -> IColumn:
-        col = scope.Column(dtype=dtype, device=device)
+        col = Scope._Column(dtype=dtype, device=device)
         col._data = data
         col._finialized = finialized
         return col
@@ -27,5 +26,5 @@ class ColumnFromVelox:
     # This help method allows to alter it based on context (e.g. methods in IStringMethods can have better inference)
     def with_null(self, nullable: bool):
         return self.from_velox(
-            self.scope, self.device, self.dtype.with_null(nullable), self._data, True
+            self.device, self.dtype.with_null(nullable), self._data, True
         )
