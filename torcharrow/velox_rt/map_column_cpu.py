@@ -6,15 +6,15 @@ from dataclasses import dataclass
 from typing import List
 
 import numpy as np
+import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 from tabulate import tabulate
+from torcharrow import Scope
+from torcharrow.dispatcher import Dispatcher
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.icolumn import IColumn
 from torcharrow.imap_column import IMapColumn, IMapMethods
-from torcharrow.dispatcher import Dispatcher
-from torcharrow import Scope
-import torcharrow as ta
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type

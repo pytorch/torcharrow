@@ -4,13 +4,13 @@ import warnings
 from typing import List
 
 import numpy as np
+import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 from tabulate import tabulate
+from torcharrow import Scope
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.ilist_column import IListColumn, IListMethods
-from torcharrow import Scope
-import torcharrow as ta
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type
