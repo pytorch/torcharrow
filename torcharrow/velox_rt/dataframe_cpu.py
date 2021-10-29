@@ -1268,7 +1268,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
     def fillna(self, fill_value: Union[dt.ScalarTypes, Dict, Literal[None]]):
         if fill_value is None:
             return self
-        if isinstance(fill_value, IColumn.scalar_types):
+        if isinstance(fill_value, IColumn._scalar_types):
             return self._fromdata(
                 {
                     self.dtype.fields[i]

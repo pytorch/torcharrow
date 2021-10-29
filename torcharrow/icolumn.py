@@ -22,7 +22,7 @@ from .scope import Scope
 from .trace import trace, traceproperty
 
 # ------------------------------------------------------------------------------
-# Column Factory with default scope and device
+# Column Factory with default device
 
 
 def Column(
@@ -86,8 +86,6 @@ def Column(
     return Scope._Column(data, dtype=dtype, device=device)
 
 
-# TODO: Add interop related column factory methods such as from_python, from_torch, from_arrow, from_pandas, etc
-
 # ------------------------------------------------------------------------------
 # IColumn
 
@@ -120,32 +118,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """A boolean indicating whether column/frame can have nulls"""
         return self.dtype.nullable
 
-    @trace
-    @abc.abstractmethod
-    def _append_null(self):
-        """PRIVATE _append null value with updateing mask"""
-        raise self._not_supported("_append_null")
-
-    @trace
-    @abc.abstractmethod
-    def _append_value(self, value):
-        """PRIVATE _append non-null value with updateing mask"""
-        raise self._not_supported("_append_value")
-
-    @trace
-    def _append(self, value):
-        """PRIVATE _append value"""
-        if value is None:
-            self._append_null()
-        else:
-            self._append_value(value)
-
-    def _extend(self, values):
-        """PRIVATE _extend values"""
-        for value in values:
-            self._append(value)
-
-    # public append/copy/astype------------------------------------------------
+    # public append/copy/cast------------------------------------------------
 
     @trace
     def append(self, values):
@@ -178,6 +151,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             res._append(i)
         return res._finalize()
 
+    # TODO: Create torcharrow.concat
     @trace
     def concat(self, columns: ty.List[IColumn]):
         """Returns concatenated columns."""
@@ -191,8 +165,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         # TODO implement this generically over columns using _FullColumn
         raise self._not_supported("copy")
 
-    def astype(self, dtype):
+    def cast(self, dtype):
         """Cast the Column to the given dtype"""
+        # TODO: support non-primitive types
         if dt.is_primitive(self.dtype):
             if dt.is_primitive(dtype):
                 fun = dt.cast_as(dtype)
@@ -220,7 +195,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @abc.abstractmethod
     def null_count(self):
         """Return number of null values"""
-        raise self._not_supported("getmask")
+        raise self._not_supported("null_count")
 
     @trace
     @expression
@@ -249,13 +224,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         )
         typ = f"dtype: {self._dtype}, length: {len(self)}, null_count: {self.null_count()}"
         return tab + dt.NL + typ
-
-    # private helpers ---------------------------------------------------------
-
-    def _not_supported(self, name):
-        raise TypeError(f"{name} for type {type(self).__name__} is not supported")
-
-    scalar_types = (int, float, bool, str)
 
     # selectors/getters -------------------------------------------------------
 
@@ -357,18 +325,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 res._append_value(self.getdata(i))
         return res._finalize()
 
-    def get_column(self, column):
-        """Return the named column"""
-        raise self._not_supported("get_column")
-
-    def get_columns(self, columns):
-        """Return a new dataframe referencing the columns[s1],..,column[sm]"""
-        raise self._not_supported("get_columns")
-
-    def slice_columns(self, start, stop):
-        """Return a new dataframe with the slice rows[start:stop]"""
-        raise self._not_supported("slice_columns")
-
     @trace
     @expression
     def head(self, n=5):
@@ -430,11 +386,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """
         return self[-n:]
 
-    @trace
-    @expression
-    def reverse(self):
-        return self[::-1]
-
     # iterators  -------------------------------------------------------------
 
     def __iter__(self):
@@ -455,9 +406,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                     yield fill_value
             else:
                 yield i
-
-    def _vectorize(self, fun, dtype: dt.DType):
-        return self.map(fun, "ignore", dtype)
 
     # functools map/filter/reduce ---------------------------------------------
 
@@ -655,35 +603,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         dtype = dtype or self._dtype
         return Scope._FromPyList(res, dtype)
-
-    @staticmethod
-    def _format_transform_column(c: IColumn, format: str):
-        if format == "column":
-            return c
-        if format == "python":
-            return c.to_python()
-        if format == "torch":
-            return c.to_torch()
-        raise ValueError(f"Invalid value for `format` argument: {format}")
-
-    def _format_transform_result(
-        self, raw: ty.Any, format: str, dtype: dt.DType, length: int
-    ):
-        if format == "torch":
-            from . import pytorch
-
-            pytorch.ensure_available()
-            ret = pytorch.from_torch(raw, dtype=dtype)
-        elif format == "python" or format == "column":
-            ret = ta.Column(raw, dtype=dtype)
-        else:
-            raise ValueError(f"Invalid value for `format` argument: {format}")
-
-        if len(ret) != length:
-            raise ValueError(
-                f"Output of transform must return the same number of rows: got {len(ret)} instead of {length}"
-            )
-        return ret
 
     @trace
     @expression
@@ -955,10 +874,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             return len(set(i for i in self if i is not None))
 
     # operators ---------------------------------------------------------------
-    @staticmethod
-    def swap(op):
-        return lambda a, b: op(b, a)
-
     @trace
     @expression
     def __add__(self, other):
@@ -969,7 +884,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __radd__(self, other):
         """Vectorized b + a."""
-        return self._py_arithmetic_op(other, IColumn.swap(operator.add))
+        return self._py_arithmetic_op(other, IColumn._swap(operator.add))
 
     @trace
     @expression
@@ -981,7 +896,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __rsub__(self, other):
         """Vectorized b - a."""
-        return self._py_arithmetic_op(other, IColumn.swap(operator.sub))
+        return self._py_arithmetic_op(other, IColumn._swap(operator.sub))
 
     @trace
     @expression
@@ -993,7 +908,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __rmul__(self, other):
         """Vectorized b * a."""
-        return self._py_arithmetic_op(other, IColumn.swap(operator.mul))
+        return self._py_arithmetic_op(other, IColumn._swap(operator.mul))
 
     @trace
     @expression
@@ -1005,7 +920,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __rfloordiv__(self, other):
         """Vectorized b // a."""
-        return self._py_arithmetic_op(other, IColumn.swap(operator.floordiv))
+        return self._py_arithmetic_op(other, IColumn._swap(operator.floordiv))
 
     @trace
     @expression
@@ -1018,7 +933,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def __rtruediv__(self, other):
         """Vectorized b / a."""
         return self._py_arithmetic_op(
-            other, IColumn.swap(operator.truediv), div="__rtruediv__"
+            other, IColumn._swap(operator.truediv), div="__rtruediv__"
         )
 
     @trace
@@ -1031,7 +946,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __rmod__(self, other):
         """Vectorized b % a."""
-        return self._py_arithmetic_op(other, IColumn.swap(operator.mod))
+        return self._py_arithmetic_op(other, IColumn._swap(operator.mod))
 
     @trace
     @expression
@@ -1043,7 +958,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __rpow__(self, other):
         """Vectorized b ** a."""
-        return self._py_arithmetic_op(other, IColumn.swap(operator.pow))
+        return self._py_arithmetic_op(other, IColumn._swap(operator.pow))
 
     @trace
     @expression
@@ -1091,7 +1006,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __ror__(self, other):
         """Vectorized reverse bitwise or operation: b | a."""
-        return self._py_arithmetic_op(other, IColumn.swap(operator.__or__))
+        return self._py_arithmetic_op(other, IColumn._swap(operator.__or__))
 
     @trace
     @expression
@@ -1103,7 +1018,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __rxor__(self, other):
         """Vectorized reverse bitwise exclusive or operation: b ^ a."""
-        return self._py_arithmetic_op(other, IColumn.swap(operator.__xor__))
+        return self._py_arithmetic_op(other, IColumn._swap(operator.__xor__))
 
     @trace
     @expression
@@ -1115,7 +1030,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __rand__(self, other):
         """Vectorized reverse bitwise and operation: b & a."""
-        return self._py_arithmetic_op(other, IColumn.swap(operator.__and__))
+        return self._py_arithmetic_op(other, IColumn._swap(operator.__and__))
 
     @trace
     @expression
@@ -1136,10 +1051,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def __pos__(self):
         """Vectorized: +a."""
         return self._vectorize(operator.pos, self.dtype)
-
-    @staticmethod
-    def _isin(values):
-        return lambda value: value in values
 
     @trace
     @expression
@@ -1204,63 +1115,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """Round each value in a data to the given number of decimals."""
         return self._vectorize(partial(round, ndigits=decimals), self.dtype)
 
-    def _py_arithmetic_op(self, other, fun, div=""):
-        others = None
-        other_dtype = None
-        if isinstance(other, IColumn):
-            others = other.items()
-            other_dtype = other.dtype
-        else:
-            others = itertools.repeat((False, other))
-            other_dtype = dt.infer_dtype_from_value(other)
-
-        if not dt.is_boolean_or_numerical(self.dtype) or not dt.is_boolean_or_numerical(
-            other_dtype
-        ):
-            raise TypeError(f"{type(self).__name__}.{fun.__name__} is not supported")
-
-        res = []
-        if div != "":
-            res_dtype = dt.Float64(self.dtype.nullable or other_dtype.nullable)
-            for (m, i), (n, j) in zip(self.items(), others):
-                # TODO Use error handling to mke this more efficient..
-                if m or n:
-                    res.append(None)
-                elif div == "__truediv__" and j == 0:
-                    res.append(None)
-                elif div == "__rtruediv__" and i == 0:
-                    res.append(None)
-                else:
-                    res.append(fun(i, j))
-        else:
-            res_dtype = dt.promote(self.dtype, other_dtype)
-            if res_dtype is None:
-                raise TypeError(f"{self.dtype} and {other_dtype} are incompatible")
-            for (m, i), (n, j) in zip(self.items(), others):
-                if m or n:
-                    res.append(None)
-                else:
-                    res.append(fun(i, j))
-        return Scope._FromPyList(res, res_dtype)
-
-    def _py_comparison_op(self, other, pred):
-        others = None
-        other_dtype = None
-        if isinstance(other, IColumn):
-            others = other.items()
-            other_dtype = other.dtype
-        else:
-            others = itertools.repeat((False, other))
-            other_dtype = dt.infer_dtype_from_value(other)
-        res_dtype = dt.Boolean(self.dtype.nullable or other_dtype.nullable)
-        res = []
-        for (m, i), (n, j) in zip(self.items(), others):
-            if m or n:
-                res.append(None)
-            else:
-                res.append(pred(i, j))
-        return self._FromPyList(res, res_dtype)
-
     # data cleaning -----------------------------------------------------------
 
     @trace
@@ -1290,9 +1144,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         dtype: int64, length: 4, null_count: 0
 
         """
-        if not isinstance(fill_value, IColumn.scalar_types):
+        if not isinstance(fill_value, IColumn._scalar_types):
             raise TypeError(f"fillna with {type(fill_value)} is not supported")
-        if isinstance(fill_value, IColumn.scalar_types):
+        if isinstance(fill_value, IColumn._scalar_types):
             res = Scope._EmptyColumn(self.dtype.constructor(nullable=False))
             for m, i in self.items():
                 if not m:
@@ -1356,10 +1210,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         return res._finalize()
 
     # # universal  ---------------------------------------------------------------
-
-    def _check(self, pred, name):
-        if not pred(self.dtype):
-            raise ValueError(f"{name} undefined for {type(self).__name__}.")
 
     @trace
     @expression
@@ -1514,21 +1364,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         self._check(dt.is_numerical, "std")
         return statistics.stdev((float(i) for i in list(self.data())))
 
-    def _accumulate(self, func):
-        total = None
-        res = Scope._EmptyColumn(self.dtype)
-        for m, i in self.items():
-            if m:
-                res._append_null()
-            elif total is None:
-                res._append_value(i)
-                total = i
-            else:
-                total = func(total, i)
-                res._append_value(total)
-        m = res._finalize()
-        return m
-
     @trace
     @expression
     def percentiles(self, q, interpolation="midpoint"):
@@ -1639,22 +1474,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """Return boolean if values in the object are monotonic decreasing"""
         return self._compare(operator.gt, initial=True)
 
-    def _compare(self, op, initial):
-        assert initial in [True, False]
-        if len(self) == 0:
-            return initial
-        it = iter(self)
-        start = next(it)
-        for step in it:
-            if step is None:
-                continue
-            if op(start, step):
-                start = step
-                continue
-            else:
-                return False
-        return True
-
     # interop ----------------------------------------------------------------
 
     @trace
@@ -1701,3 +1520,167 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         if len(res) == 0:
             raise ValueError("can't determine column type")
         return res[0].concat(res[1:])
+
+    # private helpers ---------------------------------------------------------
+
+    def _not_supported(self, name):
+        raise TypeError(f"{name} for type {type(self).__name__} is not supported")
+
+    _scalar_types = (int, float, bool, str)
+
+    @trace
+    @abc.abstractmethod
+    def _append_null(self):
+        """PRIVATE _append null value with updateing mask"""
+        raise self._not_supported("_append_null")
+
+    @trace
+    @abc.abstractmethod
+    def _append_value(self, value):
+        """PRIVATE _append non-null value with updateing mask"""
+        raise self._not_supported("_append_value")
+
+    @trace
+    def _append(self, value):
+        """PRIVATE _append value"""
+        if value is None:
+            self._append_null()
+        else:
+            self._append_value(value)
+
+    def _extend(self, values):
+        """PRIVATE _extend values"""
+        for value in values:
+            self._append(value)
+
+    def _vectorize(self, fun, dtype: dt.DType):
+        return self.map(fun, "ignore", dtype)
+
+    @staticmethod
+    def _swap(op):
+        return lambda a, b: op(b, a)
+
+    def _check(self, pred, name):
+        if not pred(self.dtype):
+            raise ValueError(f"{name} undefined for {type(self).__name__}.")
+
+    @staticmethod
+    def _isin(values):
+        return lambda value: value in values
+
+    def _py_arithmetic_op(self, other, fun, div=""):
+        others = None
+        other_dtype = None
+        if isinstance(other, IColumn):
+            others = other.items()
+            other_dtype = other.dtype
+        else:
+            others = itertools.repeat((False, other))
+            other_dtype = dt.infer_dtype_from_value(other)
+
+        if not dt.is_boolean_or_numerical(self.dtype) or not dt.is_boolean_or_numerical(
+            other_dtype
+        ):
+            raise TypeError(f"{type(self).__name__}.{fun.__name__} is not supported")
+
+        res = []
+        if div != "":
+            res_dtype = dt.Float64(self.dtype.nullable or other_dtype.nullable)
+            for (m, i), (n, j) in zip(self.items(), others):
+                # TODO Use error handling to mke this more efficient..
+                if m or n:
+                    res.append(None)
+                elif div == "__truediv__" and j == 0:
+                    res.append(None)
+                elif div == "__rtruediv__" and i == 0:
+                    res.append(None)
+                else:
+                    res.append(fun(i, j))
+        else:
+            res_dtype = dt.promote(self.dtype, other_dtype)
+            if res_dtype is None:
+                raise TypeError(f"{self.dtype} and {other_dtype} are incompatible")
+            for (m, i), (n, j) in zip(self.items(), others):
+                if m or n:
+                    res.append(None)
+                else:
+                    res.append(fun(i, j))
+        return Scope._FromPyList(res, res_dtype)
+
+    def _py_comparison_op(self, other, pred):
+        others = None
+        other_dtype = None
+        if isinstance(other, IColumn):
+            others = other.items()
+            other_dtype = other.dtype
+        else:
+            others = itertools.repeat((False, other))
+            other_dtype = dt.infer_dtype_from_value(other)
+        res_dtype = dt.Boolean(self.dtype.nullable or other_dtype.nullable)
+        res = []
+        for (m, i), (n, j) in zip(self.items(), others):
+            if m or n:
+                res.append(None)
+            else:
+                res.append(pred(i, j))
+        return self._FromPyList(res, res_dtype)
+
+    def _compare(self, op, initial):
+        assert initial in [True, False]
+        if len(self) == 0:
+            return initial
+        it = iter(self)
+        start = next(it)
+        for step in it:
+            if step is None:
+                continue
+            if op(start, step):
+                start = step
+                continue
+            else:
+                return False
+        return True
+
+    def _accumulate(self, func):
+        total = None
+        res = Scope._EmptyColumn(self.dtype)
+        for m, i in self.items():
+            if m:
+                res._append_null()
+            elif total is None:
+                res._append_value(i)
+                total = i
+            else:
+                total = func(total, i)
+                res._append_value(total)
+        m = res._finalize()
+        return m
+
+    @staticmethod
+    def _format_transform_column(c: IColumn, format: str):
+        if format == "column":
+            return c
+        if format == "python":
+            return c.to_python()
+        if format == "torch":
+            return c.to_torch()
+        raise ValueError(f"Invalid value for `format` argument: {format}")
+
+    def _format_transform_result(
+        self, raw: ty.Any, format: str, dtype: dt.DType, length: int
+    ):
+        if format == "torch":
+            from . import pytorch
+
+            pytorch.ensure_available()
+            ret = pytorch.from_torch(raw, dtype=dtype)
+        elif format == "python" or format == "column":
+            ret = ta.Column(raw, dtype=dtype)
+        else:
+            raise ValueError(f"Invalid value for `format` argument: {format}")
+
+        if len(ret) != length:
+            raise ValueError(
+                f"Output of transform must return the same number of rows: got {len(ret)} instead of {length}"
+            )
+        return ret
