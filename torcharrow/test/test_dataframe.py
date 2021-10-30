@@ -728,6 +728,13 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(r), [1000, None, None])
         self.assertEqual(r.dtype, dt.int64)
 
+    def base_test_in(self):
+        df = ta.DataFrame(
+            {"A": ["a", "b", "a", "b"], "B": [1, 2, 3, 4]}, device=self.device
+        )
+        self.assertTrue("A" in df)
+        self.assertFalse("X" in df)
+
 
 if __name__ == "__main__":
     unittest.main()

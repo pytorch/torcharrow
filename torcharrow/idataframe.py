@@ -158,6 +158,12 @@ class IDataFrame(IColumn):
         """
         raise self._not_supported("_set_field_data")
 
+    def __contains__(self, key: str) -> bool:
+        for f in self.dtype.fields:
+            if key == f.name:
+                return True
+        return False
+
     @trace
     def __setitem__(self, name: str, value: Any) -> None:
         if isinstance(value, IColumn):
