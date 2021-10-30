@@ -337,7 +337,6 @@ class TestDataFrame(unittest.TestCase):
             list(df.nsmallest(n=2, columns=["c", "a"], keep="first")),
             [(3, 3.0, 1), (1, 1.0, 4)],
         )
-        self.assertEqual(list(df.reverse()), [(3, 3.0, 1), (2, None, 4), (1, 1.0, 4)])
 
     def base_test_operators(self):
         # without None

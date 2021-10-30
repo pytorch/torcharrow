@@ -227,10 +227,6 @@ class TestNumericalColumn(unittest.TestCase):
             ),
             [1, 2],
         )
-        self.assertEqual(
-            list(ta.Column([None, 1, 5, 2], device=self.device).reverse()),
-            [2, 5, 1, None],
-        )
 
     def base_test_operators(self):
         # without None
