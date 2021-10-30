@@ -223,6 +223,18 @@ class IDataFrame(IColumn):
             )
         return self._format_transform_result(raw_res, format, dtype, len(self))
 
+    def get_column(self, column):
+        """Return the named column"""
+        raise self._not_supported("get_column")
+
+    def get_columns(self, columns):
+        """Return a new dataframe referencing the columns[s1],..,column[sm]"""
+        raise self._not_supported("get_columns")
+
+    def slice_columns(self, start, stop):
+        """Return a new dataframe with the slice rows[start:stop]"""
+        raise self._not_supported("slice_columns")
+
     @trace
     def to_python(self):
         tup_type = self._dtype.py_type

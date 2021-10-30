@@ -294,7 +294,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def __radd__(self, other: Union[int, float]) -> INumericalColumn:
         """Vectorized b + a."""
         return self._checked_arithmetic_op_call(
-            other, "radd", IColumn.swap(operator.add)
+            other, "radd", IColumn._swap(operator.add)
         )
 
     @trace
@@ -308,7 +308,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def __rsub__(self, other: Union[int, float]) -> INumericalColumn:
         """Vectorized b - a."""
         return self._checked_arithmetic_op_call(
-            other, "rsub", IColumn.swap(operator.sub)
+            other, "rsub", IColumn._swap(operator.sub)
         )
 
     @trace
@@ -322,7 +322,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def __rmul__(self, other: Union[int, float]) -> INumericalColumn:
         """Vectorized b * a."""
         return self._checked_arithmetic_op_call(
-            other, "rmul", IColumn.swap(operator.mul)
+            other, "rmul", IColumn._swap(operator.mul)
         )
 
     @trace
@@ -435,7 +435,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def __rmod__(self, other: Union[int, float]) -> INumericalColumn:
         """Vectorized b % a."""
         return self._checked_arithmetic_op_call(
-            other, "rmod", IColumn.swap(operator.mod)
+            other, "rmod", IColumn._swap(operator.mod)
         )
 
     @trace
@@ -541,7 +541,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def __rand__(self, other: Union[int]) -> INumericalColumn:
         """Vectorized b & a."""
         return self._checked_arithmetic_op_call(
-            other, "bitwise_rand", IColumn.swap(operator.__and__)
+            other, "bitwise_rand", IColumn._swap(operator.__and__)
         )
 
     @trace
@@ -555,7 +555,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def __ror__(self, other: Union[int]) -> INumericalColumn:
         """Vectorized b | a."""
         return self._checked_arithmetic_op_call(
-            other, "bitwise_ror", IColumn.swap(operator.__or__)
+            other, "bitwise_ror", IColumn._swap(operator.__or__)
         )
 
     @trace
@@ -569,7 +569,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def __rxor__(self, other: Union[int]) -> INumericalColumn:
         """Vectorized b | a."""
         return self._checked_arithmetic_op_call(
-            other, "bitwise_rxor", IColumn.swap(operator.__xor__)
+            other, "bitwise_rxor", IColumn._swap(operator.__xor__)
         )
 
     @trace
@@ -656,7 +656,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     @expression
     def fillna(self, fill_value: Union[dt.ScalarTypes, Dict]):
         """Fill NA/NaN values using the specified method."""
-        if not isinstance(fill_value, IColumn.scalar_types):
+        if not isinstance(fill_value, IColumn._scalar_types):
             raise TypeError(f"fillna with {type(fill_value)} is not supported")
         if not self.isnullable:
             return self
