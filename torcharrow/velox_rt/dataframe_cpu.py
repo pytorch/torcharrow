@@ -2042,6 +2042,15 @@ class GroupedDataFrame:
                 cols[i]._append(t)
         return [col._finalize() for col in cols]
 
+    def __contains__(self, key: str):
+        for f in self._item_fields:
+            if f.name == key:
+                return True
+        for f in self._key_fields:
+            if f.name == key:
+                return True
+        return False
+
     def __getitem__(self, arg):
         """
         Return the named grouped column

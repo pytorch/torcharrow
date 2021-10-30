@@ -84,6 +84,9 @@ class TestDataFrameCpu(TestDataFrame):
     def test_infer_func_output_dtype(self):
         return self.base_test_infer_func_output_dtype()
 
+    def test_in(self):
+        return self.base_test_in()
+
 
 if __name__ == "__main__":
     unittest.main()
