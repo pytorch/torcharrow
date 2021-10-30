@@ -64,7 +64,7 @@ s.device
 # In[5]:
 
 
-len(s), s.count(), s.null_count()
+len(s), s._count(), s.null_count
 
 
 # TorchArrow infers Python float as float32 (instead of float64). This follows PyTorch and other deep learning libraries.

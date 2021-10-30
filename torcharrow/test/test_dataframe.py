@@ -17,8 +17,8 @@ class TestDataFrame(unittest.TestCase):
         # testing internals...
         self.assertTrue(isinstance(empty, IDataFrame))
 
-        self.assertEqual(empty.length(), 0)
-        self.assertEqual(empty.null_count(), 0)
+        self.assertEqual(empty.length, 0)
+        self.assertEqual(empty.null_count, 0)
         self.assertEqual(empty.columns, [])
 
     def base_test_internals_full(self):
@@ -29,8 +29,8 @@ class TestDataFrame(unittest.TestCase):
         for i in range(4):
             self.assertEqual(df[i], (i,))
 
-        self.assertEqual(df.length(), 4)
-        self.assertEqual(df.null_count(), 0)
+        self.assertEqual(df.length, 4)
+        self.assertEqual(df.null_count, 0)
         self.assertEqual(list(df), list((i,) for i in range(4)))
         m = df[0 : len(df)]
         self.assertEqual(list(df[0 : len(df)]), list((i,) for i in range(4)))
@@ -39,7 +39,7 @@ class TestDataFrame(unittest.TestCase):
         #     # TypeError: a tuple of type dt.Struct([dt.Field(a, dt.int64)]) is required, got None
         #     df=df.append([None])
         #     self.assertEqual(df.length(), 5)
-        #     self.assertEqual(df.null_count(), 1)
+        #     self.assertEqual(df.null_count, 1)
 
     def base_test_internals_full_nullable(self):
         with self.assertRaises(TypeError):
@@ -63,15 +63,15 @@ class TestDataFrame(unittest.TestCase):
             # but all public APIs report this back as None
 
             self.assertEqual(df[i], None)
-            self.assertEqual(df.valid(i), False)
-            self.assertEqual(df.null_count(), i + 1)
+            self.assertEqual(df.is_valid_at(i), False)
+            self.assertEqual(df.null_count, i + 1)
         for i in [3]:
             df = df.append([(i, i * i)])
             self.assertEqual(df[i], (i, i * i))
-            self.assertEqual(df.valid(i), True)
+            self.assertEqual(df.is_valid_at(i), True)
 
-        self.assertEqual(df.length(), 4)
-        self.assertEqual(df.null_count(), 3)
+        self.assertEqual(df.length, 4)
+        self.assertEqual(df.null_count, 3)
         self.assertEqual(len(df["a"]), 4)
         self.assertEqual(len(df["b"]), 4)
         self.assertEqual(len(df._mask), 4)

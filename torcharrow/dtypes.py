@@ -774,7 +774,7 @@ _agg_ops = {
     "mean": lambda c: c.mean(),
     "median": lambda c: c.median(),
     "mode": lambda c: c.mode(),
-    "count": lambda c: c.count(),
+    "count": lambda c: c._count(),
 }
 
 

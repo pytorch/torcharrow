@@ -14,8 +14,8 @@ class TestListColumn(unittest.TestCase):
         self.assertTrue(isinstance(c, IListColumn))
         self.assertEqual(c.dtype, dt.List(dt.int64))
 
-        self.assertEqual(c.length(), 0)
-        self.assertEqual(c.null_count(), 0)
+        self.assertEqual(c.length, 0)
+        self.assertEqual(c.null_count, 0)
 
     def base_test_nonempty(self):
         c = ta.Column(dt.List(dt.int64), device=self.device)

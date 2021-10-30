@@ -275,10 +275,10 @@ class IDataFrameVar(Var, IDataFrame):
     def null_count(self):
         return self._not_supported("null_count")
 
-    def getmask(self, i):
-        return self._not_supported("getmask")
+    def _getmask(self, i):
+        return self._not_supported("_getmask")
 
-    def getdata(self, i):
+    def _getdata(self, i):
         return self._not_supported("getdata")
 
     def _set_field_data(self, name: str, col: IColumn, empty_df: bool):

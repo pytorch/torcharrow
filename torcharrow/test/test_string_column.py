@@ -11,8 +11,8 @@ class TestStringColumn(unittest.TestCase):
         empty = ta.Column(dt.string, device=self.device)
         self.assertTrue(isinstance(empty, IStringColumn))
         self.assertEqual(empty.dtype, dt.string)
-        self.assertEqual(empty.length(), 0)
-        self.assertEqual(empty.null_count(), 0)
+        self.assertEqual(empty.length, 0)
+        self.assertEqual(empty.null_count, 0)
         # self.assertEqual(empty._offsets[0], 0)
 
     def base_test_append_offsets(self):

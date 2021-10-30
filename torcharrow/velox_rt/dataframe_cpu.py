@@ -80,7 +80,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
 
     @property
     def _mask(self) -> List[bool]:
-        return [self.getmask(i) for i in range(len(self))]
+        return [self._getmask(i) for i in range(len(self))]
 
     # Any _full requires no further type changes..
     @staticmethod
@@ -157,25 +157,26 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
     def __len__(self):
         return len(self._data)
 
+    @property
     def null_count(self):
         return self._data.get_null_count()
 
-    def getmask(self, i):
+    def _getmask(self, i):
         if i < 0:
             i += len(self._data)
         return self._data.is_null_at(i)
 
-    def getdata(self, i):
+    def _getdata(self, i):
         if i < 0:
             i += len(self._data)
-        if not self.getmask(i):
+        if not self._getmask(i):
             return tuple(
                 ColumnFromVelox.from_velox(
                     self.device,
                     self.dtype.fields[j].dtype,
                     self._data.child_at(j),
                     True,
-                ).get(i, None)
+                )._get(i, None)
                 for j in range(self._data.children_size())
             )
         else:
@@ -269,7 +270,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
         tab = tabulate(
             data, headers=["index"] + self.columns, tablefmt="simple", showindex=True
         )
-        typ = f"dtype: {self._dtype}, count: {self.length()}, null_count: {self.null_count()}"
+        typ = f"dtype: {self._dtype}, count: {self.length()}, null_count: {self.null_count}"
         return tab + dt.NL + typ
 
     # selectors -----------------------------------------------------------
@@ -277,12 +278,12 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
     def _column_index(self, arg):
         return self._data.type().get_child_idx(arg)
 
-    def gets(self, indices):
+    def _gets(self, indices):
         return self._fromdata(
             {n: c[indices] for n, c in self._field_data.items()}, self._mask[indices]
         )
 
-    def slice(self, start, stop, step):
+    def _slice(self, start, stop, step):
         mask = [self._mask[i] for i in list(range(len(self)))[start:stop:step]]
         return self._fromdata(
             {
@@ -293,7 +294,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
                     self._data.child_at(i),
                     True,
                 )
-                .slice(start, stop, step)
+                ._slice(start, stop, step)
                 for i in range(self._data.children_size())
             },
             mask,
@@ -381,7 +382,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
 
             res = Scope.default._EmptyColumn(dtype)
             for i in range(len(self)):
-                if self.valid(i):
+                if self.is_valid_at(i):
                     res._append(func(*[col[i] for col in cols]))
                 elif na_action is None:
                     res._append(func(None))
@@ -519,12 +520,12 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
 
         res = Scope._EmptyColumn(self.dtype)
         if na_position == "first":
-            res._extend([None] * self.null_count())
+            res._extend([None] * self.null_count)
         res._extend(
             sorted((i for i in self if i is not None), reverse=not ascending, key=func)
         )
         if na_position == "last":
-            res._extend([None] * self.null_count())
+            res._extend([None] * self.null_count)
         return res._finalize()
 
     @trace
@@ -1500,7 +1501,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
 
     @trace
     def _lift(self, func):
-        if self.null_count() == 0:
+        if self.null_count == 0:
             res = velox.Column(get_velox_type(self.dtype))
 
             for i in range(self._data.children_size()):
@@ -1573,7 +1574,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
                 True,
             )
             res[s] = ta.Column(
-                [c.count(), c.mean(), c.std(), c.min()]
+                [c._count(), c.mean(), c.std(), c.min()]
                 + c.percentiles(percentiles, "midpoint")
                 + [c.max()]
             )
@@ -1936,7 +1937,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
 
         groups: Dict[Tuple, ar.array] = {}
         for i in range(len(self)):
-            if self.valid(i):
+            if self.is_valid_at(i):
                 key = tuple(
                     self._data.child_at(self._data.type().get_child_idx(f.name))[i]
                     for f in key_fields
