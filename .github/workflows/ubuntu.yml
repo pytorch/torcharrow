@@ -19,22 +19,45 @@ jobs:
       - name: Update submodules
         run: git submodule update --init --recursive
 
+      # Based on https://cristianadam.eu/20200113/speeding-up-c-plus-plus-github-actions-using-ccache/
+      - name: Prepare ccache timestamp
+        id: ccache_cache_timestamp
+        run: |
+          echo "::set-output name=timestamp::$(/bin/date -u "+%Y%m%d-%H:%M:%S")"
+        shell: bash
+
+      - name: Load ccache files
+        uses: actions/cache@v2
+        with:
+          path: .ccache
+          key: ubuntu-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+          restore-keys: |
+              ubuntu-ccache-
+
       - name: Install dependencies with APT
         run: |
-          sudo apt install -y g++ cmake ninja-build checkinstall git \
+          sudo apt install -y g++ cmake ccache ninja-build checkinstall git \
           libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
           libbz2-dev libgflags-dev libgtest-dev libgmock-dev libevent-dev libfmt-dev \
           libprotobuf-dev liblz4-dev libzstd-dev libre2-dev libsnappy-dev liblzo2-dev \
           protobuf-compiler
 
+      # Based on https://github.com/facebookincubator/velox/blob/99429407c3d524e07b32b8b19a03aa7382f819cf/.circleci/config.yml#L114-L116
+      - name: Configure ccache
+        run: |
+          echo "$GITHUB_WORKSPACE"
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz -M 5G
+
       - name: Build and install Folly
-        run: scripts/install_ubuntu_folly.sh
+        run: CMAKE_C_COMPILER_LAUNCHER=ccache CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache scripts/install_ubuntu_folly.sh
 
       - name: Bulid TorchArrow
-        run: DEBUG=1 python setup.py develop --user
+        run: |
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache DEBUG=1 python setup.py develop --user
 
       - name: Install dependencies for test
         run: pip3 install pytest --user
 
       - name : Run TorchArrow unit tests
-        run: pytest --no-header -v torcharrow
+        run: pytest --no-header -v torcharrow/test
