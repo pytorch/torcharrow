@@ -114,9 +114,25 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     @property  # type: ignore
     @traceproperty
-    def isnullable(self):
-        """A boolean indicating whether column/frame can have nulls"""
+    def is_nullable(self):
+        """
+        EXPERIMENTAL API
+
+        A boolean indicating whether column/frame can have nulls
+        """
         return self.dtype.nullable
+
+    @property  # type: ignore
+    @traceproperty
+    def length(self):
+        """Return number of rows including null values"""
+        return len(self)
+
+    @property  # type: ignore
+    @traceproperty
+    def null_count(self):
+        """Return number of null values"""
+        raise self._not_supported("null_count")
 
     # public append/copy/cast------------------------------------------------
 
@@ -142,7 +158,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """
         # TODO use _column_copy, but for now this works...
         res = Scope._EmptyColumn(self.dtype)
-        for (m, d) in self.items():
+        for (m, d) in self._items():
             if m:
                 res._append_null()
             else:
@@ -186,29 +202,10 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     @trace
     @expression
-    def count(self):
-        """Return number of non-NA/null observations pgf the column/frame"""
-        return len(self) - self.null_count()
-
-    @trace
-    @expression
-    @abc.abstractmethod
-    def null_count(self):
-        """Return number of null values"""
-        raise self._not_supported("null_count")
-
-    @trace
-    @expression
     @abc.abstractmethod
     def __len__(self):
         """Return number of rows including null values"""
         raise self._not_supported("__len__")
-
-    @trace
-    @expression
-    def length(self):
-        """Return number of rows including null values"""
-        return len(self)
 
     # printing ----------------------------------------------------------------
 
@@ -222,31 +219,18 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             tablefmt="plain",
             showindex=True,
         )
-        typ = f"dtype: {self._dtype}, length: {len(self)}, null_count: {self.null_count()}"
+        typ = f"dtype: {self._dtype}, length: {len(self)}, null_count: {self.null_count}"
         return tab + dt.NL + typ
 
     # selectors/getters -------------------------------------------------------
 
-    @abc.abstractmethod
-    def getmask(self, i):
-        """Return mask at index i"""
-        raise self._not_supported("getmask")
+    def is_valid_at(self, index):
+        """
+        EXPERIMENTAL API
 
-    @abc.abstractmethod
-    def getdata(self, i):
-        """Return data at index i"""
-        raise self._not_supported("getdata")
-
-    def valid(self, index):
-        """Return whether data at index i is valid, i.e., non-masked"""
-        return not self.getmask(index)
-
-    def get(self, index, fill_value=None):
-        """Return data[index] or fill_value if data[i] not valid"""
-        if self.getmask(index):
-            return fill_value
-        else:
-            return self.getdata(index)
+        Return whether data at index i is valid, i.e., non-null
+        """
+        return not self._getmask(index)
 
     @trace
     @expression
@@ -267,7 +251,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """
 
         if isinstance(arg, int):
-            return self.get(arg)
+            return self._get(arg)
         elif isinstance(arg, str):
             return self.get_column(arg)
         elif isinstance(arg, slice):
@@ -278,7 +262,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 else:
                     args.append(i)
             if all(a is None or isinstance(a, int) for a in args):
-                return self.slice(*args)
+                return self._slice(*args)
             elif all(a is None or isinstance(a, str) for a in args):
                 if arg.step is not None:
                     raise TypeError(f"column slice can't have step argument {arg.step}")
@@ -293,7 +277,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             if all(isinstance(a, bool) for a in arg):
                 return self.filter(arg)
             if all(isinstance(a, int) for a in arg):
-                return self.gets(arg)
+                return self._gets(arg)
             if all(isinstance(a, str) for a in arg):
                 return self.get_columns(arg)
             else:
@@ -302,28 +286,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             return self.filter(arg)
         else:
             raise self._not_supported("__getitem__")
-
-    def gets(self, indices):
-        """Return a new column with the rows[indices[0]],..,rows[indices[-1]]"""
-        res = Scope._EmptyColumn(self.dtype)
-        for i in indices:
-            (m, d) = (self.getmask(i), self.getdata(i))
-            if m:
-                res._append_null()
-            else:
-                res._append_value(d)
-        return res._finalize()
-
-    def slice(self, start, stop, step):
-        """Return a new column with the slice rows[start:stop:step]"""
-        res = Scope._EmptyColumn(self.dtype)
-        for i in list(range(len(self)))[start:stop:step]:
-            m = self.getmask(i)
-            if m:
-                res._append_null()
-            else:
-                res._append_value(self.getdata(i))
-        return res._finalize()
 
     @trace
     @expression
@@ -360,6 +322,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def tail(self, n=5):
         """
+        EXPERIMENTAL API
+
         Return the last `n` rows.
 
         Parameters
@@ -391,21 +355,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def __iter__(self):
         """Return the iterator object itself."""
         for i in range(len(self)):
-            yield self.get(i)
-
-    def items(self):
-        """Iterator returning mask,data pairs for all items of a column"""
-        for i in range(len(self)):
-            yield (self.getmask(i), self.getdata(i))
-
-    def data(self, fill_value=None):
-        """Iterator returning non-null or fill_value data of a column"""
-        for m, i in self.items():
-            if m:
-                if fill_value is not None:
-                    yield fill_value
-            else:
-                yield i
+            yield self._get(i)
 
     # functools map/filter/reduce ---------------------------------------------
 
@@ -570,7 +520,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         # in a Python list and then passing the list to the constructor
         res = []
         if isinstance(arg, defaultdict):
-            for masked, i in self.items():
+            for masked, i in self._items():
                 if not masked:
                     res.append(arg[i])
                 elif na_action is None:
@@ -578,7 +528,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 else:
                     res.append(None)
         elif isinstance(arg, dict):
-            for masked, i in self.items():
+            for masked, i in self._items():
                 if not masked:
                     if i in arg:
                         res.append(arg[i])
@@ -593,7 +543,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             if dtype is None:
                 (dtype, _) = dt.infer_dype_from_callable_hint(arg)
 
-            for masked, i in self.items():
+            for masked, i in self._items():
                 if not masked:
                     res.append(arg(i))
                 elif na_action is None:
@@ -660,7 +610,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         dtype = dtype or self.dtype
         res = Scope._EmptyColumn(dtype)
-        for masked, i in self.items():
+        for masked, i in self._items():
             if not masked:
                 res._extend(func(i))
             elif na_action is None:
@@ -780,7 +730,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 "then and else branches must have compatible types, got {then_.dtype} and {else_.dtype}, respectively"
             )
         res = Scope._EmptyColumn(lub)
-        for (m, b), t, e in zip(self.items(), then_, else_):
+        for (m, b), t, e in zip(self._items(), then_, else_):
             if m:
                 res._append_null()
             elif b:
@@ -830,10 +780,10 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             raise TypeError("sorting a non-structured column can't have 'by' parameter")
         res = Scope._EmptyColumn(self.dtype)
         if na_position == "first":
-            res._extend([None] * self.null_count())
+            res._extend([None] * self.null_count)
         res._extend(sorted((i for i in self if i is not None), reverse=not ascending))
         if na_position == "last":
-            res._extend([None] * self.null_count())
+            res._extend([None] * self.null_count)
         return res._finalize()
 
     @trace
@@ -1084,7 +1034,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """
         # note mask is True
         res = Scope._EmptyColumn(dt.boolean)
-        for m, i in self.items():
+        for m, i in self._items():
             if m:
                 res._append_value(False)
             else:
@@ -1148,7 +1098,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             raise TypeError(f"fillna with {type(fill_value)} is not supported")
         if isinstance(fill_value, IColumn._scalar_types):
             res = Scope._EmptyColumn(self.dtype.constructor(nullable=False))
-            for m, i in self.items():
+            for m, i in self._items():
                 if not m:
                     res._append_value(i)
                 else:
@@ -1176,7 +1126,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         Examples
         --------
-                >>> import torcharrow as ta
+        >>> import torcharrow as ta
         >>> s = ta.Column([1,2,None,4])
         >>> s.dropna()
         0    1
@@ -1186,7 +1136,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """
         if dt.is_primitive(self.dtype):
             res = Scope._EmptyColumn(self.dtype.constructor(nullable=False))
-            for m, i in self.items():
+            for m, i in self._items():
                 if not m:
                     res._append_value(i)
             return res._finalize()
@@ -1231,7 +1181,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         1
         """
 
-        return min(self.data(fill_value))
+        return min(self._data_iter(fill_value))
 
     @trace
     @expression
@@ -1251,19 +1201,19 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         >>> s = ta.Column([1,2,None,4])
         >>> s.max(fill_value=999)
         """
-        return max(self.data(fill_value))
+        return max(self._data_iter(fill_value))
 
     @trace
     @expression
     def all(self):
         """Return whether all non-null elements are True"""
-        return all(self.data())
+        return all(self._data_iter())
 
     @trace
     @expression
     def any(self, skipna=True):
         """Return whether any non-null element is True in Column"""
-        return any(self.data())
+        return any(self._data_iter())
 
     @trace
     @expression
@@ -1285,14 +1235,14 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         1006
         """
         self._check(dt.is_numerical, "sum")
-        return sum(self.data())
+        return sum(self._data_iter())
 
     @trace
     @expression
     def prod(self):
         """Return produce of the non-null values in the data"""
         self._check(dt.is_numerical, "prod")
-        return reduce(operator.mul, self.data(), 1)
+        return reduce(operator.mul, self._data_iter(), 1)
 
     @trace
     @expression
@@ -1340,7 +1290,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         >>> s.mean(fill_value=999)
         251.5
         """
-        m = statistics.mean((float(i) for i in list(self.data())))
+        m = statistics.mean((float(i) for i in list(self._data_iter())))
         return m
 
     @trace
@@ -1348,21 +1298,21 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def median(self):
         """Return the median of the values in the data."""
         self._check(dt.is_numerical, "median")
-        return statistics.median((float(i) for i in list(self.data())))
+        return statistics.median((float(i) for i in list(self._data_iter())))
 
     @trace
     @expression
     def mode(self):
         """Return the mode(s) of the data."""
         self._check(dt.is_numerical, "mode")
-        return statistics.mode(self.data())
+        return statistics.mode(self._data_iter())
 
     @trace
     @expression
     def std(self):
         """Return the stddev(s) of the data."""
         self._check(dt.is_numerical, "std")
-        return statistics.stdev((float(i) for i in list(self.data())))
+        return statistics.stdev((float(i) for i in list(self._data_iter())))
 
     @trace
     @expression
@@ -1441,7 +1391,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                     [dt.Field("statistic", dt.string), dt.Field("value", dt.float64)]
                 )
             )
-            res._append(("count", self.count()))
+            res._append(("count", self._count()))
             res._append(("mean", self.mean()))
             res._append(("std", self.std()))
             res._append(("min", self.min()))
@@ -1521,7 +1471,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             raise ValueError("can't determine column type")
         return res[0].concat(res[1:])
 
-    # private helpers ---------------------------------------------------------
+    # private helpers
 
     def _not_supported(self, name):
         raise TypeError(f"{name} for type {type(self).__name__} is not supported")
@@ -1572,7 +1522,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         others = None
         other_dtype = None
         if isinstance(other, IColumn):
-            others = other.items()
+            others = other._items()
             other_dtype = other.dtype
         else:
             others = itertools.repeat((False, other))
@@ -1586,7 +1536,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         res = []
         if div != "":
             res_dtype = dt.Float64(self.dtype.nullable or other_dtype.nullable)
-            for (m, i), (n, j) in zip(self.items(), others):
+            for (m, i), (n, j) in zip(self._items(), others):
                 # TODO Use error handling to mke this more efficient..
                 if m or n:
                     res.append(None)
@@ -1600,7 +1550,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             res_dtype = dt.promote(self.dtype, other_dtype)
             if res_dtype is None:
                 raise TypeError(f"{self.dtype} and {other_dtype} are incompatible")
-            for (m, i), (n, j) in zip(self.items(), others):
+            for (m, i), (n, j) in zip(self._items(), others):
                 if m or n:
                     res.append(None)
                 else:
@@ -1618,7 +1568,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             other_dtype = dt.infer_dtype_from_value(other)
         res_dtype = dt.Boolean(self.dtype.nullable or other_dtype.nullable)
         res = []
-        for (m, i), (n, j) in zip(self.items(), others):
+        for (m, i), (n, j) in zip(self._items(), others):
             if m or n:
                 res.append(None)
             else:
@@ -1644,7 +1594,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def _accumulate(self, func):
         total = None
         res = Scope._EmptyColumn(self.dtype)
-        for m, i in self.items():
+        for m, i in self._items():
             if m:
                 res._append_null()
             elif total is None:
@@ -1684,3 +1634,62 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 f"Output of transform must return the same number of rows: got {len(ret)} instead of {length}"
             )
         return ret
+
+    @abc.abstractmethod
+    def _getmask(self, i):
+        """Return mask at index i"""
+        raise self._not_supported("_getmask")
+
+    @abc.abstractmethod
+    def _getdata(self, i):
+        """Return data at index i"""
+        raise self._not_supported("getdata")
+
+    def _get(self, index, fill_value=None):
+        """Return data[index] or fill_value if data[i] not valid"""
+        if self._getmask(index):
+            return fill_value
+        else:
+            return self._getdata(index)
+
+    def _gets(self, indices):
+        """Return a new column with the rows[indices[0]],..,rows[indices[-1]]"""
+        res = Scope._EmptyColumn(self.dtype)
+        for i in indices:
+            (m, d) = (self._getmask(i), self._getdata(i))
+            if m:
+                res._append_null()
+            else:
+                res._append_value(d)
+        return res._finalize()
+
+    def _slice(self, start, stop, step):
+        """Return a new column with the slice rows[start:stop:step]"""
+        res = Scope._EmptyColumn(self.dtype)
+        for i in list(range(len(self)))[start:stop:step]:
+            m = self._getmask(i)
+            if m:
+                res._append_null()
+            else:
+                res._append_value(self._getdata(i))
+        return res._finalize()
+
+    def _items(self):
+        """Iterator returning mask,data pairs for all items of a column"""
+        for i in range(len(self)):
+            yield (self._getmask(i), self._getdata(i))
+
+    def _data_iter(self, fill_value=None):
+        """Iterator returning non-null or fill_value data of a column"""
+        for m, i in self._items():
+            if m:
+                if fill_value is not None:
+                    yield fill_value
+            else:
+                yield i
+
+    # private aggregation functions
+
+    def _count(self):
+        """Return number of non-NA/null observations pgf the column/frame"""
+        return len(self) - self.null_count

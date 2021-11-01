@@ -93,15 +93,16 @@ class ListColumnCpu(IListColumn, ColumnFromVelox):
     def __len__(self):
         return len(self._data)
 
+    @property
     def null_count(self):
         return self._data.get_null_count()
 
-    def getmask(self, i):
+    def _getmask(self, i):
         if i < 0:
             i += len(self._data)
         return self._data.is_null_at(i)
 
-    def getdata(self, i):
+    def _getdata(self, i):
         if i < 0:
             i += len(self._data)
         if self._data.is_null_at(i):
@@ -127,13 +128,13 @@ class ListColumnCpu(IListColumn, ColumnFromVelox):
             tablefmt="plain",
             showindex=True,
         )
-        typ = f"dtype: {self._dtype}, length: {self.length()}, null_count: {self.null_count()}"
+        typ = f"dtype: {self._dtype}, length: {self.length}, null_count: {self.null_count}"
         return tab + dt.NL + typ
 
     def __iter__(self):
         """Return the iterator object itself."""
         for i in range(len(self)):
-            item = self.get(i)
+            item = self._get(i)
             if item is None:
                 yield item
             else:
