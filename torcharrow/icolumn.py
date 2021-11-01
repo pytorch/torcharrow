@@ -219,7 +219,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             tablefmt="plain",
             showindex=True,
         )
-        typ = f"dtype: {self._dtype}, length: {len(self)}, null_count: {self.null_count}"
+        typ = (
+            f"dtype: {self._dtype}, length: {len(self)}, null_count: {self.null_count}"
+        )
         return tab + dt.NL + typ
 
     # selectors/getters -------------------------------------------------------
