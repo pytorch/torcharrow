@@ -18,7 +18,7 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertTrue(isinstance(empty_i64_column, INumericalColumn))
         self.assertEqual(empty_i64_column.dtype, dt.int64)
         self.assertEqual(len(empty_i64_column), 0)
-        self.assertEqual(empty_i64_column.null_count(), 0)
+        self.assertEqual(empty_i64_column.null_count, 0)
         self.assertEqual(len(empty_i64_column), 0)
 
         return empty_i64_column
@@ -28,7 +28,7 @@ class TestNumericalColumn(unittest.TestCase):
 
         # self.assertEqual(col._offset, 0)
         self.assertEqual(len(col), 4)
-        self.assertEqual(col.null_count(), 0)
+        self.assertEqual(col.null_count, 0)
         self.assertEqual(list(col), list(range(4)))
         m = col[0 : len(col)]
         self.assertEqual(list(m), list(range(4)))
@@ -49,8 +49,8 @@ class TestNumericalColumn(unittest.TestCase):
         col = col.append([3])
         self.assertEqual(col[-1], 3)
 
-        self.assertEqual(col.length(), 4)
-        self.assertEqual(col.null_count(), 3)
+        self.assertEqual(col.length, 4)
+        self.assertEqual(col.null_count, 3)
 
         self.assertEqual(col[0], None)
         self.assertEqual(col[3], 3)

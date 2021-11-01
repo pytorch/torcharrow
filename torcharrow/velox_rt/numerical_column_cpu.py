@@ -96,6 +96,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def __len__(self):
         return len(self._data)
 
+    @property
     def null_count(self):
         """Return number of null items"""
         return self._data.get_null_count()
@@ -104,7 +105,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def copy(self):
         return Scope._FullColumn(self._data.copy(), self.mask.copy())
 
-    def getdata(self, i):
+    def _getdata(self, i):
         if i < 0:
             i += len(self._data)
         if self._data.is_null_at(i):
@@ -112,7 +113,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         else:
             return self._data[i]
 
-    def getmask(self, i):
+    def _getmask(self, i):
         if i < 0:
             i += len(self._data)
         return self._data.is_null_at(i)
@@ -138,11 +139,11 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         ):
             col = velox.Column(get_velox_type(lub))
             for i in range(len(self)):
-                if self.getmask(i):
+                if self._getmask(i):
                     col.append_null()
                 else:
                     col.append(
-                        then_.getdata(i) if self.getdata(i) else else_.getdata(i)
+                        then_._getdata(i) if self._getdata(i) else else_._getdata(i)
                     )
             return ColumnFromVelox.from_velox(self.device, lub, col, True)
 
@@ -166,10 +167,10 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         res = []
         none_count = 0
         for i in range(len(self)):
-            if self.getmask(i):
+            if self._getmask(i):
                 none_count += 1
             else:
-                res.append(self.getdata(i))
+                res.append(self._getdata(i))
         res.sort(reverse=not ascending)
 
         col = velox.Column(get_velox_type(self.dtype))
@@ -216,11 +217,11 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         """Returns the number of unique values of the column"""
         result = set()
         for i in range(len(self)):
-            if self.getmask(i):
+            if self._getmask(i):
                 if not dropna:
                     result.add(None)
             else:
-                result.add(self.getdata(i))
+                result.add(self._getdata(i))
         return len(result)
 
     # operators ---------------------------------------------------------------
@@ -333,18 +334,18 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             col = velox.Column(get_velox_type(dt.float64))
             assert len(self) == len(other)
             for i in range(len(self)):
-                if self.getmask(i) or other.getmask(i):
+                if self._getmask(i) or other._getmask(i):
                     col.append_null()
                 else:
-                    col.append(self.getdata(i) // other.getdata(i))
+                    col.append(self._getdata(i) // other._getdata(i))
             return ColumnFromVelox.from_velox(self.device, dt.float64, col, True)
         else:
             col = velox.Column(get_velox_type(dt.float64))
             for i in range(len(self)):
-                if self.getmask(i):
+                if self._getmask(i):
                     col.append_null()
                 else:
-                    col.append(self.getdata(i) // other)
+                    col.append(self._getdata(i) // other)
             return ColumnFromVelox.from_velox(self.device, dt.float64, col, True)
 
     @trace
@@ -355,18 +356,18 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             col = velox.Column(get_velox_type(self.dtype))
             assert len(self) == len(other)
             for i in range(len(self)):
-                if self.getmask(i) or other.getmask(i):
+                if self._getmask(i) or other._getmask(i):
                     col.append_null()
                 else:
-                    col.append(other.getdata(i) // self.getdata(i))
+                    col.append(other._getdata(i) // self._getdata(i))
             return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
         else:
             col = velox.Column(get_velox_type(self.dtype))
             for i in range(len(self)):
-                if self.getmask(i):
+                if self._getmask(i):
                     col.append_null()
                 else:
-                    col.append(other // self.getdata(i))
+                    col.append(other // self._getdata(i))
             return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
 
     @trace
@@ -377,23 +378,23 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             col = velox.Column(get_velox_type(dt.float64))
             assert len(self) == len(other)
             for i in range(len(self)):
-                other_data = other.getdata(i)
-                if self.getmask(i) or other.getmask(i):
+                other_data = other._getdata(i)
+                if self._getmask(i) or other._getmask(i):
                     col.append_null()
                 elif other_data == 0:
                     col.append_null()
                 else:
-                    col.append(self.getdata(i) / other_data)
+                    col.append(self._getdata(i) / other_data)
             return ColumnFromVelox.from_velox(self.device, dt.float64, col, True)
         else:
             col = velox.Column(get_velox_type(dt.float64))
             for i in range(len(self)):
-                if self.getmask(i):
+                if self._getmask(i):
                     col.append_null()
                 elif other == 0:
                     col.append_null()
                 else:
-                    col.append(self.getdata(i) / other)
+                    col.append(self._getdata(i) / other)
             return ColumnFromVelox.from_velox(self.device, dt.float64, col, True)
 
     @trace
@@ -404,19 +405,19 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             col = velox.Column(get_velox_type(dt.float64))
             assert len(self) == len(other)
             for i in range(len(self)):
-                self_data = self.getdata(i)
-                if self.getmask(i) or other.getmask(i):
+                self_data = self._getdata(i)
+                if self._getmask(i) or other._getmask(i):
                     col.append_null()
                 elif self_data == 0:
                     col.append_null()
                 else:
-                    col.append(other.getdata(i) / self_data)
+                    col.append(other._getdata(i) / self_data)
             return ColumnFromVelox.from_velox(self.device, dt.float64, col, True)
         else:
             col = velox.Column(get_velox_type(dt.float64))
             for i in range(len(self)):
-                self_data = self.getdata(i)
-                if self.getmask(i) or self.getdata(i) == 0:
+                self_data = self._getdata(i)
+                if self._getmask(i) or self._getdata(i) == 0:
                     col.append_null()
                 elif self_data == 0:
                     col.append_null()
@@ -446,18 +447,18 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             col = velox.Column(get_velox_type(self.dtype))
             assert len(self) == len(other)
             for i in range(len(self)):
-                if self.getmask(i) or other.getmask(i):
+                if self._getmask(i) or other._getmask(i):
                     col.append_null()
                 else:
-                    col.append(self.getdata(i) ** other.getdata(i))
+                    col.append(self._getdata(i) ** other._getdata(i))
             return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
         else:
             col = velox.Column(get_velox_type(self.dtype))
             for i in range(len(self)):
-                if self.getmask(i):
+                if self._getmask(i):
                     col.append_null()
                 else:
-                    col.append(self.getdata(i) ** other)
+                    col.append(self._getdata(i) ** other)
             return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
 
     @trace
@@ -468,18 +469,18 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             col = velox.Column(get_velox_type(self.dtype))
             assert len(self) == len(other)
             for i in range(len(self)):
-                if self.getmask(i) or other.getmask(i):
+                if self._getmask(i) or other._getmask(i):
                     col.append_null()
                 else:
-                    col.append(other.getdata(i) ** self.getdata(i))
+                    col.append(other._getdata(i) ** self._getdata(i))
             return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
         else:
             col = velox.Column(get_velox_type(self.dtype))
             for i in range(len(self)):
-                if self.getmask(i):
+                if self._getmask(i):
                     col.append_null()
                 else:
-                    col.append(other ** self.getdata(i))
+                    col.append(other ** self._getdata(i))
             return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
 
     @trace
@@ -603,10 +604,10 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
             raise NotImplementedError()
         col = velox.Column(get_velox_type(dt.boolean))
         for i in range(len(self)):
-            if self.getmask(i):
+            if self._getmask(i):
                 col.append(False)
             else:
-                col.append(self.getdata(i) in values)
+                col.append(self._getdata(i) in values)
         return ColumnFromVelox.from_velox(
             self.device, dt.Boolean(self.dtype.nullable), col, True
         )
@@ -644,10 +645,10 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
 
         col = velox.Column(get_velox_type(self.dtype))
         for i in range(len(self)):
-            if self.getmask(i):
+            if self._getmask(i):
                 col.append_null()
             else:
-                col.append(round(self.getdata(i), decimals))
+                col.append(round(self._getdata(i), decimals))
         return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
 
     # data cleaning -----------------------------------------------------------
@@ -658,33 +659,33 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         """Fill NA/NaN values using the specified method."""
         if not isinstance(fill_value, IColumn._scalar_types):
             raise TypeError(f"fillna with {type(fill_value)} is not supported")
-        if not self.isnullable:
+        if not self.is_nullable:
             return self
         else:
             col = velox.Column(get_velox_type(self.dtype))
             for i in range(len(self)):
-                if self.getmask(i):
+                if self._getmask(i):
                     if isinstance(fill_value, Dict):
                         raise NotImplementedError()
                     else:
                         col.append(fill_value)
                 else:
-                    col.append(self.getdata(i))
+                    col.append(self._getdata(i))
             return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
 
     @trace
     @expression
     def dropna(self, how: Literal["any", "all"] = "any"):
         """Return a column with rows removed where a row has any or all nulls."""
-        if not self.isnullable:
+        if not self.is_nullable:
             return self
         else:
             col = velox.Column(get_velox_type(self.dtype))
             for i in range(len(self)):
-                if self.getmask(i):
+                if self._getmask(i):
                     pass
                 else:
-                    col.append(self.getdata(i))
+                    col.append(self._getdata(i))
             return ColumnFromVelox.from_velox(self.device, self.dtype, col, True)
 
     @trace
@@ -699,10 +700,10 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         seen = set()
         col = velox.Column(get_velox_type(self.dtype))
         for i in range(len(self)):
-            if self.getmask(i):
+            if self._getmask(i):
                 col.append_null()
             else:
-                current = self.getdata(i)
+                current = self._getdata(i)
                 if current not in seen:
                     col.append(current)
                     seen.add(current)
@@ -716,8 +717,8 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         """Return the minimum of the non-null values of the Column."""
         result = None
         for i in range(len(self)):
-            if not self.getmask(i):
-                value = self.getdata(i)
+            if not self._getmask(i):
+                value = self._getdata(i)
                 if result is None or value < result:
                     result = value
         return result
@@ -728,8 +729,8 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         """Return the maximum of the non-null values of the column."""
         result = None
         for i in range(len(self)):
-            if not self.getmask(i):
-                value = self.getdata(i)
+            if not self._getmask(i):
+                value = self._getdata(i)
                 if result is None or value > result:
                     result = value
         return result
@@ -739,8 +740,8 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def all(self):
         """Return whether all non-null elements are True in Column"""
         for i in range(len(self)):
-            if not self.getmask(i):
-                value = self.getdata(i)
+            if not self._getmask(i):
+                value = self._getdata(i)
                 if value == False:
                     return False
         return True
@@ -750,8 +751,8 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def any(self, skipna=True, boolean_only=None):
         """Return whether any non-null element is True in Column"""
         for i in range(len(self)):
-            if not self.getmask(i):
-                value = self.getdata(i)
+            if not self._getmask(i):
+                value = self._getdata(i)
                 if value == True:
                     return True
         return False
@@ -763,8 +764,8 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         """Return sum of all non-null elements in Column (starting with initial)"""
         result = 0
         for i in range(len(self)):
-            if not self.getmask(i):
-                result += self.getdata(i)
+            if not self._getmask(i):
+                result += self._getdata(i)
         return result
 
     @trace
@@ -773,8 +774,8 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         """Return produce of the values in the data"""
         result = 1
         for i in range(len(self)):
-            if not self.getmask(i):
-                result *= self.getdata(i)
+            if not self._getmask(i):
+                result *= self._getdata(i)
         return result
 
     def _accumulate_column(self, func, *, skipna=True, initial=None):
@@ -890,8 +891,8 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         first = True
         prev = None
         for i in range(len(self)):
-            if not self.getmask(i):
-                current = self.getdata(i)
+            if not self._getmask(i):
+                current = self._getdata(i)
                 if not first:
                     if prev > current:
                         return False
@@ -907,8 +908,8 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         first = True
         prev = None
         for i in range(len(self)):
-            if not self.getmask(i):
-                current = self.getdata(i)
+            if not self._getmask(i):
+                current = self._getdata(i)
                 if not first:
                     if prev < current:
                         return False

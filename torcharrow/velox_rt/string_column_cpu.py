@@ -97,15 +97,16 @@ class StringColumnCpu(IStringColumn, ColumnFromVelox):
     def __len__(self):
         return len(self._data)
 
+    @property
     def null_count(self):
         return self._data.get_null_count()
 
-    def getmask(self, i):
+    def _getmask(self, i):
         if i < 0:
             i += len(self._data)
         return self._data.is_null_at(i)
 
-    def getdata(self, i):
+    def _getdata(self, i):
         if i < 0:
             i += len(self._data)
         if self._data.is_null_at(i):
@@ -117,12 +118,12 @@ class StringColumnCpu(IStringColumn, ColumnFromVelox):
     def _valid_mask(ct):
         raise np.full((ct,), False, dtype=np.bool8)
 
-    def gets(self, indices):
+    def _gets(self, indices):
         data = self._data[indices]
         mask = self._mask[indices]
         return self._scope._FullColumn(data, self.dtype, self.device, mask)
 
-    def slice(self, start, stop, step):
+    def _slice(self, start, stop, step):
         range = slice(start, stop, step)
         return self._scope._FullColumn(
             self._data[range], self.dtype, self.device, self._mask[range]
@@ -162,7 +163,7 @@ class StringColumnCpu(IStringColumn, ColumnFromVelox):
             tablefmt="plain",
             showindex=True,
         )
-        typ = f"dtype: {self.dtype}, length: {self.length()}, null_count: {self.null_count()}, device: cpu"
+        typ = f"dtype: {self.dtype}, length: {self.length}, null_count: {self.null_count}, device: cpu"
         return tab + dt.NL + typ
 
 

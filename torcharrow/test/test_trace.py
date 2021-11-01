@@ -139,13 +139,11 @@ class TestColumnTrace(unittest.TestCase):
         # simply list all operations and see what happens...
 
         c0 = c0.append([16, 19])
-        _ = c0.count()
         _ = len(c0)
         # _ = c0.ndim
         # _ = c0.size
         # TODO: do we need copy...
         c1 = c0  # .copy()
-        _ = c1.get(0, None)
         s = 0
         for i in c1:
             s += i
@@ -180,7 +178,6 @@ class TestColumnTrace(unittest.TestCase):
             "c1 = torcharrow.icolumn.IColumn.append(c0, [13])",
             "c2 = torcharrow.icolumn.IColumn.append(c1, [14])",
             "c3 = torcharrow.icolumn.IColumn.append(c2, [16, 19])",
-            "_ = torcharrow.icolumn.IColumn.count(c3)",
             "_ = torcharrow.icolumn.IColumn.__getitem__(c3, 0)",
             "c4 = torcharrow.icolumn.IColumn.__getitem__(c3, slice(None, 1, None))",
             "c5 = torcharrow.icolumn.IColumn.__getitem__(c3, [0, 1])",
