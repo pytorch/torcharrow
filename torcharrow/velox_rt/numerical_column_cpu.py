@@ -213,12 +213,12 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
 
     @trace
     @expression
-    def nunique(self, dropna=True):
+    def nunique(self, drop_null=True):
         """Returns the number of unique values of the column"""
         result = set()
         for i in range(len(self)):
             if self._getmask(i):
-                if not dropna:
+                if not drop_null:
                     result.add(None)
             else:
                 result.add(self._getdata(i))
@@ -655,10 +655,10 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
 
     @trace
     @expression
-    def fillna(self, fill_value: Union[dt.ScalarTypes, Dict]):
+    def fill_null(self, fill_value: Union[dt.ScalarTypes, Dict]):
         """Fill NA/NaN values using the specified method."""
         if not isinstance(fill_value, IColumn._scalar_types):
-            raise TypeError(f"fillna with {type(fill_value)} is not supported")
+            raise TypeError(f"fill_null with {type(fill_value)} is not supported")
         if not self.is_nullable:
             return self
         else:
@@ -675,7 +675,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
 
     @trace
     @expression
-    def dropna(self, how: Literal["any", "all"] = "any"):
+    def drop_null(self, how: Literal["any", "all"] = "any"):
         """Return a column with rows removed where a row has any or all nulls."""
         if not self.is_nullable:
             return self
@@ -882,7 +882,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     @expression
     def is_unique(self):
         """Return boolean if data values are unique."""
-        return self.nunique(dropna=False) == len(self)
+        return self.nunique(drop_null=False) == len(self)
 
     @trace
     @expression

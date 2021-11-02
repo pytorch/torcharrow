@@ -354,8 +354,8 @@ class TestNumericalColumn(unittest.TestCase):
     def base_test_na_handling(self):
         c = ta.Column([None, 2, 17.0], device=self.device)
 
-        self.assertEqual(c.fillna(99.0), [99.0, 2, 17.0])
-        self.assertEqual(c.dropna(), [2.0, 17.0])
+        self.assertEqual(c.fill_null(99.0), [99.0, 2, 17.0])
+        self.assertEqual(c.drop_null(), [2.0, 17.0])
 
         c = c.append([2])
         self.assertEqual(set(c.drop_duplicates()), {None, 2, 17.0})
@@ -405,7 +405,7 @@ class TestNumericalColumn(unittest.TestCase):
         d = set(c)
         d.add(None)
         self.assertEqual(C.nunique(), len(set(C) - {None}))
-        self.assertEqual(C.nunique(dropna=False), len(set(C)))
+        self.assertEqual(C.nunique(drop_null=False), len(set(C)))
 
         self.assertEqual(C.is_unique(), False)
         self.assertEqual(ta.Column([1, 2, 3], device=self.device).is_unique(), True)

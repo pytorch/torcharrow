@@ -285,12 +285,12 @@ df[df["a"].isin([5])]
 
 
 # ## Missing data
-#  Missing data can be filled in via the `fillna` method
+#  Missing data can be filled in via the `fill_null` method
 
 # In[27]:
 
 
-t = s.fillna(999)
+t = s.fill_null(999)
 t
 
 
@@ -299,7 +299,7 @@ t
 # In[28]:
 
 
-s.dropna()
+s.drop_null()
 
 
 # ## Operators
@@ -338,7 +338,7 @@ v = ta.Column([11, None, None])
 u + v
 
 
-# If null strictness does not work for your code you could call first `fillna` to provide a value that is used instead of null.
+# If null strictness does not work for your code you could call first `fill_null` to provide a value that is used instead of null.
 
 # ## Numerical columns and descriptive statistics
 # Numerical columns also support lifted operations, for `abs`, `ceil`, `floor`, `round`. Even more excited might be to use their aggregation operators like `count`, `sum`, `prod`, `min`, `max`, or descriptive statistics like `std`, `mean`, `median`, and `mode`. Here is an example ensemble:
