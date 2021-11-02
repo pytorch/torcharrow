@@ -430,7 +430,7 @@ class TestDataFrame(unittest.TestCase):
         # self.assertEqual(
         #     list(c.radd(f, fill_value=100)), [(i,) for i in [100, 2, 6, 200]]
         # )
-        self.assertEqual(list((c + f).fillna(100)), [(i,) for i in [100, 2, 6, 100]])
+        self.assertEqual(list((c + f).fill_null(100)), [(i,) for i in [100, 2, 6, 100]])
 
         # &, |, ^, ~
         g = ta.Column([True, False, True, False], device=self.device)
@@ -466,8 +466,8 @@ class TestDataFrame(unittest.TestCase):
     def base_test_na_handling(self):
         c = ta.DataFrame({"a": [None, 2, 17.0]}, device=self.device)
 
-        self.assertEqual(list(c.fillna(99.0)), [(i,) for i in [99.0, 2, 17.0]])
-        self.assertEqual(list(c.dropna()), [(i,) for i in [2, 17.0]])
+        self.assertEqual(list(c.fill_null(99.0)), [(i,) for i in [99.0, 2, 17.0]])
+        self.assertEqual(list(c.drop_null()), [(i,) for i in [2, 17.0]])
 
         c = c.append([(2,)])
         self.assertEqual(list(c.drop_duplicates()), [(i,) for i in [None, 2, 17.0]])

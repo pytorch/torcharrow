@@ -818,9 +818,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     @trace
     @expression
-    def nunique(self, dropna=True):
+    def nunique(self, drop_null=True):
         """Returns the number of unique values of the column"""
-        if not dropna:
+        if not drop_null:
             return len(set(self))
         else:
             return len(set(i for i in self if i is not None))
@@ -1071,9 +1071,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     @trace
     @expression
-    def fillna(self, fill_value: ty.Union[dt.ScalarTypes, ty.Dict]):
+    def fill_null(self, fill_value: ty.Union[dt.ScalarTypes, ty.Dict]):
         """
-        Fill NA/NaN values using the specified method.
+        Fill null values using the specified method.
 
         Parameters
         ----------
@@ -1081,14 +1081,14 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         See Also
         --------
-        icolumn.dropna : Return a column/frame with rows removed where a
+        icolumn.drop_null : Return a column/frame with rows removed where a
         row has any or all nulls.
 
         Examples
         --------
         >>> import torcharrow as ta
         >>> s = ta.Column([1,2,None,4])
-        >>> s.fillna(999)
+        >>> s.fill_null(999)
         0    1
         1    2
         2  999
@@ -1097,7 +1097,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         """
         if not isinstance(fill_value, IColumn._scalar_types):
-            raise TypeError(f"fillna with {type(fill_value)} is not supported")
+            raise TypeError(f"fill_null with {type(fill_value)} is not supported")
         if isinstance(fill_value, IColumn._scalar_types):
             res = Scope._EmptyColumn(self.dtype.constructor(nullable=False))
             for m, i in self._items():
@@ -1107,35 +1107,39 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                     res._append_value(fill_value)
             return res._finalize()
         else:
-            raise TypeError(f"fillna with {type(fill_value)} is not supported")
+            raise TypeError(f"fill_null with {type(fill_value)} is not supported")
 
     @trace
     @expression
-    def dropna(self, how: ty.Literal["any", "all"] = "any"):
+    def drop_null(self, how: ty.Literal["any", "all", None] = None):
         """
         Return a column/frame with rows removed where a row has any or all
         nulls.
 
         Parameters
         ----------
-        how : {{'any','all'}}, default "any"
+        how : {{'any','all', None}}, default None
             If 'any' drop row if any column is null.  If 'all' drop row if
             all columns are null.
 
         See Also
         --------
-        icolumn.fillna : Fill NA/NaN values using the specified method.
+        icolumn.fill_null : Fill NA/NaN values using the specified method.
 
         Examples
         --------
         >>> import torcharrow as ta
         >>> s = ta.Column([1,2,None,4])
-        >>> s.dropna()
+        >>> s.drop_null()
         0    1
         1    2
         2    4
         dtype: int64, length: 3, null_count: 0
         """
+        if how is not None:
+            # "any or "all" is only used for DataFrame
+            raise TypeError(f"how parameter for flat columns not supported")
+
         if dt.is_primitive(self.dtype):
             res = Scope._EmptyColumn(self.dtype.constructor(nullable=False))
             for m, i in self._items():
@@ -1143,7 +1147,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                     res._append_value(i)
             return res._finalize()
         else:
-            raise TypeError(f"dropna for type {self.dtype} is not supported")
+            raise TypeError(f"drop_null for type {self.dtype} is not supported")
 
     @trace
     @expression
@@ -1152,7 +1156,11 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         subset: ty.Union[str, ty.List[str], ty.Literal[None]] = None,
         keep: ty.Literal["first", "last", False] = "first",
     ):
-        """Remove duplicate values from row/frame but keep the first, last, none"""
+        """
+        EXPERIMENTAL API
+
+        Remove duplicate values from row/frame but keep the first, last, none
+        """
         # TODO Add functionality for first and last
         assert keep == "first"
         if subset is not None:
@@ -1457,6 +1465,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     # batching/unbatching -----------------------------------------------------
     # NOTE experimental
     def batch(self, n):
+        """
+        EXPERIMENTAL API
+        """
         assert n > 0
         i = 0
         while i < len(self):
@@ -1466,6 +1477,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     @staticmethod
     def unbatch(iter: ty.Iterable[IColumn]):
+        """
+        EXPERIMENTAL API
+        """
         res = []
         for i in iter:
             res.append(i)

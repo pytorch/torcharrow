@@ -1266,7 +1266,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
 
     @trace
     @expression
-    def fillna(self, fill_value: Union[dt.ScalarTypes, Dict, Literal[None]]):
+    def fill_null(self, fill_value: Union[dt.ScalarTypes, Dict, Literal[None]]):
         if fill_value is None:
             return self
         if isinstance(fill_value, IColumn._scalar_types):
@@ -1279,17 +1279,17 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
                         self._data.child_at(i),
                         True,
                     )
-                    .fillna(fill_value)
+                    .fill_null(fill_value)
                     for i in range(self._data.children_size())
                 },
                 self._mask,
             )
         else:
-            raise TypeError(f"fillna with {type(fill_value)} is not supported")
+            raise TypeError(f"fill_null with {type(fill_value)} is not supported")
 
     @trace
     @expression
-    def dropna(self, how: Literal["any", "all"] = "any"):
+    def drop_null(self, how: Literal["any", "all"] = "any"):
         """Return a dataframe with rows removed where the row has any or all nulls."""
         # TODO only flat columns supported...
         assert self._dtype is not None
@@ -1462,7 +1462,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
 
     @trace
     @expression
-    def nunique(self, dropna=True):
+    def nunique(self, drop_null=True):
         """Returns the number of unique values per column"""
         res = {}
         res["column"] = ta.Column([f.name for f in self.dtype.fields], dt.string)
@@ -1473,7 +1473,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
                     f.dtype,
                     self._data.child_at(self._data.type().get_child_idx(f.name)),
                     True,
-                ).nunique(dropna)
+                ).nunique(drop_null)
                 for f in self.dtype.fields
             ],
             dt.int64,
@@ -1852,7 +1852,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
         self,
         by: List[str],
         sort=False,
-        dropna=True,
+        drop_null=True,
     ):
         """
         SQL like data grouping, supporting split-apply-combine paradigm.
@@ -1865,7 +1865,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
         sort - bool
             Whether the groups are in sorted order.
 
-        dropna - bool
+        drop_null - bool
             Whether NULL/NaNs in group keys are dropped.
 
         Examples
@@ -1923,7 +1923,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
         """
         # TODO implement
         assert not sort
-        assert dropna
+        assert drop_null
         self._check_columns(by)
 
         key_columns = by
