@@ -134,6 +134,37 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """Return number of null values"""
         raise self._not_supported("null_count")
 
+    @property  # type: ignore
+    @traceproperty
+    def is_unique(self):
+        """
+        EXPERIMENTAL API
+
+        Return boolean if data values are unique.
+        """
+        seen = set()
+        return not any(i in seen or seen.add(i) for i in self)
+
+    @property  # type: ignore
+    @traceproperty
+    def is_monotonic_increasing(self):
+        """
+        EXPERIMENTAL API
+
+        Return boolean if values in the object are monotonic increasing
+        """
+        return self._compare(operator.lt, initial=True)
+
+    @property  # type: ignore
+    @traceproperty
+    def is_monotonic_decreasing(self):
+        """
+        EXPERIMENTAL API
+
+        Return boolean if values in the object are monotonic decreasing
+        """
+        return self._compare(operator.gt, initial=True)
+
     # public append/copy/cast------------------------------------------------
 
     @trace
@@ -352,14 +383,14 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """
         return self[-n:]
 
-    # iterators  -------------------------------------------------------------
+    # iterators
 
     def __iter__(self):
         """Return the iterator object itself."""
         for i in range(len(self)):
             yield self._get(i)
 
-    # functools map/filter/reduce ---------------------------------------------
+    # functools map/filter/flatmap/transform
 
     @trace
     @expression
@@ -673,49 +704,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             pass
         return res._finalize()
 
-    @trace
-    @expression
-    def reduce(self, fun, initializer=None, finalizer=None):
-        """
-        Apply binary function cumulatively to the rows[0:],
-        so as to reduce the column/dataframe to a single value
-
-        Parameters
-        ----------
-        fun - callable
-            Binary function to invoke via reduce.
-        initializer - element, or None
-            The initial value used for reduce.  If None, uses the
-            first element of the column.
-        finalizer - callable, or None
-            Function to call on the final value.  If None the last result
-            of invoking fun is returned
-
-        Examples
-        --------
-        >>> import operator
-        >>> import torcharrow
-        >>> ta.Column([1,2,3,4]).reduce(operator.mul)
-        24
-        """
-        if len(self) == 0:
-            if initializer is not None:
-                return initializer
-            else:
-                raise TypeError("reduce of empty sequence with no initial value")
-        start = 0
-        if initializer is None:
-            value = self[0]
-            start = 1
-        else:
-            value = initializer
-        for i in range(start, len(self)):
-            value = fun(value, self[i])
-        if finalizer is not None:
-            return finalizer(value)
-        else:
-            return value
-
     # if-then-else ---------------------------------------------------------------
 
     def ite(self, then_, else_):
@@ -741,7 +729,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 res._append(e)
         return res._finalize()
 
-    # sorting and top-k -------------------------------------------------------
+    # sorting -------------------------------------------------------
 
     @trace
     @expression
@@ -787,43 +775,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         if na_position == "last":
             res._extend([None] * self.null_count)
         return res._finalize()
-
-    @trace
-    @expression
-    def nlargest(
-        self,
-        n=5,
-        columns: ty.Optional[ty.List[str]] = None,
-        keep: ty.Literal["last", "first"] = "first",
-    ):
-        """Returns a new data of the *n* largest element."""
-        # keep="all" not supported
-        if columns is not None:
-            raise TypeError(
-                "computing n-largest on non-structured column can't have 'columns' parameter"
-            )
-        return self.sort(ascending=False).head(n)
-
-    @trace
-    @expression
-    def nsmallest(self, n=5, columns: ty.Optional[ty.List[str]] = None, keep="first"):
-        """Returns a new data of the *n* smallest element."""
-        # keep="all" not supported
-        if columns is not None:
-            raise TypeError(
-                "computing n-smallest on non-structured column can't have 'columns' parameter"
-            )
-
-        return self.sort(ascending=True).head(n)
-
-    @trace
-    @expression
-    def nunique(self, drop_null=True):
-        """Returns the number of unique values of the column"""
-        if not drop_null:
-            return len(set(self))
-        else:
-            return len(set(i for i in self if i is not None))
 
     # operators ---------------------------------------------------------------
     @trace
@@ -1169,7 +1120,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         res._extend(list(OrderedDict.fromkeys(self)))
         return res._finalize()
 
-    # # universal  ---------------------------------------------------------------
+    # global aggregation  ---------------------------------------------------------------
 
     @trace
     @expression
@@ -1256,32 +1207,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     @trace
     @expression
-    def cummin(self):
-        """Return cumulative minimum of the data."""
-        return self._accumulate(min)
-
-    @trace
-    @expression
-    def cummax(self):
-        """Return cumulative maximum of the data."""
-        return self._accumulate(max)
-
-    @trace
-    @expression
-    def cumsum(self):
-        """Return cumulative sum of the data."""
-        self._check(dt.is_numerical, "cumsum")
-        return self._accumulate(operator.add)
-
-    @trace
-    @expression
-    def cumprod(self):
-        """Return cumulative product of the data."""
-        self._check(dt.is_numerical, "cumprod")
-        return self._accumulate(operator.mul)
-
-    @trace
-    @expression
     def mean(self):
         self._check(dt.is_numerical, "mean")
         """
@@ -1348,6 +1273,113 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             out.append(d0 + d1)
         return out
 
+    @trace
+    @expression
+    def reduce(self, fun, initializer=None, finalizer=None):
+        """
+        Apply binary function cumulatively to the rows[0:],
+        so as to reduce the column/dataframe to a single value
+
+        Parameters
+        ----------
+        fun - callable
+            Binary function to invoke via reduce.
+        initializer - element, or None
+            The initial value used for reduce.  If None, uses the
+            first element of the column.
+        finalizer - callable, or None
+            Function to call on the final value.  If None the last result
+            of invoking fun is returned
+
+        Examples
+        --------
+        >>> import operator
+        >>> import torcharrow
+        >>> ta.Column([1,2,3,4]).reduce(operator.mul)
+        24
+        """
+        if len(self) == 0:
+            if initializer is not None:
+                return initializer
+            else:
+                raise TypeError("reduce of empty sequence with no initial value")
+        start = 0
+        if initializer is None:
+            value = self[0]
+            start = 1
+        else:
+            value = initializer
+        for i in range(start, len(self)):
+            value = fun(value, self[i])
+        if finalizer is not None:
+            return finalizer(value)
+        else:
+            return value
+
+    @trace
+    @expression
+    def nlargest(
+        self,
+        n=5,
+        columns: ty.Optional[ty.List[str]] = None,
+        keep: ty.Literal["last", "first"] = "first",
+    ):
+        """Returns a new data of the *n* largest element."""
+        # keep="all" not supported
+        if columns is not None:
+            raise TypeError(
+                "computing n-largest on non-structured column can't have 'columns' parameter"
+            )
+        return self.sort(ascending=False).head(n)
+
+    @trace
+    @expression
+    def nsmallest(self, n=5, columns: ty.Optional[ty.List[str]] = None, keep="first"):
+        """Returns a new data of the *n* smallest element."""
+        # keep="all" not supported
+        if columns is not None:
+            raise TypeError(
+                "computing n-smallest on non-structured column can't have 'columns' parameter"
+            )
+
+        return self.sort(ascending=True).head(n)
+
+    @trace
+    @expression
+    def nunique(self, drop_null=True):
+        """Returns the number of unique values of the column"""
+        if not drop_null:
+            return len(set(self))
+        else:
+            return len(set(i for i in self if i is not None))
+
+    # cummin/cummax/cumsum/cumprod
+    @trace
+    @expression
+    def cummin(self):
+        """Return cumulative minimum of the data."""
+        return self._accumulate(min)
+
+    @trace
+    @expression
+    def cummax(self):
+        """Return cumulative maximum of the data."""
+        return self._accumulate(max)
+
+    @trace
+    @expression
+    def cumsum(self):
+        """Return cumulative sum of the data."""
+        self._check(dt.is_numerical, "cumsum")
+        return self._accumulate(operator.add)
+
+    @trace
+    @expression
+    def cumprod(self):
+        """Return cumulative product of the data."""
+        self._check(dt.is_numerical, "cumprod")
+        return self._accumulate(operator.mul)
+
     # describe ----------------------------------------------------------------
     @trace
     @expression
@@ -1413,28 +1445,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         else:
             raise ValueError(f"describe undefined for {type(self).__name__}.")
 
-    # unique and montonic -----------------------------------------------------
-    @trace
-    @expression
-    def is_unique(self):
-        """Return boolean if data values are unique."""
-        seen = set()
-        return not any(i in seen or seen.add(i) for i in self)
-
-    # only on flat column
-    @trace
-    @expression
-    def is_monotonic_increasing(self):
-        """Return boolean if values in the object are monotonic increasing"""
-        return self._compare(operator.lt, initial=True)
-
-    @trace
-    @expression
-    def is_monotonic_decreasing(self):
-        """Return boolean if values in the object are monotonic decreasing"""
-        return self._compare(operator.gt, initial=True)
-
-    # interop ----------------------------------------------------------------
+    # interop
 
     @trace
     def to_pandas(self):
@@ -1462,7 +1473,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """Convert to PyTorch containers (Tensor, PackedList, PackedMap, etc)"""
         raise NotImplementedError()
 
-    # batching/unbatching -----------------------------------------------------
+    # batching/unbatching
     # NOTE experimental
     def batch(self, n):
         """
