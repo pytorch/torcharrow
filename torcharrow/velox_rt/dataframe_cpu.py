@@ -254,10 +254,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
     # printing ----------------------------------------------------------------
 
     def __str__(self):
-        def quote(n):
-            return f"'{n}'"
-
-        return f"self._fromdata({dt.OPEN}{', '.join(f'{quote(n)}:{str(c)}' for n,c in self._field_data.items())}, id = {self.id}{dt.CLOSE})"
+        return self.__repr__()
 
     def __repr__(self):
         data = []

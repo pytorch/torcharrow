@@ -3,6 +3,7 @@ import json
 import typing as ty
 import warnings
 
+import torcharrow as ta
 import torcharrow.dtypes as dt
 
 from .dispatcher import Dispatcher, Device
@@ -170,15 +171,18 @@ class Scope:
                 raise TypeError("Cannot infer type from Python tuple")
             return Scope._FromPyList(data, dtype, device)
 
+        if Scope._is_column(data):
+            dtype = dtype or data.dtype
+            if data.device == device and data.dtype == dtype:
+                return data
+            else:
+                # TODO: More efficient interop, such as leveraging arrow
+                return ta.from_pylist(data.to_pylist(), dtype=dtype, device=device)
+
         if data is not None:
             warnings.warn(
-                "Constructing column from non Python list may result in degenerated performance"
+                "Constructing column from non Python list/IColumn may result in degenerated performance"
             )
-            # TODO: Shall we only allow constructing Column from list?
-
-        # data is already IColumn
-        if Scope._is_column(data):
-            raise ValueError("data is already IColumn")
 
         # dtype given, optional data
         if isinstance(dtype, dt.DType):
@@ -245,6 +249,24 @@ class Scope:
             dtype = data
             data = None
 
+        if Scope._is_dataframe(data):
+            dtype = dtype or data.dtype
+            if data.device == device and data.dtype == dtype:
+                return data
+            else:
+                dtype_fields = {f.name for f in dtype.fields}
+                data_fields = {f.name for f in data.dtype.fields}
+                if dtype_fields != data_fields:
+                    raise TypeError(
+                        f"data fields are {data_fields} while dtype fields are {dtype_fields}"
+                    )
+
+                res = {
+                    n: Scope._Column(data[n], dtype=dtype.get(n), device=device)
+                    for n in data.columns
+                }
+                return Scope._DataFrame(res, dtype=dtype, device=device)
+
         # dtype given, optional data
         if dtype is not None:
             if not dt.is_struct(dtype):
@@ -286,7 +308,6 @@ but data only provides {len(data)} fields: {data.keys()}
                         res[n] = c
 
                     return Scope._FullColumn(res, dtype)
-
                 else:
                     raise TypeError(
                         f"Dataframe does not support constructor for data of type {type(data).__name__}"
@@ -326,10 +347,10 @@ but data only provides {len(data)} fields: {data.keys()}
                             f"dataframe does not support constructor for column data of type {type(c).__name__}"
                         )
                 return Scope._FullColumn(
-                    res, dtype=dt.Struct([dt.Field(n, c.dtype) for n, c in res.items()])
+                    res,
+                    dtype=dt.Struct([dt.Field(n, c.dtype) for n, c in res.items()]),
+                    device=device,
                 )
-            elif Scope._is_dataframe(data):
-                return data
             else:
                 raise TypeError(
                     f"dataframe does not support constructor for data of type {type(data).__name__}"
@@ -342,14 +363,17 @@ but data only provides {len(data)} fields: {data.keys()}
     def _is_column(c):
         # NOTE: should be isinstance(c, IColumn)
         # But can't do tha due to cyclic reference, so we use ...
-        return hasattr(c, "_dtype") and hasattr(c, "_device")
+        return c is not None and hasattr(c, "_dtype") and hasattr(c, "_device")
 
     @staticmethod
     def _is_dataframe(c):
         # NOTE: should be isinstance(c, DataFrame)
         # But can't do tha due to cyclic reference, so we use ...
         return (
-            hasattr(c, "_dtype") and hasattr(c, "_device") and hasattr(c, "_field_data")
+            c is not None
+            and hasattr(c, "_dtype")
+            and hasattr(c, "_device")
+            and hasattr(c, "columns")
         )
 
 
