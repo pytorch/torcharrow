@@ -22,6 +22,8 @@ from .velox_rt import *
 
 from . import pytorch
 
+from .interop import from_pylist
+
 try:
     from .version import __version__  # noqa: F401
 except ImportError:

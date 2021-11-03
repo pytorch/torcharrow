@@ -242,11 +242,11 @@ class IDataFrame(IColumn):
         raise self._not_supported("slice_columns")
 
     @trace
-    def to_python(self):
+    def to_pylist(self):
         tup_type = self._dtype.py_type
         return [
             tup_type(*v)
-            for v in zip(*(self[f.name].to_python() for f in self._dtype.fields))
+            for v in zip(*(self[f.name].to_pylist() for f in self._dtype.fields))
         ]
 
 

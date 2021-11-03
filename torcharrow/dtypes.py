@@ -270,6 +270,7 @@ class Struct(DType):
     # For generating NamedTuple class name for cached _py_type (done in __post__init__)
     _py_type_id: ty.ClassVar[int] = 0
 
+    # TODO: perhaps this should be a private method
     def get_index(self, name: str) -> int:
         for idx, field in enumerate(self.fields):
             if field.name == name:
