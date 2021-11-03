@@ -202,9 +202,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @trace
     def concat(self, columns: ty.List[IColumn]):
         """Returns concatenated columns."""
-        concat_list = self.to_python()
+        concat_list = self.to_pylist()
         for column in columns:
-            concat_list += column.to_python()
+            concat_list += column.to_pylist()
         return Scope._FromPyList(concat_list, self.dtype)
 
     @trace
@@ -1464,7 +1464,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         return pa.array(self)
 
     @trace
-    def to_python(self):
+    def to_pylist(self):
         """Convert to plain Python container (list of scalars or containers)"""
         return list(self)
 
@@ -1638,7 +1638,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         if format == "column":
             return c
         if format == "python":
-            return c.to_python()
+            return c.to_pylist()
         if format == "torch":
             return c.to_torch()
         raise ValueError(f"Invalid value for `format` argument: {format}")
