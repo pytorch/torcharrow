@@ -704,6 +704,49 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             pass
         return res._finalize()
 
+    @trace
+    @expression
+    def reduce(self, fun, initializer=None, finalizer=None):
+        """
+        Apply binary function cumulatively to the rows[0:],
+        so as to reduce the column/dataframe to a single value
+
+        Parameters
+        ----------
+        fun - callable
+            Binary function to invoke via reduce.
+        initializer - element, or None
+            The initial value used for reduce.  If None, uses the
+            first element of the column.
+        finalizer - callable, or None
+            Function to call on the final value.  If None the last result
+            of invoking fun is returned
+
+        Examples
+        --------
+        >>> import operator
+        >>> import torcharrow
+        >>> ta.Column([1,2,3,4]).reduce(operator.mul)
+        24
+        """
+        if len(self) == 0:
+            if initializer is not None:
+                return initializer
+            else:
+                raise TypeError("reduce of empty sequence with no initial value")
+        start = 0
+        if initializer is None:
+            value = self[0]
+            start = 1
+        else:
+            value = initializer
+        for i in range(start, len(self)):
+            value = fun(value, self[i])
+        if finalizer is not None:
+            return finalizer(value)
+        else:
+            return value
+
     # if-then-else ---------------------------------------------------------------
 
     def ite(self, then_, else_):
@@ -1120,61 +1163,38 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         res._extend(list(OrderedDict.fromkeys(self)))
         return res._finalize()
 
-    # global aggregation  ---------------------------------------------------------------
+    # aggregation
 
     @trace
     @expression
-    def min(self, fill_value=None):
+    def min(self):
         """
         Return the minimum of the non-null values.
 
-        Parameters
-        ----------
-        fill_value : int, float, bool, or str, default None
-            If None, NA/NaN values will be ignore, else they are replaced
-            with fill_value.
-
         Examples
         --------
         >>> import torcharrow as ta
         >>> s = ta.Column([1,2,None,4])
-        >>> s.min(fill_value=999)
+        >>> s.min()
         1
         """
 
-        return min(self._data_iter(fill_value))
+        return min(self._data_iter())
 
     @trace
     @expression
-    def max(self, fill_value=None):
+    def max(self):
         """
         Return the maximum of the non-null values.
-
-        Parameters
-        ----------
-        fill_value : int, float, bool, or str, default None
-            If None, NA/NaN values will be ignore, else they are replaced
-            with fill_value.
 
         Examples
         --------
         >>> import torcharrow as ta
         >>> s = ta.Column([1,2,None,4])
-        >>> s.max(fill_value=999)
+        >>> s.max()
+        4
         """
-        return max(self._data_iter(fill_value))
-
-    @trace
-    @expression
-    def all(self):
-        """Return whether all non-null elements are True"""
-        return all(self._data_iter())
-
-    @trace
-    @expression
-    def any(self, skipna=True):
-        """Return whether any non-null element is True in Column"""
-        return any(self._data_iter())
+        return max(self._data_iter())
 
     @trace
     @expression
@@ -1182,28 +1202,15 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """
         Return sum of all non-null elements.
 
-        Parameters
-        ----------
-        fill_value : int, float, bool, or str, default None
-            If None, NA/NaN values will be ignore, else they are replaced
-            with fill_value.
-
         Examples
         --------
         >>> import torcharrow as ta
         >>> s = ta.Column([1,2,None,4])
-        >>> s.sum(fill_value=999)
-        1006
+        >>> s.sum()
+        7
         """
         self._check(dt.is_numerical, "sum")
         return sum(self._data_iter())
-
-    @trace
-    @expression
-    def prod(self):
-        """Return produce of the non-null values in the data"""
-        self._check(dt.is_numerical, "prod")
-        return reduce(operator.mul, self._data_iter(), 1)
 
     @trace
     @expression
@@ -1211,12 +1218,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         self._check(dt.is_numerical, "mean")
         """
         Return the mean of the non-null values in the series.
-
-        Parameters
-        ----------
-        fill_value : int, float, bool, or str, default None
-            If None, NA/NaN values will be ignore, else they are replaced
-            with fill_value.
 
         Examples
         --------
@@ -1230,20 +1231,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     @trace
     @expression
-    def median(self):
-        """Return the median of the values in the data."""
-        self._check(dt.is_numerical, "median")
-        return statistics.median((float(i) for i in list(self._data_iter())))
-
-    @trace
-    @expression
-    def mode(self):
-        """Return the mode(s) of the data."""
-        self._check(dt.is_numerical, "mode")
-        return statistics.mode(self._data_iter())
-
-    @trace
-    @expression
     def std(self):
         """Return the stddev(s) of the data."""
         self._check(dt.is_numerical, "std")
@@ -1251,11 +1238,18 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     @trace
     @expression
-    def percentiles(self, q, interpolation="midpoint"):
+    def median(self):
+        """Return the median of the values in the data."""
+        self._check(dt.is_numerical, "median")
+        return statistics.median((float(i) for i in list(self._data_iter())))
+
+    @trace
+    @expression
+    def quantile(self, q, interpolation="midpoint"):
         """Compute the q-th percentile of non-null data."""
         if interpolation != "midpoint":
             raise TypeError(
-                f"percentiles for '{type(self).__name__}' with parameter other than 'midpoint' not supported "
+                f"quantile for '{type(self).__name__}' with parameter other than 'midpoint' not supported "
             )
         if len(self) == 0 or len(q) == 0:
             return []
@@ -1275,83 +1269,22 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     @trace
     @expression
-    def reduce(self, fun, initializer=None, finalizer=None):
-        """
-        Apply binary function cumulatively to the rows[0:],
-        so as to reduce the column/dataframe to a single value
-
-        Parameters
-        ----------
-        fun - callable
-            Binary function to invoke via reduce.
-        initializer - element, or None
-            The initial value used for reduce.  If None, uses the
-            first element of the column.
-        finalizer - callable, or None
-            Function to call on the final value.  If None the last result
-            of invoking fun is returned
-
-        Examples
-        --------
-        >>> import operator
-        >>> import torcharrow
-        >>> ta.Column([1,2,3,4]).reduce(operator.mul)
-        24
-        """
-        if len(self) == 0:
-            if initializer is not None:
-                return initializer
-            else:
-                raise TypeError("reduce of empty sequence with no initial value")
-        start = 0
-        if initializer is None:
-            value = self[0]
-            start = 1
-        else:
-            value = initializer
-        for i in range(start, len(self)):
-            value = fun(value, self[i])
-        if finalizer is not None:
-            return finalizer(value)
-        else:
-            return value
+    def mode(self):
+        """Return the mode(s) of the data."""
+        self._check(dt.is_numerical, "mode")
+        return statistics.mode(self._data_iter())
 
     @trace
     @expression
-    def nlargest(
-        self,
-        n=5,
-        columns: ty.Optional[ty.List[str]] = None,
-        keep: ty.Literal["last", "first"] = "first",
-    ):
-        """Returns a new data of the *n* largest element."""
-        # keep="all" not supported
-        if columns is not None:
-            raise TypeError(
-                "computing n-largest on non-structured column can't have 'columns' parameter"
-            )
-        return self.sort(ascending=False).head(n)
+    def all(self):
+        """Return whether all non-null elements are True"""
+        return all(self._data_iter())
 
     @trace
     @expression
-    def nsmallest(self, n=5, columns: ty.Optional[ty.List[str]] = None, keep="first"):
-        """Returns a new data of the *n* smallest element."""
-        # keep="all" not supported
-        if columns is not None:
-            raise TypeError(
-                "computing n-smallest on non-structured column can't have 'columns' parameter"
-            )
-
-        return self.sort(ascending=True).head(n)
-
-    @trace
-    @expression
-    def nunique(self, drop_null=True):
-        """Returns the number of unique values of the column"""
-        if not drop_null:
-            return len(set(self))
-        else:
-            return len(set(i for i in self if i is not None))
+    def any(self):
+        """Return whether any non-null element is True in Column"""
+        return any(self._data_iter())
 
     # cummin/cummax/cumsum/cumprod
     @trace
@@ -1437,7 +1370,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             res._append(("mean", self.mean()))
             res._append(("std", self.std()))
             res._append(("min", self.min()))
-            values = self.percentiles(percentiles_, "midpoint")
+            values = self.quantile(percentiles_, "midpoint")
             for p, v in zip(percentiles_, values):
                 res._append((f"{p}%", v))
             res._append(("max", self.max()))
@@ -1715,8 +1648,45 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             else:
                 yield i
 
-    # private aggregation functions
+    # private aggregation/topK functions -- names are to be discussed
 
     def _count(self):
         """Return number of non-NA/null observations pgf the column/frame"""
         return len(self) - self.null_count
+
+    @trace
+    @expression
+    def _nlargest(
+        self,
+        n=5,
+        columns: ty.Optional[ty.List[str]] = None,
+        keep: ty.Literal["last", "first"] = "first",
+    ):
+        """Returns a new data of the *n* largest element."""
+        # keep="all" not supported
+        if columns is not None:
+            raise TypeError(
+                "computing n-largest on non-structured column can't have 'columns' parameter"
+            )
+        return self.sort(ascending=False).head(n)
+
+    @trace
+    @expression
+    def _nsmallest(self, n=5, columns: ty.Optional[ty.List[str]] = None, keep="first"):
+        """Returns a new data of the *n* smallest element."""
+        # keep="all" not supported
+        if columns is not None:
+            raise TypeError(
+                "computing n-smallest on non-structured column can't have 'columns' parameter"
+            )
+
+        return self.sort(ascending=True).head(n)
+
+    @trace
+    @expression
+    def _nunique(self, drop_null=True):
+        """Returns the number of unique values of the column"""
+        if not drop_null:
+            return len(set(self))
+        else:
+            return len(set(i for i in self if i is not None))
