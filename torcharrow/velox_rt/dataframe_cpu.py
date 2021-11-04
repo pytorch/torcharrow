@@ -527,7 +527,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
 
     @trace
     @expression
-    def nlargest(
+    def _nlargest(
         self,
         n=5,
         columns: Optional[List[str]] = None,
@@ -539,7 +539,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
 
     @trace
     @expression
-    def nsmallest(
+    def _nsmallest(
         self,
         n=5,
         columns: Optional[List[str]] = None,
@@ -1459,7 +1459,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
 
     @trace
     @expression
-    def nunique(self, drop_null=True):
+    def _nunique(self, drop_null=True):
         """Returns the number of unique values per column"""
         res = {}
         res["column"] = ta.Column([f.name for f in self.dtype.fields], dt.string)
@@ -1470,7 +1470,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
                     f.dtype,
                     self._data.child_at(self._data.type().get_child_idx(f.name)),
                     True,
-                ).nunique(drop_null)
+                )._nunique(drop_null)
                 for f in self.dtype.fields
             ],
             dt.int64,
@@ -1572,7 +1572,7 @@ class DataFrameCpu(IDataFrame, ColumnFromVelox):
             )
             res[s] = ta.Column(
                 [c._count(), c.mean(), c.std(), c.min()]
-                + c.percentiles(percentiles, "midpoint")
+                + c.quantile(percentiles, "midpoint")
                 + [c.max()]
             )
         return self._fromdata(res, [False] * len(res["metric"]))
