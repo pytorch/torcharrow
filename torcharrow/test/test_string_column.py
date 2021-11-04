@@ -211,6 +211,26 @@ class TestStringColumn(unittest.TestCase):
             ],
         )
 
+        # extract all
+        l = S.str.findall_re("^[Ff](.*)")
+        self.assertEqual(
+            list(l[l.list.length() > 0]),
+            [
+                ["Finland"],
+                ["Florida"],
+                ["france"],
+            ],
+        )
+
+        l = S.str.findall_re("[tCc]o")
+        self.assertEqual(
+            list(l[l.list.length() > 0]),
+            [
+                ["Co"],
+                ["to", "co"],
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
