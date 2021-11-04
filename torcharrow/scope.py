@@ -325,7 +325,11 @@ but data only provides {len(data)} fields: {data.keys()}
                 if dtype is None or not dt.is_tuple(dtype):
                     raise TypeError("Dataframe cannot infer struct type from data")
                 dtype = ty.cast(dt.Tuple, dtype)
-                columns = [] if columns is None else columns
+                if columns is None:
+                    raise TypeError(
+                        "DataFrame construction from tuples requires"
+                        " dtype or columns to be given"
+                    )
                 if len(dtype.fields) != len(columns):
                     raise TypeError("Dataframe column length must equal row length")
                 dtype = dt.Struct(
