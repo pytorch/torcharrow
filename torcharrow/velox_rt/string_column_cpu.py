@@ -287,6 +287,11 @@ class StringMethodsCpu(IStringMethods):
             self._parent.dtype.nullable
         )
 
+    def findall_re(self, pattern: str):
+        return functional.regexp_extract_all(self._parent, pattern).with_null(
+            self._parent.dtype.nullable
+        )
+
 
 # ------------------------------------------------------------------------------
 # registering the factory

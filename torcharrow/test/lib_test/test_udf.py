@@ -109,6 +109,18 @@ class TestSimpleColumns(unittest.TestCase):
         )
         self.assert_SimpleColumn(search, [False, True, True, True, True, None])
 
+        data = ["d4e5", "a1", "b2", "c3", "___d4___f6"]
+        col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
+        extract = ta.generic_udf_dispatch(
+            "regexp_extract_all",
+            col,
+            ta.ConstantColumn("([a-z])\\d", 5),
+        )
+        expected = [["d4", "e5"], ["a1"], ["b2"], ["c3"], ["d4", "f6"]]
+        self.assertEqual(len(extract), len(expected))
+        for i in range(len(extract)):
+            self.assert_SimpleColumn(extract[i], expected[i])
+
     def test_lower(self):
         data = ["abc", "ABC", "XYZ123", None, "xYZ", "123", "äöå"]
         col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
