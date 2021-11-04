@@ -170,7 +170,6 @@ class TestColumnTrace(unittest.TestCase):
         c9 = c1.map(h)
         _ = c1.reduce(operator.add, 0)
         c10 = c0.sort(ascending=False)
-        c11 = c10.nlargest()
 
         # print("TRACE", cmds(Scope.default.trace.statements()))
         verdict = [
@@ -190,7 +189,6 @@ class TestColumnTrace(unittest.TestCase):
             "c12 = torcharrow.icolumn.IColumn.map(c3, h)",
             "_ = torcharrow.icolumn.IColumn.reduce(c3, operator.add, 0)",
             "c13 = torcharrow.velox_rt.numerical_column_cpu.NumericalColumnCpu.sort(c3, ascending=False)",
-            "c15 = torcharrow.velox_rt.numerical_column_cpu.NumericalColumnCpu.nlargest(c13)",
         ]
 
         self.assertEqual(Scope.default.trace.statements(), verdict)

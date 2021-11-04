@@ -14,7 +14,7 @@ from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
 from torcharrow.icolumn import IColumn
 from torcharrow.inumerical_column import INumericalColumn
-from torcharrow.trace import trace
+from torcharrow.trace import trace, traceproperty
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type
@@ -187,7 +187,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
 
     @trace
     @expression
-    def nlargest(
+    def _nlargest(
         self,
         n=5,
         columns: Optional[List[str]] = None,
@@ -202,7 +202,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
 
     @trace
     @expression
-    def nsmallest(self, n=5, columns: Optional[List[str]] = None, keep="first"):
+    def _nsmallest(self, n=5, columns: Optional[List[str]] = None, keep="first"):
         """Returns a new data of the *n* smallest element."""
         if columns is not None:
             raise TypeError(
@@ -213,7 +213,7 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
 
     @trace
     @expression
-    def nunique(self, drop_null=True):
+    def _nunique(self, drop_null=True):
         """Returns the number of unique values of the column"""
         result = set()
         for i in range(len(self)):
@@ -768,16 +768,6 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                 result += self._getdata(i)
         return result
 
-    @trace
-    @expression
-    def prod(self):
-        """Return produce of the values in the data"""
-        result = 1
-        for i in range(len(self)):
-            if not self._getmask(i):
-                result *= self._getdata(i)
-        return result
-
     def _accumulate_column(self, func, *, skipna=True, initial=None):
         it = iter(self)
         res = []
@@ -843,22 +833,9 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
         """Return the median of the values in the data."""
         return statistics.median(value for value in self if value is not None)
 
-    # @ trace
-    # @ expression
-    # def mode(self):
-    #     """Return the mode(s) of the data."""
-    #     return np.ma.mode(self._ma())
-
     @trace
     @expression
-    def Cpu(self, ddof=1):
-        """Return the Cpudev(s) of the data."""
-        # ignores nulls
-        return np.ma.Cpu(self._ma(), ddof=ddof)
-
-    @trace
-    @expression
-    def percentiles(self, q, interpolation="midpoint"):
+    def quantile(self, q, interpolation="midpoint"):
         """Compute the q-th percentile of non-null data."""
         if len(self) == 0 or len(q) == 0:
             return []
@@ -878,14 +855,14 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
 
     # unique and montonic  ----------------------------------------------------
 
-    @trace
-    @expression
+    @property  # type: ignore
+    @traceproperty
     def is_unique(self):
         """Return boolean if data values are unique."""
-        return self.nunique(drop_null=False) == len(self)
+        return self._nunique(drop_null=False) == len(self)
 
-    @trace
-    @expression
+    @property  # type: ignore
+    @traceproperty
     def is_monotonic_increasing(self):
         """Return boolean if values in the object are monotonic increasing"""
         first = True
@@ -901,8 +878,8 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                 prev = current
         return True
 
-    @trace
-    @expression
+    @property  # type: ignore
+    @traceproperty
     def is_monotonic_decreasing(self):
         """Return boolean if values in the object are monotonic decreasing"""
         first = True
