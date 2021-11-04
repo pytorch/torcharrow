@@ -713,30 +713,6 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
 
     @trace
     @expression
-    def min(self, numeric_only=None, fill_value=None):
-        """Return the minimum of the non-null values of the Column."""
-        result = None
-        for i in range(len(self)):
-            if not self._getmask(i):
-                value = self._getdata(i)
-                if result is None or value < result:
-                    result = value
-        return result
-
-    @trace
-    @expression
-    def max(self, fill_value=None):
-        """Return the maximum of the non-null values of the column."""
-        result = None
-        for i in range(len(self)):
-            if not self._getmask(i):
-                value = self._getdata(i)
-                if result is None or value > result:
-                    result = value
-        return result
-
-    @trace
-    @expression
     def all(self):
         """Return whether all non-null elements are True in Column"""
         for i in range(len(self)):
@@ -894,25 +870,6 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
                     first = False
                 prev = current
         return True
-
-    # interop ----------------------------------------------------------------
-
-    @trace
-    def to_pandas(self):
-        """Convert self to pandas dataframe"""
-        # TODO Add type translation
-        # Skipping analyzing 'pandas': found module but no type hints or library stubs
-        import pandas as pd  # type: ignore
-
-        return pd.Series(self._ma())
-
-    @trace
-    def to_arrow(self):
-        """Convert self to pandas dataframe"""
-        # TODO Add type translation
-        import pyarrow as pa  # type: ignore
-
-        return pa.array(self._ma())
 
 
 # ------------------------------------------------------------------------------
