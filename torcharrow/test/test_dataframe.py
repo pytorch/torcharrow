@@ -173,6 +173,29 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(df), list(zip(*data3.values())))
         self.assertEqual(df.dtype, dtype3)
 
+        data4 = [(1, "a"), (2, "b"), (3, "c")]
+        columns4 = ["t1", "t2"]
+        dtype4 = dt.Struct(
+            [
+                dt.Field("t1", dt.int64),
+                dt.Field("t2", dt.string),
+            ]
+        )
+        # DataFrame construction from tuple data requires dtype or columns
+        # provided to tell the column names
+        with self.assertRaises(TypeError) as ex:
+            df = ta.DataFrame(data4, device=self.device)
+        self.assertTrue(
+            "DataFrame construction from tuples requires" in str(ex.exception),
+            f"Excpeion message is not as expected: {str(ex.exception)}",
+        )
+        df4 = ta.DataFrame(data4, columns=columns4)
+        self.assertEqual(list(df4), data4)
+        self.assertEqual(df4.dtype, dtype4)
+        df4 = ta.DataFrame(data4, dtype=dtype4)
+        self.assertEqual(list(df4), data4)
+        self.assertEqual(df4.dtype, dtype4)
+
     def base_test_infer(self):
         df = ta.DataFrame({"a": [1, 2, 3], "b": [1.0, None, 3]}, device=self.device)
         self.assertEqual(df.columns, ["a", "b"])

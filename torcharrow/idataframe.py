@@ -56,6 +56,13 @@ def DataFrame(
         where possible.  Should be a dt.Struct() providing a list of
         dt.Fields.
 
+    columns: list of strings, default None
+        The name of columns. Used when data is a list of tuples without a custom
+        dtype provided. len(columns) should be equal to len(data[0]). When data
+        is a list of tuples and dtype is provided this will be ignored.
+        This should be left to be None when data and dtype are both None (the
+        semantic is constructing a default empty DataFrame without any columns).
+
     device: Device, default ""
         Device selects which runtime to use from scope.  TorchArrow supports
         multiple runtimes (CPU and GPU).  If not supplied, uses the Velox
@@ -119,6 +126,16 @@ def DataFrame(
     >>> import torcharrow.dtypes as dt
     >>> l = [(1, 'a'), (2, 'b'), (3, 'c')]
     >>> ta.DataFrame(l, dtype = dt.Struct([dt.Field('t1', dt.int64), dt.Field('t2', dt.string)]))
+      index    t1  t2
+    -------  ----  ----
+          0     1  a
+          1     2  b
+          2     3  c
+    dtype: Struct([Field('t1', int64), Field('t2', string)]), count: 3, null_count: 0
+
+    or
+
+    >>> ta.DataFrame(l, columns=['t1', 't2'])
       index    t1  t2
     -------  ----  ----
           0     1  a
