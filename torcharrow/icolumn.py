@@ -1178,8 +1178,10 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         >>> s.min()
         1
         """
+        import pyarrow.compute as pc
 
-        return min(self._data_iter())
+        # TODO: use pc.min once upgrade to later version of PyArrow
+        return pc.min_max(self.to_arrow())[0].as_py()
 
     @trace
     @expression
@@ -1194,7 +1196,10 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         >>> s.max()
         4
         """
-        return max(self._data_iter())
+        import pyarrow.compute as pc
+
+        # TODO: use pc.max once upgrade to later version of PyArrow
+        return pc.min_max(self.to_arrow())[1].as_py()
 
     @trace
     @expression
