@@ -57,11 +57,10 @@ def DataFrame(
         dt.Fields.
 
     columns: list of strings, default None
-        The name of columns. Used when data is a list of tuples without a custom
-        dtype provided. len(columns) should be equal to len(data[0]). When data
-        is a list of tuples and dtype is provided this will be ignored.
-        This should be left to be None when data and dtype are both None (the
-        semantic is constructing a default empty DataFrame without any columns).
+        The name of columns. Used when data is a list of tuples without
+        a custom dtype provided. This should be left to be None when data
+        and dtype are both None (the semantic is constructing a default
+        empty DataFrame without any columns).
 
     device: Device, default ""
         Device selects which runtime to use from scope.  TorchArrow supports
