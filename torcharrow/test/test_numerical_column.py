@@ -160,8 +160,10 @@ class TestNumericalColumn(unittest.TestCase):
             [1, 1, 1, 33, 4, 5],
         )
 
+        left = ta.Column([0] * 6, device=self.device)
+        right = ta.Column([99] * 6, device=self.device)
         self.assertEqual(
-            ta.if_else(col > 3, [0] * 6, [99] * 6),
+            list(ta.if_else(col > 3, left, right)),
             [None, None, None, 99, 0, 0],
         )
 

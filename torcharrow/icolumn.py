@@ -987,7 +987,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     @trace
     @expression
-    def isin(self, values: ty.Union[list, IColumn, dict]):
+    def isin(self, values: ty.Union[list, dict]):
         """
         Check whether values are contained in column.
 
