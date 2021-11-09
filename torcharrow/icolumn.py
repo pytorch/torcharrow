@@ -86,6 +86,11 @@ def Column(
     return Scope._Column(data, dtype=dtype, device=device)
 
 
+def concat(columns: ty.List[IColumn]):
+    """Returns concatenated columns."""
+    return columns[0]._concat_with(columns[1:])
+
+
 # ------------------------------------------------------------------------------
 # IColumn
 
@@ -197,20 +202,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         for i in values:
             res._append(i)
         return res._finalize()
-
-    # TODO: Create torcharrow.concat
-    @trace
-    def concat(self, columns: ty.List[IColumn]):
-        """Returns concatenated columns."""
-        concat_list = self.to_pylist()
-        for column in columns:
-            concat_list += column.to_pylist()
-        return Scope._FromPyList(concat_list, self.dtype)
-
-    @trace
-    def copy(self):
-        # TODO implement this generically over columns using _FullColumn
-        raise self._not_supported("copy")
 
     def cast(self, dtype):
         """Cast the Column to the given dtype"""
@@ -1434,7 +1425,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             res.append(i)
         if len(res) == 0:
             raise ValueError("can't determine column type")
-        return res[0].concat(res[1:])
+        return ta.concat(res)
 
     # private helpers
 
@@ -1652,6 +1643,11 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                     yield fill_value
             else:
                 yield i
+
+    @abc.abstractmethod
+    def _concat_with(self, columns: ty.List[IColumn]):
+        """Returns concatenated columns."""
+        raise self._not_supported("_concat_with")
 
     # private aggregation/topK functions -- names are to be discussed
 
