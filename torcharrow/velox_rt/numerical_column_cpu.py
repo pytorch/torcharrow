@@ -22,14 +22,14 @@ from .typing import get_velox_type
 # ------------------------------------------------------------------------------
 
 
-class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
+class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     """A Numerical Column"""
 
     # private
     def __init__(self, device, dtype, data, mask):
         # TODO: Refactor the constructors (remove mask, data should be velox.BaseColumn)
         assert dt.is_boolean_or_numerical(dtype)
-        super().__init__(device, dtype)
+        INumericalColumn.__init__(self, device, dtype)
         self._data = velox.Column(get_velox_type(dtype))
         for m, d in zip(mask.tolist(), data.tolist()):
             if m:
@@ -100,10 +100,6 @@ class NumericalColumnCpu(INumericalColumn, ColumnFromVelox):
     def null_count(self):
         """Return number of null items"""
         return self._data.get_null_count()
-
-    @trace
-    def copy(self):
-        return Scope._FullColumn(self._data.copy(), self.mask.copy())
 
     def _getdata(self, i):
         if i < 0:
