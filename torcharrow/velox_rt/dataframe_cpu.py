@@ -55,12 +55,12 @@ from .typing import get_velox_type
 DataOrDTypeOrNone = Union[Mapping, Sequence, dt.DType, Literal[None]]
 
 
-class DataFrameCpu(IDataFrame, ColumnFromVelox):
+class DataFrameCpu(ColumnFromVelox, IDataFrame):
     """Dataframe, ordered dict of typed columns of the same length"""
 
     def __init__(self, device, dtype, data):
         assert dt.is_struct(dtype)
-        super().__init__(device, dtype)
+        IDataFrame.__init__(self, device, dtype)
 
         self._data = velox.Column(get_velox_type(dtype))
         assert isinstance(data, dict)

@@ -205,6 +205,10 @@ class IDataFrame(IColumn):
         self._set_field_data(name, col, empty_df)
 
     @trace
+    def copy(self):
+        raise self._not_supported("copy")
+
+    @trace
     @expression
     def transform(
         self,
@@ -305,6 +309,10 @@ class IDataFrameVar(Var, IDataFrame):
 
     def _set_field_data(self, name: str, col: IColumn, empty_df: bool):
         raise self._not_supported("_set_field_data")
+
+    def _concat_with(self, columns: List[IColumn]):
+        """Returns concatenated columns."""
+        raise self._not_supported("_concat_with")
 
     @property  # type: ignore
     def columns(self):
