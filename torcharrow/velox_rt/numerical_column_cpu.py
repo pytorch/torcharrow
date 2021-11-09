@@ -116,7 +116,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     # if-then-else ---------------------------------------------------------------
 
-    def ite(self, then_, else_):
+    def _if_else(self, then_, else_):
         """Vectorized if-then-else"""
         if not dt.is_boolean(self.dtype):
             raise TypeError("condition must be a boolean vector")
@@ -145,7 +145,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
         else:
             # refer back to default handling...
-            return super.ite(self, then_, else_)
+            return INumericalColumn._if_else(self, then_, else_)
 
     # sorting, top-k, unique---------------------------------------------------
 
