@@ -21,12 +21,12 @@ from .typing import get_velox_type
 # StringColumnCpu
 
 
-class StringColumnCpu(IStringColumn, ColumnFromVelox):
+class StringColumnCpu(ColumnFromVelox, IStringColumn):
 
     # private constructor
     def __init__(self, device, dtype, data, mask):  # REP offsets
         assert dt.is_string(dtype)
-        super().__init__(device, dtype)
+        IStringColumn.__init__(self, device, dtype)
 
         self._data = velox.Column(get_velox_type(dtype))
         for m, d in zip(mask.tolist(), data):

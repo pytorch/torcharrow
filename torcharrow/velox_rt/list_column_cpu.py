@@ -19,12 +19,12 @@ from .typing import get_velox_type
 # IListColumn
 
 
-class ListColumnCpu(IListColumn, ColumnFromVelox):
+class ListColumnCpu(ColumnFromVelox, IListColumn):
 
     # private constructor
     def __init__(self, device, dtype, data, offsets, mask):
         assert dt.is_list(dtype)
-        super().__init__(device, dtype)
+        IListColumn.__init__(self, device, dtype)
 
         self._data = velox.Column(
             velox.VeloxArrayType(get_velox_type(dtype.item_dtype))

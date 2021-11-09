@@ -23,10 +23,10 @@ from .typing import get_velox_type
 # IMapColumn
 
 
-class MapColumnCpu(IMapColumn, ColumnFromVelox):
+class MapColumnCpu(ColumnFromVelox, IMapColumn):
     def __init__(self, device, dtype, key_data, item_data, mask):
         assert dt.is_map(dtype)
-        super().__init__(device, dtype)
+        IMapColumn.__init__(self, device, dtype)
 
         self._data = velox.Column(
             velox.VeloxMapType(

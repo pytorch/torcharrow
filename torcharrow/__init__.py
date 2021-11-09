@@ -11,7 +11,8 @@ from .trace import *  # dependencies: expression
 from .scope import *  # dependencies: column_factory, dtypes
 
 # following needs scope*
-from .icolumn import *  # dependencies: cyclic dependency to every other column
+from .icolumn import Column
+from .icolumn import concat  # noqa
 from .inumerical_column import *
 from .istring_column import *
 from .ilist_column import *

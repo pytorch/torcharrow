@@ -36,11 +36,11 @@ class TestListColumn(unittest.TestCase):
         self.assertEqual(list(sf2), base_list + append1)
 
         append2 = [["I", "am", "fine", "too"]]
-        sf3 = sf2.concat([ta.Column(append2, device=self.device)])
+        sf3 = ta.concat([sf2, ta.Column(append2, device=self.device)])
         self.assertEqual(list(sf3), base_list + append1 + append2)
 
         # concat everything
-        sf_all = sf1.concat([sf2, sf3])
+        sf_all = ta.concat([sf1, sf2, sf3])
         self.assertEqual(list(sf_all), list(sf1) + list(sf2) + list(sf3))
 
     def base_test_nested_numerical_twice(self):
