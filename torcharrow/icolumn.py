@@ -91,6 +91,27 @@ def concat(columns: ty.List[IColumn]):
     return columns[0]._concat_with(columns[1:])
 
 
+def if_else(cond: IColumn, left: IColumn, right: IColumn):
+    """
+    Return a column of elements where each of them is selected from either
+    `left` column or `righ` column, depending on the value in the corresponding
+    position in `cond` column.
+
+    Examples
+    --------
+    >>> import torcharrow as ta
+    >>> cond = ta.Column([True, False, True, False])
+    >>> left = ta.Column(["a1", "a2", "a3", "a4"])
+    >>> right = ta.Column(["b1", "b2", "b3", "b4"])
+    >>> ta.if_else(cond, left, right)
+    0  'a1'
+    1  'b2'
+    2  'a3'
+    3  'b4'
+    dtype: string, length: 4, null_count: 0, device: cpu
+    """
+    return cond._if_else(left, right)
+
 # ------------------------------------------------------------------------------
 # IColumn
 
@@ -737,31 +758,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             return finalizer(value)
         else:
             return value
-
-    # if-then-else ---------------------------------------------------------------
-
-    def ite(self, then_, else_):
-        """Vectorized if-then-else"""
-        if not dt.is_boolean(self.dtype):
-            raise TypeError("condition must be a boolean vector")
-        if not isinstance(then_, IColumn):
-            then_ = self._Column(then_)
-        if not isinstance(else_, IColumn):
-            else_ = self._Column(else_)
-        lub = dt.common_dtype(then_.dtype, else_.dtype)
-        if lub is None or dt.is_void(lub):
-            raise TypeError(
-                "then and else branches must have compatible types, got {then_.dtype} and {else_.dtype}, respectively"
-            )
-        res = Scope._EmptyColumn(lub)
-        for (m, b), t, e in zip(self._items(), then_, else_):
-            if m:
-                res._append_null()
-            elif b:
-                res._append(t)
-            else:
-                res._append(e)
-        return res._finalize()
 
     # sorting -------------------------------------------------------
 
@@ -1648,6 +1644,29 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def _concat_with(self, columns: ty.List[IColumn]):
         """Returns concatenated columns."""
         raise self._not_supported("_concat_with")
+
+    def _if_else(self, then_, else_):
+        """Vectorized if-then-else"""
+        if not dt.is_boolean(self.dtype):
+            raise TypeError("condition must be a boolean vector")
+        if not isinstance(then_, IColumn):
+            then_ = self._Column(then_)
+        if not isinstance(else_, IColumn):
+            else_ = self._Column(else_)
+        lub = dt.common_dtype(then_.dtype, else_.dtype)
+        if lub is None or dt.is_void(lub):
+            raise TypeError(
+                "then and else branches must have compatible types, got {then_.dtype} and {else_.dtype}, respectively"
+            )
+        res = Scope._EmptyColumn(lub)
+        for (m, b), t, e in zip(self._items(), then_, else_):
+            if m:
+                res._append_null()
+            elif b:
+                res._append(t)
+            else:
+                res._append(e)
+        return res._finalize()
 
     # private aggregation/topK functions -- names are to be discussed
 

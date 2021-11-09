@@ -11,8 +11,7 @@ from .trace import *  # dependencies: expression
 from .scope import *  # dependencies: column_factory, dtypes
 
 # following needs scope*
-from .icolumn import Column
-from .icolumn import concat  # noqa
+from .icolumn import Column, concat, if_else # noqa
 from .inumerical_column import *
 from .istring_column import *
 from .ilist_column import *

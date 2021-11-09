@@ -161,7 +161,8 @@ class TestNumericalColumn(unittest.TestCase):
         )
 
         self.assertEqual(
-            list((col > 3).ite([0] * 6, [99] * 6)), [None, None, None, 99, 0, 0]
+            ta.if_else(col > 3, [0] * 6, [99] * 6),
+            [None, None, None, 99, 0, 0],
         )
 
         # filter
