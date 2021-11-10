@@ -112,6 +112,7 @@ def if_else(cond: IColumn, left: IColumn, right: IColumn):
     """
     return cond._if_else(left, right)
 
+
 # ------------------------------------------------------------------------------
 # IColumn
 
