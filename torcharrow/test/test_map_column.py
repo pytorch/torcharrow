@@ -19,6 +19,15 @@ class TestMapColumn(unittest.TestCase):
         c = c.append([{"de": 45, "fg": 67}])
         self.assertDictEqual(c[1], {"de": 45, "fg": 67})
 
+        c = c.append([None])
+        self.assertIsNone(c[2])
+
+        c2 = ta.Column(
+            [None, None, {"foo": 123}], dt.Map(dt.string, dt.int64), device=self.device
+        )
+        self.assertIsNone(c2[0])
+        self.assertIsNone(c2[1])
+
     def base_test_infer(self):
         c = ta.Column(
             [
@@ -42,11 +51,11 @@ class TestMapColumn(unittest.TestCase):
         )
 
     def base_test_keys_values_get(self):
-        c = ta.Column([{"abc": 123}, {"de": 45, "fg": 67}], device=self.device)
+        c = ta.Column([{"abc": 123}, {"de": 45, "fg": 67}, None], device=self.device)
 
-        self.assertEqual(list(c.maps.keys()), [["abc"], ["de", "fg"]])
-        self.assertEqual(list(c.maps.values()), [[123], [45, 67]])
-        self.assertEqual(c.maps.get("de", 0), [0, 45])
+        self.assertEqual(list(c.maps.keys()), [["abc"], ["de", "fg"], []])
+        self.assertEqual(list(c.maps.values()), [[123], [45, 67], []])
+        self.assertEqual(c.maps.get("de", 0), [0, 45, None])
 
 
 if __name__ == "__main__":
