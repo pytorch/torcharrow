@@ -88,11 +88,15 @@ class MapColumnCpu(ColumnFromVelox, IMapColumn):
         return col._finalize()
 
     def _append_null(self):
-        raise NotImplementedError()
+        if self._finialized:
+            raise AttributeError("It is already finialized.")
+        self._data.append_null()
 
     def _append_value(self, value):
-        if value is None:
-            raise NotImplementedError()
+        if self._finialized:
+            raise AttributeError("It is already finialized.")
+        elif value is None:
+            self._data.append_null()
         else:
             new_key = ta.Column(self._dtype.key_dtype)
             new_value = ta.Column(self._dtype.item_dtype)
@@ -120,7 +124,7 @@ class MapColumnCpu(ColumnFromVelox, IMapColumn):
         if i < 0:
             i += len(self._data)
         if self._data.is_null_at(i):
-            return self.dtype.default
+            return self.dtype.default_value()
         else:
             key_col = ColumnFromVelox.from_velox(
                 self.device,

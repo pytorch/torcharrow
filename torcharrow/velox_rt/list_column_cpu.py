@@ -106,7 +106,7 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
         if i < 0:
             i += len(self._data)
         if self._data.is_null_at(i):
-            return self.dtype.default
+            return self.dtype.default_value()
         else:
             return list(
                 ColumnFromVelox.from_velox(

@@ -21,10 +21,17 @@ class TestListColumn(unittest.TestCase):
         c = ta.Column(dt.List(dt.int64), device=self.device)
         for i in range(4):
             c = c.append([list(range(i))])
+        c = c.append([None])
 
         verdict = [list(range(i)) for i in range(4)]
         for i, lst in zip(range(4), verdict):
             self.assertEqual(c[i], lst)
+        self.assertIsNone(c[4])
+
+        c2 = ta.Column([None, None, [1, 2, 3]], dt.List(dt.int64), device=self.device)
+        self.assertIsNone(c2[0])
+        self.assertIsNone(c2[1])
+        self.assertEqual(c2[2], [1, 2, 3])
 
     def base_test_append_concat(self):
         base_list = [["hello", "world"], ["how", "are", "you"]]
