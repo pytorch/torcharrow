@@ -12,5 +12,14 @@ build/
 # OSX dir files
 .DS_Store
 
+# Dep
+_build/
+double-conversion/
+fmt/
+folly/
+googletest/
+range-v3/
+re2/
+
 # Generated Files
 torcharrow/version.py
