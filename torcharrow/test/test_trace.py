@@ -45,6 +45,9 @@ class DF:
 
 
 class TestDFNoTrace(unittest.TestCase):
+    def setUp(self):
+        Scope.default = Scope()
+
     def test_tracing_off(self):
         trace = Scope.default.trace
 
