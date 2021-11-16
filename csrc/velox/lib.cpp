@@ -547,6 +547,7 @@ void declareArrayType(py::module& m) {
       .def("append", &ArrayColumn::appendElement)
       .def("append_null", &ArrayColumn::appendNull)
       .def("__getitem__", &ArrayColumn::valueAt)
+      .def("elements", &ArrayColumn::elements)
       .def("slice", &ArrayColumn::slice);
 
   using I = typename velox::TypeTraits<velox::TypeKind::ARRAY>::ImplType;

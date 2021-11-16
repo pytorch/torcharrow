@@ -28,6 +28,7 @@ import numpy as np
 import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
+import torcharrow.pytorch as pytorch
 from tabulate import tabulate
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import eval_expression, expression
@@ -1682,6 +1683,16 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         for n, c in self._field_data.items():
             map[n] = c.to_arrow()
         return pa.table(map)
+
+    def to_torch(self):
+        pytorch.ensure_available()
+        import torch
+
+        # TODO: this actually puts the type annotations on the tuple wrong.
+        # We might need to address it eventually, but because it's Python it doesn't matter
+        tup_type = self._dtype.py_type
+
+        return tup_type(*(self[f.name].to_torch() for f in self.dtype.fields))
 
     # fluent with symbolic expressions ----------------------------------------
 

@@ -9,6 +9,7 @@ import numpy as np
 import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
+import torcharrow.pytorch as pytorch
 from torcharrow import Scope
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
@@ -866,6 +867,30 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
                     first = False
                 prev = current
         return True
+
+    # interop
+    def to_torch(self):
+        pytorch.ensure_available()
+        import torch
+
+        # our names of types conveniently almost match
+        torch_dtype_name = "bool" if self._dtype.name == "boolean" else self._dtype.name
+        if not hasattr(torch, torch_dtype_name):
+            raise ValueError(f"Can't convert {self._dtype} to PyTorch")
+        torch_dtype = getattr(torch, torch_dtype_name)
+
+        # TODO: figure out zero copy from Velox vector
+        arrow_array = self.to_arrow()
+        res = torch.tensor(
+            arrow_array.to_numpy(zero_copy_only=False), dtype=torch_dtype
+        )
+        if not self._dtype.nullable:
+            return res
+
+        presence = torch.tensor(
+            arrow_array.is_valid().to_numpy(zero_copy_only=False), dtype=torch.bool
+        )
+        return pytorch.WithPresence(values=res, presence=presence)
 
 
 # ------------------------------------------------------------------------------
