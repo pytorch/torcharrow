@@ -95,6 +95,18 @@ std::unique_ptr<BaseColumn> ArrayColumn::valueAt(velox::vector_size_t i) {
   return createColumn(elementVectorPtr, elementOffset, elementLength);
 }
 
+std::unique_ptr<BaseColumn> ArrayColumn::elements() {
+  velox::ArrayVector* arrayVectorPtr =
+      _delegate.get()->as<velox::ArrayVector>();
+  velox::VectorPtr elementVectorPtr = arrayVectorPtr->elements();
+  auto elementOffset = arrayVectorPtr->offsetAt(this->_offset);
+  int elementsTotalLength = 0;
+  for (int i = 0; i < this->_length; i++) {
+    elementsTotalLength += arrayVectorPtr->sizeAt(this->_offset + i);
+  }
+  return createColumn(elementVectorPtr, elementOffset, elementsTotalLength);
+}
+
 std::unique_ptr<BaseColumn> MapColumn::valueAt(velox::vector_size_t i) {
   velox::TypePtr keyType = type()->as<velox::TypeKind::MAP>().keyType();
   velox::TypePtr valueType = type()->as<velox::TypeKind::MAP>().valueType();

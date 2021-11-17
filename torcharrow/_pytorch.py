@@ -10,6 +10,7 @@ from . import dtypes
 from .dtypes import DType, is_numerical, is_struct, is_list, is_map, is_string
 from .icolumn import Column
 from .idataframe import DataFrame
+import torcharrow as ta
 
 T = TypeVar("T")
 KT = TypeVar("KT")
@@ -101,16 +102,16 @@ def infer_dtype_from_torch(
 def from_torch(
     data: Union[PackedMap, PackedList, List, torch.Tensor, Tuple],
     dtype: Optional[DType] = None,
-    scope=None,
+    device="",
 ):
     if dtype is None:
         dtype = infer_dtype_from_torch(data)
-    scope = scope or Scope.default
+    device = device or Scope.default.device
     assert isinstance(dtype, DType)
 
     if isinstance(data, list):
         # if it's a python list - we're switching to python representation for this subtree. This path is also taken for strings, because they are represented as List[str] in PyTorch
-        return scope.Column(data, dtype=dtype)
+        return ta.Column(data, dtype=dtype)
 
     # handling nullability
     if isinstance(data, WithPresence):
@@ -120,9 +121,10 @@ def from_torch(
             )
         nested = from_torch(data.values, dtype=dtype.with_null(False))
         # TODO: this implementation is very inefficient, we should wrap the column directly instead of round-tripping through python
-        return scope.Column(
+        return ta.Column(
             [(x if data.presence[i].item() else None) for i, x in enumerate(nested)],
             dtype=dtype,
+            device=device,
         )
     if dtype.nullable:
         raise ValueError(
@@ -147,9 +149,10 @@ def from_torch(
             )
         # TODO: this implementation is very inefficient, we should wrap the column directly instead of round-tripping through python
         offsets = data.offsets.tolist()
-        return scope.Column(
+        return ta.Column(
             [nested[offsets[i] : offsets[i + 1]] for i in range(len(data.offsets) - 1)],
             dtype=dtype,
+            device=device,
         )
     if isinstance(data, PackedMap):
         if not is_map(dtype):
@@ -157,9 +160,9 @@ def from_torch(
                 f"Expected map type when the value is pytorch.PackedMap: {dtype}"
             )
         assert isinstance(dtype, dtypes.Map)  # make mypy happy
-        nested_keys = list(from_torch(data.keys, dtype=dtype.key_dtype, scope=scope))
+        nested_keys = list(from_torch(data.keys, dtype=dtype.key_dtype, device=device))
         nested_values = list(
-            from_torch(data.values, dtype=dtype.item_dtype, scope=scope)
+            from_torch(data.values, dtype=dtype.item_dtype, device=device)
         )
         if not isinstance(data.offsets, torch.Tensor) or data.offsets.dtype not in [
             torch.int16,
@@ -171,7 +174,7 @@ def from_torch(
             )
         # TODO: this implementation is very inefficient, we should wrap the column directly instead of round-tripping through python
         offsets = data.offsets.tolist()
-        return scope.Column(
+        return ta.Column(
             [
                 OrderedDict(
                     zip(
@@ -182,6 +185,7 @@ def from_torch(
                 for i in range(len(data.offsets) - 1)
             ],
             dtype=dtype,
+            device=device,
         )
     if isinstance(data, tuple):
         # TODO: check that fields of named tuples match?
@@ -197,12 +201,12 @@ def from_torch(
         nested_fields = OrderedDict(
             (
                 dtype.fields[i].name,
-                list(from_torch(data[i], dtype=dtype.fields[i].dtype, scope=scope)),
+                list(from_torch(data[i], dtype=dtype.fields[i].dtype, device=device)),
             )
             for i in range(len(data))
         )
         # TODO: this implementation is very inefficient, we should wrap the column directly instead of round-tripping through python
-        return scope.DataFrame(nested_fields, dtype=dtype)
+        return ta.DataFrame(nested_fields, dtype=dtype, device=device)
 
     # numerics!
     if isinstance(data, torch.Tensor):
@@ -219,6 +223,6 @@ def from_torch(
                 f"Unexpected dtype {data.dtype} for the tensor, expected {dtype}"
             )
         # TODO: this implementation is very inefficient, we should wrap the column directly instead of round-tripping through python
-        return scope.Column(data.tolist(), dtype=dtype)
+        return ta.Column(data.tolist(), dtype=dtype, device=device)
 
     raise ValueError(f"Unexpected data in `from_torch`: {type(data)}")

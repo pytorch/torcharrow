@@ -9,6 +9,7 @@ import numpy as np
 import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
+import torcharrow.pytorch as pytorch
 from tabulate import tabulate
 from torcharrow import Scope
 from torcharrow.dispatcher import Dispatcher
@@ -157,6 +158,41 @@ class MapColumnCpu(ColumnFromVelox, IMapColumn):
         )
         typ = f"dtype: {self._dtype}, length: {self.length}, null_count: {self.null_count}"
         return tab + dt.NL + typ
+
+    # interop
+    def to_torch(self):
+        pytorch.ensure_available()
+        import torch
+
+        # TODO: more efficient/straightfowrad interop
+
+        # FIXME: https://github.com/facebookresearch/torcharrow/issues/62 to_arrow doesn't work as expected for map
+        # arrow_array = self.to_arrow()
+
+        keys = ColumnFromVelox.from_velox(
+            self.device, dt.List(self._dtype.key_dtype), self._data.keys(), True
+        ).to_torch(_propagate_py_list=False)
+        values = ColumnFromVelox.from_velox(
+            self.device, dt.List(self._dtype.item_dtype), self._data.values(), True
+        ).to_torch(_propagate_py_list=False)
+
+        # TODO: should we propagate python list if both keys and vals are lists of strings?
+        assert isinstance(keys, pytorch.PackedList)
+        assert isinstance(values, pytorch.PackedList)
+        assert torch.all(keys.offsets == values.offsets)
+        res = pytorch.PackedMap(
+            keys=keys.values, values=values.values, offsets=keys.offsets
+        )
+        if not self._dtype.nullable:
+            return res
+
+        presence = torch.tensor(
+            # FIXME: https://github.com/facebookresearch/torcharrow/issues/62
+            # arrow_array.is_valid().to_numpy(zero_copy_only=False), dtype=torch.bool
+            [self[i] is not None for i in range(len(self))],
+            dtype=torch.bool,
+        )
+        return pytorch.WithPresence(values=res, presence=presence)
 
 
 # ------------------------------------------------------------------------------

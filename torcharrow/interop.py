@@ -33,10 +33,6 @@ def from_pandas(data, dtype=None, device=""):
     raise NotImplementedError
 
 
-def from_torch(data, dtype=None, device=""):
-    raise NotImplementedError
-
-
 def from_pylist(data, dtype=None, device=""):
     """
     Convert Python list of scalars or containers to a TorchArrow Column/DataFrame.

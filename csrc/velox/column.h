@@ -672,6 +672,8 @@ class ArrayColumn : public BaseColumn {
     bumpLength();
   }
 
+  std::unique_ptr<BaseColumn> elements();
+
   std::unique_ptr<BaseColumn> valueAt(velox::vector_size_t i);
 
   std::unique_ptr<ArrayColumn> slice(

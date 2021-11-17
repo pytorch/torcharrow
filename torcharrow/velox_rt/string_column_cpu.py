@@ -166,6 +166,10 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
         typ = f"dtype: {self.dtype}, length: {self.length}, null_count: {self.null_count}, device: cpu"
         return tab + dt.NL + typ
 
+    # interop
+    def to_torch(self):
+        # there are no string tensors, so we're using regular python list conversion
+        return self.to_pylist()
 
 # ------------------------------------------------------------------------------
 # StringMethodsCpu
