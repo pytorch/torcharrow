@@ -10,7 +10,24 @@ from typing import Union, List, Any
 import torcharrow._torcharrow as ta
 
 
-class TestSimpleColumns(unittest.TestCase):
+class BaseTestColumns(unittest.TestCase):
+    def assert_Column(self, col: ta.BaseColumn, val: List[Any]):
+        self.assertEqual(len(col), len(val))
+        self.assertEqual(col.get_null_count(), sum(x is None for x in val))
+        for i in range(len(val)):
+            if val[i] is None:
+                self.assertTrue(col.is_null_at(i))
+            else:
+                self.assertFalse(col.is_null_at(i))
+                if isinstance(val[i], list):
+                    self.assert_Column(col[i], val[i])
+                elif isinstance(val[i], float):
+                    self.assertAlmostEqual(col[i], val[i], places=6)
+                else:
+                    self.assertEqual(col[i], val[i])
+
+
+class TestSimpleColumns(BaseTestColumns):
     def test_SimpleColumnInt64(self):
         data = [1, 2, None, 3, 4, None]
         col = infer_column(data)
@@ -43,21 +60,6 @@ class TestSimpleColumns(unittest.TestCase):
         self.assertEqual(sliced_col[0], 2)
         self.assertEqual(sliced_col[2], 3)
         self.assertEqual(sliced_col.get_null_count(), 1)
-
-    def assert_Column(self, col: ta.BaseColumn, val: List[Any]):
-        self.assertEqual(len(col), len(val))
-        self.assertEqual(col.get_null_count(), sum(x is None for x in val))
-        for i in range(len(val)):
-            if val[i] is None:
-                self.assertTrue(col.is_null_at(i))
-            else:
-                self.assertFalse(col.is_null_at(i))
-                if isinstance(val[i], list):
-                    self.assert_Column(col[i], val[i])
-                elif isinstance(val[i], float):
-                    self.assertAlmostEqual(col[i], val[i], places=6)
-                else:
-                    self.assertEqual(col[i], val[i])
 
     def test_SimpleColumnInt64_unary(self):
         data = [1, -2, None, 3, -4, None]
@@ -675,10 +677,12 @@ class TestInferColumn(unittest.TestCase):
         self.assertTrue(is_same_type(type_, ta.VeloxArrayType(ta.VeloxType_BIGINT())))
 
 
-class TestArrayColumns(unittest.TestCase):
+class TestArrayColumns(BaseTestColumns):
     def test_ArrayColumnInt64(self):
         data = [None, [], [1], [1, None, 2], None]
         col = infer_column(data)
+
+        self.assert_Column(col.elements(), [1, 1, None, 2])
 
         for sliced_col, sliced_data in (
             (col, data),

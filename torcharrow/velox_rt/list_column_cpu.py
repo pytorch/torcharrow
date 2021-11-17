@@ -7,6 +7,7 @@ import numpy as np
 import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
+import torcharrow.pytorch as pytorch
 from tabulate import tabulate
 from torcharrow import Scope
 from torcharrow.dispatcher import Dispatcher
@@ -139,6 +140,46 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
                 yield item
             else:
                 yield list(item)
+
+    # inerop
+    def to_torch(self, _propagate_py_list=True):
+        pytorch.ensure_available()
+        import torch
+
+        # TODO: more efficient/straightfowrad interop
+        arrow_array = self.to_arrow()
+
+        elements = ColumnFromVelox.from_velox(
+            self.device, self._dtype.item_dtype, self._data.elements(), True
+        ).to_torch()
+        # special case: if the nested type is List (which happens for List[str] that can't be represented as tensor)
+        # then we fallback to string types
+        if isinstance(elements, list) and _propagate_py_list:
+            return [
+                (
+                    elements[
+                        arrow_array.offsets[i]
+                        .as_py() : arrow_array.offsets[i + 1]
+                        .as_py()
+                    ]
+                    if self[i] is not None
+                    else None
+                )
+                for i in range(len(self))
+            ]
+        # TODO: clarify int32 vs int64
+        offsets = torch.tensor(
+            arrow_array.offsets.to_numpy(),
+            dtype=torch.int32,
+        )
+        res = pytorch.PackedList(values=elements, offsets=offsets)
+        if not self._dtype.nullable:
+            return res
+
+        presence = torch.tensor(
+            arrow_array.is_valid().to_numpy(zero_copy_only=False), dtype=torch.bool
+        )
+        return pytorch.WithPresence(values=res, presence=presence)
 
 
 # ------------------------------------------------------------------------------
