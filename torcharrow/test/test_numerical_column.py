@@ -4,6 +4,7 @@ import unittest
 from math import ceil, floor
 
 import numpy.testing
+import numpy as np
 import torcharrow as ta
 import torcharrow.dtypes as dt
 from torcharrow import IColumn, INumericalColumn
@@ -128,6 +129,12 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(list(c), [1.0, 2.0])
         c = ta.Column([1, 2.0], device=self.device)
         self.assertEqual(c.dtype, dt.float32)
+        self.assertEqual(list(c), [1.0, 2.0])
+        c = ta.Column([np.float64(1.0), 2.0], device=self.device)
+        self.assertEqual(c.dtype, dt.float64)
+        self.assertEqual(list(c), [1.0, 2.0])
+        c = ta.Column([np.float64(1.0), np.float32(2.0)], device=self.device)
+        self.assertEqual(c.dtype, dt.float64)
         self.assertEqual(list(c), [1.0, 2.0])
 
     def base_test_map_where_filter(self):
