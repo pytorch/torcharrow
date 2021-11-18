@@ -112,6 +112,12 @@ class TestNumericalColumn(unittest.TestCase):
         c = ta.Column([1], device=self.device)
         self.assertEqual(c.dtype, dt.int64)
         self.assertEqual(list(c), [1])
+        c = ta.Column([np.int64(2)], device=self.device)
+        self.assertEqual(c.dtype, dt.int64)
+        self.assertEqual(list(c), [2])
+        c = ta.Column([np.int32(3)], device=self.device)
+        self.assertEqual(c.dtype, dt.int32)
+        self.assertEqual(list(c), [3])
 
         # bool
         c = ta.Column([True, None], device=self.device)
