@@ -566,6 +566,8 @@ def infer_dtype_from_value(value):
         return Void()
     if isinstance(value, (bool, np.bool8)):
         return prt(value, boolean)
+    if isinstance(value, (np.int32)):
+        return prt(value, int32)
     if isinstance(value, (int, np.integer)):
         return prt(value, int64)
     if isinstance(value, np.float64):
