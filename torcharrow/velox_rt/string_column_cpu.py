@@ -171,6 +171,7 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
         # there are no string tensors, so we're using regular python list conversion
         return self.to_pylist()
 
+
 # ------------------------------------------------------------------------------
 # StringMethodsCpu
 

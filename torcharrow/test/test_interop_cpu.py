@@ -26,5 +26,6 @@ class TestInteropCpu(TestInterop):
     def test_pytorch_transform(self):
         return self.base_test_pytorch_transform()
 
+
 if __name__ == "__main__":
     unittest.main()
