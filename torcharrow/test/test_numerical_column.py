@@ -3,8 +3,8 @@ import statistics
 import unittest
 from math import ceil, floor
 
-import numpy.testing
 import numpy as np
+import numpy.testing
 import torcharrow as ta
 import torcharrow.dtypes as dt
 from torcharrow import IColumn, INumericalColumn

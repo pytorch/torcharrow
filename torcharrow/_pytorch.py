@@ -4,13 +4,13 @@ from dataclasses import dataclass
 from typing import TypeVar, Generic, Union, List, Any, Optional, Tuple
 
 import torch  # type: ignore
+import torcharrow as ta
 from torcharrow.scope import Scope
 
 from . import dtypes
 from .dtypes import DType, is_numerical, is_struct, is_list, is_map, is_string
 from .icolumn import Column
 from .idataframe import DataFrame
-import torcharrow as ta
 
 T = TypeVar("T")
 KT = TypeVar("KT")
