@@ -1,7 +1,10 @@
 #!/bin/bash
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+ROOT_DIR="$( cd -- "$( dirname "$( dirname "${BASH_SOURCE[0]}" )" )" &> /dev/null && pwd )"
+SCRIPT_DIR=${ROOT_DIR}/scripts
+DEPENDENCY_DIR=${ROOT_DIR}/_build
+mkdir -p "${DEPENDENCY_DIR}"
 
 source $SCRIPT_DIR/_setup-macos.sh
 

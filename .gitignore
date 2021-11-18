@@ -1,6 +1,19 @@
 # Byte-compiled / optimized
 __pycache__/
 
+# Editor temporaries
+*.swn
+*.swo
+*.swp
+*.swm
+*~
+.vscode
+.idea
+
+# Compiled python
+*.pyc
+*.pyd
+
 # C extensions
 *.so
 
@@ -11,6 +24,9 @@ build/
 
 # OSX dir files
 .DS_Store
+
+# Dep
+_build/
 
 # Generated Files
 torcharrow/version.py
