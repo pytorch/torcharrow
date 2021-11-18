@@ -59,7 +59,6 @@ jobs:
       - name: Install dependencies for test
         run: |
           pip3 install pytest  --user
-          pip3 install torch==1.10.0+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html --user
 
       - name : Run TorchArrow unit tests
         run: pytest --no-header -v torcharrow/test
