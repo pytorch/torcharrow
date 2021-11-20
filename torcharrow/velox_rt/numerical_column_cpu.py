@@ -10,7 +10,6 @@ import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
-from torcharrow import Scope
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
 from torcharrow.icolumn import IColumn
@@ -27,45 +26,18 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     """A Numerical Column"""
 
     # private
-    def __init__(self, device, dtype, data, mask):
-        # TODO: Refactor the constructors (remove mask, data should be velox.BaseColumn)
+    def __init__(self, device, dtype, data: velox.BaseColumn):
         assert dt.is_boolean_or_numerical(dtype)
         INumericalColumn.__init__(self, device, dtype)
-        self._data = velox.Column(get_velox_type(dtype))
-        for m, d in zip(mask.tolist(), data.tolist()):
-            if m:
-                self._data.append_null()
-            else:
-                self._data.append(d)
-        self._finialized = False
+        self._data = data
 
-    @staticmethod
-    def _full(device, data, dtype=None, mask=None):
-        assert isinstance(data, np.ndarray) and data.ndim == 1
-        if dtype is None:
-            dtype = dt.typeof_np_ndarray(data.dtype)
-        else:
-            if dtype != dt.typeof_np_dtype(data.dtype):
-                # TODO fix nullability
-                # raise TypeError(f'type of data {data.dtype} and given type {dtype} must be the same')
-                pass
-        if not dt.is_boolean_or_numerical(dtype):
-            raise TypeError(f"construction of columns of type {dtype} not supported")
-        if mask is None:
-            mask = NumericalColumnCpu._valid_mask(len(data))
-        elif len(data) != len(mask):
-            raise ValueError(
-                f"data length {len(data)} must be the same as mask length {len(mask)}"
-            )
-        # TODO check that all non-masked items are legal numbers (i.e not nan)
-        return NumericalColumnCpu(device, dtype, data, mask)
+        # TODO: Deprecate _finialized since Velox Column doesn't have "Builder" mode
+        self._finialized = False
 
     # Any _empty must be followed by a _finalize; no other ops are allowed during this time
     @staticmethod
     def _empty(device, dtype):
-        return NumericalColumnCpu(
-            device, dtype, ar.array(dtype.arraycode), ar.array("b")
-        )
+        return NumericalColumnCpu(device, dtype, velox.Column(get_velox_type(dtype)))
 
     @staticmethod
     def _fromlist(device: str, data: List[Union[int, float, bool]], dtype: dt.DType):
@@ -230,9 +202,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
             result_dtype = result_col.dtype().with_null(
                 self.dtype.nullable or other.dtype.nullable
             )
-            return ColumnFromVelox.from_velox(
-                self.device, result_dtype, result_col, True
-            )
         else:
             # other is scalar
             assert (
@@ -242,9 +211,10 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
             )
             result_col = getattr(self._data, op_name)(other)
             result_dtype = result_col.dtype().with_null(self.dtype.nullable)
-            return ColumnFromVelox.from_velox(
-                self.device, result_dtype, result_col, True
-            )
+
+        res = NumericalColumnCpu(self.device, result_dtype, result_col)
+        res._finialized = True
+        return res
 
     def _checked_comparison_op_call(
         self,
@@ -906,5 +876,4 @@ _primitive_types: List[dt.DType] = [
 ]
 for t in _primitive_types:
     Dispatcher.register((t.typecode + "_empty", "cpu"), NumericalColumnCpu._empty)
-    Dispatcher.register((t.typecode + "_full", "cpu"), NumericalColumnCpu._full)
     Dispatcher.register((t.typecode + "_fromlist", "cpu"), NumericalColumnCpu._fromlist)
