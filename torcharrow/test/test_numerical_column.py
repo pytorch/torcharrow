@@ -202,7 +202,7 @@ class TestNumericalColumn(unittest.TestCase):
             initializer=Scope._EmptyColumn(dt.int64, device=self.device),
             finalizer=TestNumericalColumn._finalize,
         )
-        self.assertEqual(d, [1, 3, 6])
+        self.assertEqual(list(d), [1, 3, 6])
 
     def base_test_sort_stuff(self):
         col = ta.Column([2, 1, 3], device=self.device)
@@ -254,64 +254,64 @@ class TestNumericalColumn(unittest.TestCase):
 
         # ==, !=
 
-        self.assertEqual(c == c, [True] * 3)
-        self.assertEqual(c == d, [False] * 3)
-        self.assertEqual(c != c, [False] * 3)
-        self.assertEqual(c != d, [True] * 3)
+        self.assertEqual(list(c == c), [True] * 3)
+        self.assertEqual(list(c == d), [False] * 3)
+        self.assertEqual(list(c != c), [False] * 3)
+        self.assertEqual(list(c != d), [True] * 3)
 
-        self.assertEqual(c == 1, [False, True, False])
-        self.assertEqual(1 == c, [False, True, False])
+        self.assertEqual(list(c == 1), [False, True, False])
+        self.assertEqual(list(1 == c), [False, True, False])
         self.assertTrue(
-            (c == 1) == ta.Column([False, True, False], device=self.device).all()
+            ((c == 1) == ta.Column([False, True, False], device=self.device)).all()
         )
         self.assertTrue(
-            (1 == c) == ta.Column([False, True, False], device=self.device).all()
+            ((1 == c) == ta.Column([False, True, False], device=self.device)).all()
         )
 
         # <, <=, >=, >
 
-        self.assertEqual(c <= 2, [True, True, False])
-        self.assertEqual(c <= e, [True, True, True])
-        self.assertEqual(c < 1, [True, False, False])
-        self.assertEqual(c < d, [True, True, True])
-        self.assertEqual(c >= 1, [False, True, True])
-        self.assertEqual(c >= d, [False, False, False])
-        self.assertEqual(c > 2, [False, False, True])
-        self.assertEqual(c > d, [False, False, False])
+        self.assertEqual(list(c <= 2), [True, True, False])
+        self.assertEqual(list(c <= e), [True, True, True])
+        self.assertEqual(list(c < 1), [True, False, False])
+        self.assertEqual(list(c < d), [True, True, True])
+        self.assertEqual(list(c >= 1), [False, True, True])
+        self.assertEqual(list(c >= d), [False, False, False])
+        self.assertEqual(list(c > 2), [False, False, True])
+        self.assertEqual(list(c > d), [False, False, False])
 
         # +,-,*,/,//,**,%
 
-        self.assertEqual(-c, [0, -1, -3])
-        self.assertEqual(+-c, [0, -1, -3])
+        self.assertEqual(list(-c), [0, -1, -3])
+        self.assertEqual(list(+-c), [0, -1, -3])
 
-        self.assertEqual(c + 1, [1, 2, 4])
-        self.assertEqual(e + 1, [2.0, 2.0, 8.0])
+        self.assertEqual(list(c + 1), [1, 2, 4])
+        self.assertEqual(list(e + 1), [2.0, 2.0, 8.0])
 
-        # self.assertEqual(c.add(1), [1, 2, 4])
+        # self.assertEqual(list(c.add(1)), [1, 2, 4])
 
-        self.assertEqual(1 + c, [1, 2, 4])
-        # self.assertEqual(c.radd(1), [1, 2, 4])
+        self.assertEqual(list(1 + c), [1, 2, 4])
+        # self.assertEqual(list(c.radd(1)), [1, 2, 4])
 
-        self.assertEqual(c + d, [5, 6, 9])
-        # self.assertEqual(c.add(d), [5, 6, 9])
+        self.assertEqual(list(c + d), [5, 6, 9])
+        # self.assertEqual(list(c.add(d)), [5, 6, 9])
 
-        self.assertEqual(c + 1, [1, 2, 4])
-        self.assertEqual(1 + c, [1, 2, 4])
-        self.assertEqual(c + d, [5, 6, 9])
+        self.assertEqual(list(c + 1), [1, 2, 4])
+        self.assertEqual(list(1 + c), [1, 2, 4])
+        self.assertEqual(list(c + d), [5, 6, 9])
 
-        self.assertEqual(c - 1, [-1, 0, 2])
-        self.assertEqual(1 - c, [1, 0, -2])
-        self.assertEqual(d - c, [5, 4, 3])
+        self.assertEqual(list(c - 1), [-1, 0, 2])
+        self.assertEqual(list(1 - c), [1, 0, -2])
+        self.assertEqual(list(d - c), [5, 4, 3])
 
-        self.assertEqual(c * 2, [0, 2, 6])
-        self.assertEqual(2 * c, [0, 2, 6])
-        self.assertEqual(c * d, [0, 5, 18])
+        self.assertEqual(list(c * 2), [0, 2, 6])
+        self.assertEqual(list(2 * c), [0, 2, 6])
+        self.assertEqual(list(c * d), [0, 5, 18])
 
-        self.assertEqual(c * 2, [0, 2, 6])
-        self.assertEqual(2 * c, [0, 2, 6])
-        self.assertEqual(c * d, [0, 5, 18])
+        self.assertEqual(list(c * 2), [0, 2, 6])
+        self.assertEqual(list(2 * c), [0, 2, 6])
+        self.assertEqual(list(c * d), [0, 5, 18])
 
-        self.assertEqual(c / 2, [0.0, 0.5, 1.5])
+        self.assertEqual(list(c / 2), [0.0, 0.5, 1.5])
         self.assertEqual(list(c / 0), [None, None, None])
 
         self.assertEqual(
@@ -319,22 +319,22 @@ class TestNumericalColumn(unittest.TestCase):
             [round(i, 2) if i is not None else None for i in [None, 2.0, 0.66666667]],
         )
 
-        self.assertEqual(c / d, [0.0, 0.2, 0.5])
+        self.assertEqual(list(c / d), [0.0, 0.2, 0.5])
 
-        self.assertEqual(d // 2, [2, 2, 3])
-        self.assertEqual(2 // d, [0, 0, 0])
-        self.assertEqual(c // d, [0, 0, 0])
-        self.assertEqual(e // d, [0.0, 0.0, 1.0])
+        self.assertEqual(list(d // 2), [2, 2, 3])
+        self.assertEqual(list(2 // d), [0, 0, 0])
+        self.assertEqual(list(c // d), [0, 0, 0])
+        self.assertEqual(list(e // d), [0.0, 0.0, 1.0])
 
-        self.assertEqual(d // e, [5.0, 5.0, 0.0])
+        self.assertEqual(list(d // e), [5.0, 5.0, 0.0])
 
-        self.assertEqual(c ** 2, [0, 1, 9])
-        self.assertEqual(2 ** c, [1, 2, 8])
-        self.assertEqual(c ** d, [0, 1, 729])
+        self.assertEqual(list(c ** 2), [0, 1, 9])
+        self.assertEqual(list(2 ** c), [1, 2, 8])
+        self.assertEqual(list(c ** d), [0, 1, 729])
 
-        self.assertEqual(d % 2, [1, 1, 0])
-        self.assertEqual(2 % d, [2, 2, 2])
-        self.assertEqual(c % d, [0, 1, 3])
+        self.assertEqual(list(d % 2), [1, 1, 0])
+        self.assertEqual(list(2 % d), [2, 2, 2])
+        self.assertEqual(list(c % d), [0, 1, 3])
 
         # TODO: Decide ...null handling.., bring back or ignore
 
@@ -349,31 +349,31 @@ class TestNumericalColumn(unittest.TestCase):
         # &, |, ^, ~
         g = ta.Column([True, False, True, False], device=self.device)
         h = ta.Column([False, False, True, True], device=self.device)
-        self.assertEqual(g & h, [False, False, True, False])
-        self.assertEqual(g | h, [True, False, True, True])
-        self.assertEqual(g ^ h, [True, False, False, True])
-        self.assertEqual(True & g, [True, False, True, False])
-        self.assertEqual(True | g, [True, True, True, True])
-        self.assertEqual(True ^ g, [False, True, False, True])
-        self.assertEqual(~g, [False, True, False, True])
+        self.assertEqual(list(g & h), [False, False, True, False])
+        self.assertEqual(list(g | h), [True, False, True, True])
+        self.assertEqual(list(g ^ h), [True, False, False, True])
+        self.assertEqual(list(True & g), [True, False, True, False])
+        self.assertEqual(list(True | g), [True, True, True, True])
+        self.assertEqual(list(True ^ g), [False, True, False, True])
+        self.assertEqual(list(~g), [False, True, False, True])
 
         i = ta.Column([1, 2, 0], device=self.device)
         j = ta.Column([3, 2, 3], device=self.device)
-        self.assertEqual(i & j, [1, 2, 0])
-        self.assertEqual(i | j, [3, 2, 3])
-        self.assertEqual(i ^ j, [2, 0, 3])
-        self.assertEqual(2 & i, [0, 2, 0])
-        self.assertEqual(2 | i, [3, 2, 2])
-        self.assertEqual(2 ^ i, [3, 0, 2])
-        self.assertEqual(~i, [-2, -3, -4])
+        self.assertEqual(list(i & j), [1, 2, 0])
+        self.assertEqual(list(i | j), [3, 2, 3])
+        self.assertEqual(list(i ^ j), [2, 0, 3])
+        self.assertEqual(list(2 & i), [0, 2, 0])
+        self.assertEqual(list(2 | i), [3, 2, 2])
+        self.assertEqual(list(2 ^ i), [3, 0, 2])
+        self.assertEqual(list(~i), [-2, -3, -1])
 
     # TODO Test type promotion rules
 
     def base_test_na_handling(self):
         c = ta.Column([None, 2, 17.0], device=self.device)
 
-        self.assertEqual(c.fill_null(99.0), [99.0, 2, 17.0])
-        self.assertEqual(c.drop_null(), [2.0, 17.0])
+        self.assertEqual(list(c.fill_null(99.0)), [99.0, 2, 17.0])
+        self.assertEqual(list(c.drop_null()), [2.0, 17.0])
 
         c = c.append([2])
         self.assertEqual(set(c.drop_duplicates()), {None, 2, 17.0})
