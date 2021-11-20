@@ -53,9 +53,8 @@ class TestFactory(unittest.TestCase):
 
         df = ta.DataFrame(data, device="cpu")
         self.assertEqual(df.dtype, dtype)
-        x = list(df)
         self.assertEqual(
-            x,
+            list(df),
             [
                 ([1, 2], [1, 2], 1, 10, "a"),
                 ([3, None], [3], 2, 20, "b"),
@@ -70,11 +69,10 @@ class TestFactory(unittest.TestCase):
         casted_fields[3] = dt.Field("b", dt.int32)
         casted_dtype = dt.Struct(casted_fields)
 
-        casted_egaer_df = ta.DataFrame(df, dtype=casted_dtype, device="cpu")
-        self.assertEqual(casted_egaer_df.dtype, casted_egaer_df.dtype)
-        y = list(casted_egaer_df)
+        casted_eager_df = ta.DataFrame(df, dtype=casted_dtype, device="cpu")
+        self.assertEqual(casted_eager_df.dtype, casted_eager_df.dtype)
         self.assertEqual(
-            y,
+            list(casted_eager_df),
             [
                 ([1, 2], [1, 2], 1.0, 10, "a"),
                 ([3, None], [3], 2.0, 20, "b"),

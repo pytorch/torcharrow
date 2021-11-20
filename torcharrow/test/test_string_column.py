@@ -110,9 +110,9 @@ class TestStringColumn(unittest.TestCase):
         s2 = ["abc", "77", "", None, "55"]
         c1 = ta.Column(s1, device=self.device)
         c2 = ta.Column(s2, device=self.device)
-        self.assertEqual(c1 == c2, [True, False, True, None, None])
-        self.assertEqual(c1 == "abc", [True, False, False, False, None])
-        self.assertEqual(c1 == "de", [False, True, False, False, None])
+        self.assertEqual(list(c1 == c2), [True, False, True, None, None])
+        self.assertEqual(list(c1 == "abc"), [True, False, False, False, None])
+        self.assertEqual(list(c1 == "de"), [False, True, False, False, None])
 
         # TODO: other comparision, and str == IColumn support
 

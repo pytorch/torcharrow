@@ -57,7 +57,7 @@ class TestListColumn(unittest.TestCase):
         )
         vals = [[[1, 2], None, [3, 4]], [[4], [5]]]
         c = c.append(vals)
-        self.assertEqual(vals, list(c))
+        self.assertEqual(list(c), vals)
 
         d = ta.Column(
             dt.List(
@@ -68,7 +68,7 @@ class TestListColumn(unittest.TestCase):
         )
         for val in vals:
             d = d.append([val])
-        self.assertEqual(vals, list(d))
+        self.assertEqual(list(d), vals)
 
     def base_test_nested_string_once(self):
         c = ta.Column(dt.List(dt.string), device=self.device)
@@ -83,7 +83,7 @@ class TestListColumn(unittest.TestCase):
         c = c.append([[[]]])
         c = c.append([[["a"]]])
         c = c.append([[["b", "c"], ["d", "e", "f"]]])
-        self.assertEqual([[], [[]], [["a"]], [["b", "c"], ["d", "e", "f"]]], list(c))
+        self.assertEqual(list(c), [[], [[]], [["a"]], [["b", "c"], ["d", "e", "f"]]])
 
     def base_test_get_count_join(self):
         c = ta.Column(dt.List(dt.string), device=self.device)
