@@ -910,7 +910,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __lt__(self, other):
         """Vectorized a < b."""
-        return self._py_comparison_op(other, operator.le)
+        return self._py_comparison_op(other, operator.lt)
 
     @trace
     @expression
