@@ -511,11 +511,9 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(c == [3, 4]), [False, True])
         self.assertEqual(list(c != [3, 4]), [True, False])
 
-        # This is currently broken, will fix in subsequent diff.
-        self.assertEqual(list(c < c), [True, True])  # [False, False]
+        self.assertEqual(list(c < c), [False, False])
         self.assertEqual(list(c <= c), [True, True])
-        # This is currently broken, will fix in subsequent diff.
-        self.assertEqual(list(c < [3, 4]), [True, True])  # [True, False]
+        self.assertEqual(list(c < [3, 4]), [True, False])
         self.assertEqual(list(c <= [3, 4]), [True, True])
 
         self.assertEqual(list(c > c), [False, False])
