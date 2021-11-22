@@ -364,6 +364,11 @@ class TestDataFrame(unittest.TestCase):
         """
 
     def base_test_operators(self):
+        # Note: this is mostly testing INumericalColumn's overridden operator
+        # implementation.
+        # TODO: move INumericalOperator tests into test_numerical_column.py
+        # and add operator tests for non-velox implementation.
+
         # without None
         c = ta.DataFrame({"a": [0, 1, 3]}, device=self.device)
 
@@ -487,6 +492,51 @@ class TestDataFrame(unittest.TestCase):
         z = uv == uu
         z["a"]
         (z | (x["a"]))
+
+    def base_test_python_comparison_ops(self):
+        # Use a dtype of list to prevent fast path through numerical
+        # column operators to ensure we are testing the generic python
+        # operators.
+        c = ta.Column([[1, 2], [3, 4]])
+        d = ta.Column([[0, 1], [3, 4], [6, 7]])
+
+        # TODO: none of these work at the moment, they all fail with an
+        # AttributeError exeception. We'll fix that in a subsequent diff,
+        # but for now record the current failing state.
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(c == c), [True, True])
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(c == d), [False, True])
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(d == c), [False, True, None])
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(c != c), [False, False])
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(c != d), [True, False])
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(d != c), [True, False, None])
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(c == [3, 4]), [False, True])
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(c != [3, 4]), [True, False])
+
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(c < c), [False, False])
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(c <= c), [True, True])
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(c < [3, 4]), [True, False])
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(c <= [3, 4]), [True, True])
+
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(c > c), [False, False])
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(c >= c), [True, True])
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(c > [3, 4]), [False, False])
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(c >= [3, 4]), [False, True])
 
     def base_test_na_handling(self):
         c = ta.DataFrame({"a": [None, 2, 17.0]}, device=self.device)
