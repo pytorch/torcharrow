@@ -45,6 +45,9 @@ class TestDataFrameCpu(TestDataFrame):
     def test_operators(self):
         return self.base_test_operators()
 
+    def test_python_comparison_ops(self):
+        return self.base_test_python_comparison_ops()
+
     def test_na_handling(self):
         return self.base_test_na_handling()
 
