@@ -1514,7 +1514,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         others = None
         other_dtype = None
         if isinstance(other, IColumn):
-            others = other._items()
+            others = itertools.chain(other._items(), itertools.repeat((True, None)))
             other_dtype = other.dtype
         else:
             others = itertools.repeat((False, other))
