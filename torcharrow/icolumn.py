@@ -1514,7 +1514,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         others = None
         other_dtype = None
         if isinstance(other, IColumn):
-            others = other.items()
+            others = other._items()
             other_dtype = other.dtype
         else:
             others = itertools.repeat((False, other))
@@ -1526,7 +1526,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 res.append(None)
             else:
                 res.append(pred(i, j))
-        return self._FromPyList(res, res_dtype)
+        return Scope._FromPyList(res, res_dtype)
 
     def _compare(self, op, initial):
         assert initial in [True, False]
