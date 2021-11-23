@@ -107,39 +107,34 @@ class TestStringColumn(unittest.TestCase):
 
     def base_test_comparison(self):
         c = ta.Column(["abc", "de", "", "f", None], device=self.device)
-        d = ta.Column(["abc", "77", "", None, "55", "!"], device=self.device)
+        d = ta.Column(["abc", "77", "", None, "55"], device=self.device)
         self.assertEqual(list(c == c), [True, True, True, True, None])
         self.assertEqual(list(c == d), [True, False, True, None, None])
-        # This is currently broken, will fix in subsequent diff.
-        self.assertEqual(
-            list(d == c), [True, False, True, None, None, False]
-        )  # [True, False, True, None, None, None]
         self.assertEqual(list(c == "de"), [False, True, False, False, None])
 
         self.assertEqual(list(c != c), [False, False, False, False, None])
         self.assertEqual(list(c != d), [False, True, False, None, None])
-        self.assertEqual(list(d != c), [False, True, False, None, None, None])
         self.assertEqual(list(c != "de"), [True, False, True, True, None])
 
         self.assertEqual(list(c < c), [False, False, False, False, None])
         self.assertEqual(list(c < d), [False, False, False, None, None])
-        self.assertEqual(list(d < c), [False, True, False, None, None, None])
         self.assertEqual(list(c < "de"), [True, False, True, False, None])
 
         self.assertEqual(list(c <= c), [True, True, True, True, None])
         self.assertEqual(list(c <= d), [True, False, True, None, None])
-        self.assertEqual(list(d <= c), [True, True, True, None, None, None])
         self.assertEqual(list(c <= "de"), [True, True, True, False, None])
 
         self.assertEqual(list(c > c), [False, False, False, False, None])
         self.assertEqual(list(c > d), [False, True, False, None, None])
-        self.assertEqual(list(d > c), [False, False, False, None, None, None])
         self.assertEqual(list(c > "de"), [False, False, False, True, None])
 
         self.assertEqual(list(c >= c), [True, True, True, True, None])
         self.assertEqual(list(c >= d), [True, True, True, None, None])
-        self.assertEqual(list(d >= c), [True, False, True, None, None, None])
         self.assertEqual(list(c >= "de"), [False, True, False, True, None])
+
+        # validate comparing non-equal length columns fails
+        with self.assertRaises(TypeError):
+            assert c == c.append([None])
 
     def base_test_string_lifted_methods(self):
         s = ["abc", "de", "", "f"]
