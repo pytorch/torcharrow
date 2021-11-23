@@ -16,13 +16,29 @@ It plans to provide:
 
 ## Installation
 
-### Binaries
+You will need Python 3.8 or later. Also, we highly recommend installing an [Miniconda](https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links) environment.
 
+First, set up an environment. If you are using conda, create a conda environment:
+```
+conda create --name torcharrow python=3.8
+conda activate torcharrow
+```
+
+### Binaries (Experimental)
+
+#### MacOS
+
+Experimental binary on MacOS can be installed via pip wheels:
+```
+pip install torcharrow==0.0.2.dev20211122
+```
+
+#### Linux
 Coming soon!
 
 ### From Source
 
-If you are installing from source, you will need Python 3.8 or later and a C++17 compiler. Also, we highly recommend installing an [Miniconda](https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links) environment.
+If you are installing from source, you will need Python 3.8 or later and a C++17 compiler.
 
 #### Get the TorchArrow Source
 ```bash
@@ -60,12 +76,6 @@ scripts/install_ubuntu_folly.sh
 ```
 
 #### Install TorchArrow
-First, set up an environment. If you are using conda, create a conda environment:
-```
-conda create --name torcharrow python=3.8
-conda activate torcharrow
-```
-
 For local development, you can build with debug mode:
 ```
 DEBUG=1 python setup.py develop
