@@ -21,6 +21,8 @@ __pycache__/
 build/
 *.egg-info/
 *.egg
+dist/
+fixed_dist/
 
 # OSX dir files
 .DS_Store
