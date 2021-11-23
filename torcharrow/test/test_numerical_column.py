@@ -274,6 +274,10 @@ class TestNumericalColumn(unittest.TestCase):
             ((1 == c) == ta.Column([False, True, False], device=self.device)).all()
         )
 
+        # validate comparing non-equal length columns fails
+        with self.assertRaises(TypeError):
+            assert c == c.append([None])
+
         # <, <=, >=, >
 
         self.assertEqual(list(c <= 2), [True, True, False])

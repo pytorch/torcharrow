@@ -198,6 +198,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         self, other: Union[INumericalColumn, int, float, bool], op_name: str
     ) -> INumericalColumn:
         if isinstance(other, NumericalColumnCpu):
+            if len(other) != len(self):
+                raise TypeError("columns must have equal length")
             result_col = getattr(self._data, op_name)(other._data)
             result_dtype = result_col.dtype().with_null(
                 self.dtype.nullable or other.dtype.nullable

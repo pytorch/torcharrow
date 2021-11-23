@@ -142,6 +142,11 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
     @expression
     def __eq__(self, other):
         if isinstance(other, StringColumnCpu):
+            # TODO: when we vectorize all string ops, raise this
+            # length check to apply to all vectorized comparisons
+            # (other ops fall back to python slow path currently).
+            if len(other) != len(self):
+                raise TypeError("columns must have equal length")
             return functional.eq(self, other).with_null(
                 self.dtype.nullable or other.dtype.nullable
             )
