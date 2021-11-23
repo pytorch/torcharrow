@@ -498,14 +498,12 @@ class TestDataFrame(unittest.TestCase):
         # column operators to ensure we are testing the generic python
         # operators.
         c = ta.Column([[1, 2], [3, 4]])
-        d = ta.Column([[0, 1], [3, 4], [6, 7]])
+        d = ta.Column([[0, 1], [3, 4]])
 
         self.assertEqual(list(c == c), [True, True])
         self.assertEqual(list(c == d), [False, True])
-        self.assertEqual(list(d == c), [False, True, None])
         self.assertEqual(list(c != c), [False, False])
         self.assertEqual(list(c != d), [True, False])
-        self.assertEqual(list(d != c), [True, False, None])
         self.assertEqual(list(c == [3, 4]), [False, True])
         self.assertEqual(list(c != [3, 4]), [True, False])
 
@@ -518,6 +516,10 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(c >= c), [True, True])
         self.assertEqual(list(c > [3, 4]), [False, False])
         self.assertEqual(list(c >= [3, 4]), [False, True])
+
+        # validate comparing non-equal length columns fails
+        with self.assertRaises(TypeError):
+            assert c == c.append([None])
 
     def base_test_na_handling(self):
         c = ta.DataFrame({"a": [None, 2, 17.0]}, device=self.device)

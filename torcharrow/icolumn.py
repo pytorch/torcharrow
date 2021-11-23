@@ -1514,7 +1514,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         others = None
         other_dtype = None
         if isinstance(other, IColumn):
-            others = itertools.chain(other._items(), itertools.repeat((True, None)))
+            if len(other) != len(self):
+                raise TypeError("columns must have equal length")
+            others = other._items()
             other_dtype = other.dtype
         else:
             others = itertools.repeat((False, other))
