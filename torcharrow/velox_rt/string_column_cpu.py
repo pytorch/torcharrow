@@ -13,6 +13,7 @@ from torcharrow.expression import expression
 from torcharrow.functional import functional
 from torcharrow.istring_column import IStringColumn, IStringMethods
 from torcharrow.scope import Scope, Device
+from torcharrow.trace import trace
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type
@@ -139,20 +140,52 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
             assert isinstance(other, str)
             return functional.concat(self, other).with_null(self.dtype.nullable)
 
-    @expression
-    def __eq__(self, other):
+    def _checked_binary_op_call(self, other, op_name):
+        f = functional.__getattr__(op_name)
+        nullable = self.dtype.nullable
         if isinstance(other, StringColumnCpu):
-            # TODO: when we vectorize all string ops, raise this
-            # length check to apply to all vectorized comparisons
-            # (other ops fall back to python slow path currently).
             if len(other) != len(self):
                 raise TypeError("columns must have equal length")
-            return functional.eq(self, other).with_null(
-                self.dtype.nullable or other.dtype.nullable
-            )
+            nullable = nullable or other.dtype.nullable
         else:
             assert isinstance(other, str)
-            return functional.eq(self, other).with_null(self.dtype.nullable)
+        return f(self, other).with_null(nullable)
+
+    @trace
+    @expression
+    def __eq__(self, other):
+        """Return self == other."""
+        return self._checked_binary_op_call(other, "eq")
+
+    @trace
+    @expression
+    def __ne__(self, other):
+        """Return self != other."""
+        return self._checked_binary_op_call(other, "neq")
+
+    @trace
+    @expression
+    def __lt__(self, other):
+        """Return self < other."""
+        return self._checked_binary_op_call(other, "lt")
+
+    @trace
+    @expression
+    def __le__(self, other):
+        """Return self <= other."""
+        return self._checked_binary_op_call(other, "lte")
+
+    @trace
+    @expression
+    def __gt__(self, other):
+        """Return self > other."""
+        return self._checked_binary_op_call(other, "gt")
+
+    @trace
+    @expression
+    def __ge__(self, other):
+        """Return self >= other."""
+        return self._checked_binary_op_call(other, "gte")
 
     # printing ----------------------------------------------------------------
 
