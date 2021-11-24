@@ -357,6 +357,9 @@ std::unique_ptr<OperatorHandle> OperatorHandle::fromGenericUDF(
     velox::RowTypePtr inputRowType,
     const std::string& udfName) {
   velox::TypePtr outputType = velox::resolveFunction(udfName, inputRowType->children());
+  if (outputType == nullptr) {
+    throw std::runtime_error("Request for unknown Velox UDF: " + udfName);
+  }
 
   // Construct Typed Expression
   using InputExprList =
