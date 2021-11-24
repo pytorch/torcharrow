@@ -43,6 +43,11 @@ class TestStringColumnCpu(unittest.TestCase):
             list(functional.upper(str_col)), ["", "ABC", "XYZ", "123", "XYZ123", None]
         )
 
+        # Validate that invoking unknown UDFs errors nicely.
+        with self.assertRaises(RuntimeError) as ex:
+            assert functional.idontexist(str_col)
+        self.assertEqual(str(ex.exception), "Request for unknown Velox UDF: idontexist")
+
     def test_factory_dispatch(self):
         rand_col = functional.rand(size=42)
 
