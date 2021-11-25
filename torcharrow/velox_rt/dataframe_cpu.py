@@ -187,6 +187,9 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     def _valid_mask(ct):
         return np.full((ct,), False, dtype=np.bool8)
 
+    def copy(self):
+        return ColumnFromVelox.from_velox(self.device, self.dtype, self._data, True)
+
     def append(self, values: Iterable[Union[None, dict, tuple]]):
         """Returns column/dataframe with values appended."""
         it = iter(values)
