@@ -21,7 +21,7 @@ from .idataframe import *
 from .velox_rt import *
 
 from . import pytorch
-from .interop import from_pylist
+from .interop import from_pylist, from_arrow
 
 try:
     from .version import __version__  # noqa: F401

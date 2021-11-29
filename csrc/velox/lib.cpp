@@ -14,7 +14,9 @@
 #include "velox/buffer/StringViewBufferHolder.h"
 #include "velox/functions/prestosql/SimpleFunctions.h"
 #include "velox/functions/prestosql/VectorFunctions.h"
+#include "velox/type/Type.h"
 #include "velox/vector/TypeAliases.h"
+#include "velox/vector/arrow/Bridge.h"
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -137,6 +139,34 @@ py::class_<SimpleColumn<T>, BaseColumn> declareSimpleType(
          py::list data) -> std::unique_ptr<SimpleColumn<T>> {
         return std::make_unique<SimpleColumn<T>>(flatVectorFromPyList<T>(data));
       });
+
+  // Import Arrow data
+  //
+  // VARCHAR is not supported at the moment
+  // https://github.com/facebookincubator/velox/blob/f420d3115eeb8ad782aa9979f47be03671ed02f4/velox/vector/arrow/Bridge.cpp#L128
+  if constexpr (
+      kind == velox::TypeKind::BOOLEAN || kind == velox::TypeKind::TINYINT ||
+      kind == velox::TypeKind::SMALLINT || kind == velox::TypeKind::INTEGER ||
+      kind == velox::TypeKind::BIGINT || kind == velox::TypeKind::REAL ||
+      kind == velox::TypeKind::DOUBLE) {
+    m.def(
+        "_import_from_arrow",
+        [](std::shared_ptr<I> type, uintptr_t ptrArray, uintptr_t ptrSchema) {
+          auto column =
+              std::make_unique<SimpleColumn<T>>(velox::importFromArrowAsOwner(
+                  *reinterpret_cast<ArrowSchema*>(ptrSchema),
+                  *reinterpret_cast<ArrowArray*>(ptrArray),
+                  TorchArrowGlobalStatic::rootMemoryPool()));
+
+          VELOX_CHECK(
+              column->type()->kind() == kind,
+              "Expected TypeKind is {} but Velox created {}",
+              velox::TypeTraits<kind>::name,
+              column->type()->kindName());
+
+          return column;
+        });
+  }
 
   return result;
 };
