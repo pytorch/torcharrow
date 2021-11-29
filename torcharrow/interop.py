@@ -1,12 +1,16 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import pandas as pd  # type: ignore
-import torcharrow.dtypes as dt
+from typing import Optional
+
 from torcharrow import Scope
 
 from .dispatcher import Dispatcher
 
 
-def from_arrow(data, dtype=None, device=""):
+def from_arrow(
+    data,  # type: pa.Array
+    device: str = "",
+    nullable: Optional[bool] = None,
+):
     """
     Convert arrow array/table to a TorchArrow Column/DataFrame.
     """
@@ -17,13 +21,18 @@ def from_arrow(data, dtype=None, device=""):
 
     assert isinstance(data, pa.Array) or isinstance(data, pa.Table)
 
-    # TODO Find out a way to propagate nullable property properly.
-    # nullable = data.null_count > 0 is not quite right since it is legit for
-    # either a nullable or non-nullable array to have null_count == 0. Also the
-    # only backend we have right now, Velox, doesn't support nullability, so we
-    # will need to make it support nullability or have some way around it to
-    # carry over the nullable property to the exporting path (Velox -> Arrow)
-    dtype = dtype or _arrowtype_to_dtype(data.type, True)
+    if nullable is None:
+        # Using the most narrow type we can, we (i) don't restrict in any
+        # way where it can be used (since we can pass a narrower typed
+        # non-null column to a function expecting a nullable type, but not
+        # vice versa), (ii) when we bring in a stricter type system in Velox
+        # to allow functions to only be invokable on non-null types we
+        # increase the amount of places we can use the from_arrow result
+        nullable = data.null_count > 0
+    if not nullable and data.null_count > 0:
+        raise RuntimeError("Cannot store nulls in a non-nullable column")
+    dtype = _arrowtype_to_dtype(data.type, nullable)
+
     device = device or Scope.default.device
 
     call = Dispatcher.lookup((dtype.typecode + "_fromarrow", device))

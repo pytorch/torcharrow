@@ -49,7 +49,7 @@ class TestArrowInterop(unittest.TestCase):
         self, pydata: List, arrow_type: pa.DataType, ta_type: dt.DType
     ):
         s = pa.array(pydata, type=arrow_type)
-        t = ta.from_arrow(s, device=self.device)
+        t = ta.from_arrow(s, device=self.device, nullable=True)
         self.assertEqual(t.dtype, ta_type)
         for pa_val, ta_val in zip([i.as_py() for i in s], list(t)):
             if pa_val and math.isnan(pa_val) and ta_val and math.isnan(ta_val):
@@ -59,7 +59,7 @@ class TestArrowInterop(unittest.TestCase):
 
     def base_test_arrow_array(self):
         s = pa.array([True, True, False, None, False])
-        t = ta.from_arrow(s, device=self.device)
+        t = ta.from_arrow(s, device=self.device, nullable=True)
         self.assertEqual(t.dtype, dt.Boolean(True))
         self.assertEqual([i.as_py() for i in s], list(t))
 
@@ -76,14 +76,14 @@ class TestArrowInterop(unittest.TestCase):
                 self._test_construction_numeric(pydata_float, arrow_type, ta_type)
             elif pa.types.is_string(arrow_type) or pa.types.is_large_string(arrow_type):
                 s = pa.array(pydata_string, type=arrow_type)
-                t = ta.from_arrow(s, device=self.device)
+                t = ta.from_arrow(s, device=self.device, nullable=True)
                 self.assertEqual(t.dtype, ta_type)
                 self.assertEqual([i.as_py() for i in s], list(t))
 
     def base_test_ownership_transferred(self):
         pydata = [1, 2, 3]
         s = pa.array(pydata)
-        t = ta.from_arrow(s)
+        t = ta.from_arrow(s, device=self.device)
         del s
         # Check that the data are still around
         self.assertEqual(pydata, list(t))
@@ -98,7 +98,7 @@ class TestArrowInterop(unittest.TestCase):
         # Extra memory are allocated when exporting Arrow data, for the new
         # ArrowArray and ArrowSchema objects and the private_data inside the
         # objects
-        t = ta.from_arrow(s)
+        t = ta.from_arrow(s, device=self.device)
         memory_checkpoint_2 = pa.total_allocated_bytes()
         self.assertGreater(memory_checkpoint_2, memory_checkpoint_1)
 
@@ -127,3 +127,33 @@ class TestArrowInterop(unittest.TestCase):
         self.assertTrue(
             f"Unsupported Arrow type: {str(union_array.type)}" in str(ex.exception)
         )
+
+    def base_test_nullability(self):
+        pydata = [1, 2, 3]
+        s = pa.array(pydata)
+        t = ta.from_arrow(s, device=self.device)
+        self.assertFalse(t.dtype.nullable)
+
+        pydata = [1, 2, 3, None]
+        s = pa.array(pydata)
+        t = ta.from_arrow(s, device=self.device)
+        self.assertTrue(t.dtype.nullable)
+
+        pydata = [1, 2, 3]
+        s = pa.array(pydata)
+        t = ta.from_arrow(s, device=self.device, nullable=True)
+        self.assertTrue(t.dtype.nullable)
+
+        pydata = [1, 2, 3]
+        s = pa.array(pydata)
+        t = ta.from_arrow(s, device=self.device, nullable=False)
+        self.assertFalse(t.dtype.nullable)
+
+        pydata = [1, 2, 3, None]
+        s = pa.array(pydata)
+        with self.assertRaises(RuntimeError) as ex:
+            t = ta.from_arrow(s, device=self.device, nullable=False)
+        self.assertTrue(
+            "Cannot store nulls in a non-nullable column" in str(ex.exception)
+        )
+

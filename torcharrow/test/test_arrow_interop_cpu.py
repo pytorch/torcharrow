@@ -20,6 +20,9 @@ class TestArrowInteropCpu(TestArrowInterop):
     def test_unsupported_types(self):
         return self.base_test_unsupported_types()
 
+    def test_nullability(self):
+        return self.base_test_nullability()
+
 
 if __name__ == "__main__":
     unittest.main()
