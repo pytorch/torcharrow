@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import pandas as pd  # type: ignore
-import pyarrow as pa  # type: ignore
 import torcharrow.dtypes as dt
 from torcharrow import Scope
 
@@ -18,7 +17,13 @@ def from_arrow(data, dtype=None, device=""):
 
     assert isinstance(data, pa.Array) or isinstance(data, pa.Table)
 
-    dtype = dtype or _arrowtype_to_dtype(data.type, data.null_count > 0)
+    # TODO Find out a way to propagate nullable property properly.
+    # nullable = data.null_count > 0 is not quite right since it is legit for
+    # either a nullable or non-nullable array to have null_count == 0. Also the
+    # only backend we have right now, Velox, doesn't support nullability, so we
+    # will need to make it support nullability or have some way around it to
+    # carry over the nullable property to the exporting path (Velox -> Arrow)
+    dtype = dtype or _arrowtype_to_dtype(data.type, True)
     device = device or Scope.default.device
 
     call = Dispatcher.lookup((dtype.typecode + "_fromarrow", device))
@@ -37,6 +42,7 @@ def from_pylist(data, dtype=None, device=""):
     """
     Convert Python list of scalars or containers to a TorchArrow Column/DataFrame.
     """
+    # TODO(https://github.com/facebookresearch/torcharrow/issues/80) Infer dtype
     device = device or Scope.default.device
 
     return Scope.default._FromPyList(data, dtype, device)
