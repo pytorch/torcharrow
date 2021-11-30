@@ -59,6 +59,8 @@ class IListMethods(abc.ABC):
         1  'really?'
         dtype: string, length: 2, null_count: 0
         """
+        self._parent._prototype_support_warning("list.join")
+
         me = self._parent
         assert dt.is_string(me.dtype.item_dtype)
 
@@ -70,6 +72,8 @@ class IListMethods(abc.ABC):
         )
 
     def get(self, i):
+        self._parent._prototype_support_warning("list.get")
+
         me = self._parent
 
         def fun(xs):
@@ -81,6 +85,8 @@ class IListMethods(abc.ABC):
         self, start: int = None, stop: int = None, step: int = None
     ) -> IListColumn:
         """Slice sublist from each element in the column"""
+        self._parent._prototype_support_warning("list.slice")
+
         me = self._parent
 
         def fun(i):
@@ -89,6 +95,8 @@ class IListMethods(abc.ABC):
         return me._vectorize(fun, me.dtype)
 
     def count(self, elem, flags=0):
+        self._parent._prototype_support_warning("list.count")
+
         me = self._parent
 
         def fun(i):

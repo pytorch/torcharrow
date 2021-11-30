@@ -68,6 +68,7 @@ class IStringMethods(abc.ABC):
         dtype: List(string), length: 2, null_count: 0
 
         """
+        self._parent._prototype_support_warning("str.split")
         me = self._parent
 
         def fun(i):
@@ -88,30 +89,39 @@ class IStringMethods(abc.ABC):
     # alphabetic/numeric/digits/decimal...
 
     def isalpha(self):
+        self._parent._prototype_support_warning("str.isalpha")
         return self._vectorize_boolean(str.isalpha)
 
     def isnumeric(self):
+        self._parent._prototype_support_warning("str.isnumeric")
         return self._vectorize_boolean(str.isnumeric)
 
     def isalnum(self):
+        self._parent._prototype_support_warning("str.isalnum")
         return self._vectorize_boolean(str.isalnum)
 
     def isdigit(self):
+        self._parent._prototype_support_warning("str.isdigit")
         return self._vectorize_boolean(str.isdigit)
 
     def isdecimal(self):
+        self._parent._prototype_support_warning("str.isdecimal")
         return self._vectorize_boolean(str.isdecimal)
 
     def isspace(self):
+        self._parent._prototype_support_warning("str.isspace")
         return self._vectorize_boolean(str.isspace)
 
     def islower(self):
+        self._parent._prototype_support_warning("str.islower")
         return self._vectorize_boolean(str.islower)
 
     def isupper(self):
+        self._parent._prototype_support_warning("str.isupper")
         return self._vectorize_boolean(str.isupper)
 
     def istitle(self):
+        self._parent._prototype_support_warning("str.istitle")
         return self._vectorize_boolean(str.istitle)
 
     # Convert strings in the Column -----------------------------------------------------
@@ -121,6 +131,7 @@ class IStringMethods(abc.ABC):
         Convert strings in the Column to lowercase.
         Equivalent to :meth:`str.lower`.
         """
+        self._parent._prototype_support_warning("str.lower")
         return self._vectorize_string(str.lower)
 
     def upper(self) -> IStringColumn:
@@ -128,11 +139,13 @@ class IStringMethods(abc.ABC):
         Convert strings in the Column to uppercase.
         Equivalent to :meth:`str.upper`.
         """
+        self._parent._prototype_support_warning("str.upper")
         return self._vectorize_string(str.upper)
 
     # Pattern matching related methods  -----------------------------------------------------
     def startswith(self, pat):
         """Test if the beginning of each string element matches a pattern."""
+        self._parent._prototype_support_warning("str.startswith")
 
         def pred(i):
             return i.startswith(pat)
@@ -141,6 +154,7 @@ class IStringMethods(abc.ABC):
 
     def endswith(self, pat):
         """Test if the end of each string element matches a pattern."""
+        self._parent._prototype_support_warning("str.endswith")
 
         def pred(i):
             return i.endswith(pat)
@@ -148,6 +162,8 @@ class IStringMethods(abc.ABC):
         return self._vectorize_boolean(pred)
 
     def find(self, sub):
+        self._parent._prototype_support_warning("str.find")
+
         def fun(i):
             return i.find(sub)
 
@@ -157,6 +173,8 @@ class IStringMethods(abc.ABC):
         """
         Replace each occurrence of pattern in the Column.
         """
+        self._parent._prototype_support_warning("str.replace")
+
         return self._vectorize_string(lambda s: s.replace(old, new))
 
     # Regular expressions -----------------------------------------------------
@@ -165,10 +183,14 @@ class IStringMethods(abc.ABC):
 
     def count_re(self, pattern: str):
         """Count occurrences of pattern in each string"""
+        self._parent._prototype_support_warning("str.count_re")
+
         return self.findall_re(pattern).list.length()
 
     def match_re(self, pattern: str):
         """Determine if each string matches a regular expression (see re.match())"""
+        self._parent._prototype_support_warning("str.match_re")
+
         pattern = re.compile(pattern)
 
         def func(text):
@@ -178,6 +200,7 @@ class IStringMethods(abc.ABC):
 
     def replace_re(self, pattern: str, repl: str, count=0):
         """Replace for each item the search string or pattern with the given value"""
+        self._parent._prototype_support_warning("str.replace_re")
 
         pattern = re.compile(pattern)
 
@@ -191,6 +214,7 @@ class IStringMethods(abc.ABC):
         pattern: str,
     ):
         """Test for each item if pattern is contained within a string; returns a boolean"""
+        self._parent._prototype_support_warning("str.contains_re")
 
         pattern = re.compile(pattern)
 
@@ -203,6 +227,8 @@ class IStringMethods(abc.ABC):
         """
         Find for each item all occurrences of pattern (see re.findall())
         """
+        self._parent._prototype_support_warning("str.findall_re")
+
         pattern = re.compile(pattern)
 
         def func(text):
