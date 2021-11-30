@@ -91,6 +91,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     def _if_else(self, then_, else_):
         """Vectorized if-then-else"""
+        self._prototype_support_warning("_if_else")
+
         if not dt.is_boolean(self.dtype):
             raise TypeError("condition must be a boolean vector")
         if not isinstance(then_, IColumn):
@@ -131,6 +133,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         na_position: Literal["last", "first"] = "last",
     ):
         """Sort a column/a dataframe in ascending or descending order"""
+        self._prototype_support_warning("sort")
+
         if columns is not None:
             raise TypeError("sort on numerical column can't have 'columns' parameter")
         res = []
@@ -184,6 +188,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def _nunique(self, drop_null=True):
         """Returns the number of unique values of the column"""
+        self._prototype_support_warning("_nunique")
+
         result = set()
         for i in range(len(self)):
             if self._getmask(i):
@@ -249,6 +255,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
             return False
 
         if should_use_py_impl(self, other):
+            self._prototype_support_warning(op_name)
             return self._py_arithmetic_op(other, fallback_py_op)
 
         return self._checked_binary_op_call(other, op_name)
@@ -299,6 +306,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def __floordiv__(self, other):
         """Vectorized a // b."""
+        self._prototype_support_warning("__floordiv__")
+
         if isinstance(other, NumericalColumnCpu):
             col = velox.Column(get_velox_type(dt.float64))
             assert len(self) == len(other)
@@ -321,6 +330,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def __rfloordiv__(self, other):
         """Vectorized b // a."""
+        self._prototype_support_warning("__rfloordiv__")
+
         if isinstance(other, NumericalColumnCpu):
             col = velox.Column(get_velox_type(self.dtype))
             assert len(self) == len(other)
@@ -343,6 +354,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def __truediv__(self, other):
         """Vectorized a / b."""
+        self._prototype_support_warning("__truediv__")
+
         if isinstance(other, NumericalColumnCpu):
             col = velox.Column(get_velox_type(dt.float64))
             assert len(self) == len(other)
@@ -370,6 +383,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def __rtruediv__(self, other):
         """Vectorized b / a."""
+        self._prototype_support_warning("__rtruediv__")
+
         if isinstance(other, NumericalColumnCpu):
             col = velox.Column(get_velox_type(dt.float64))
             assert len(self) == len(other)
@@ -412,6 +427,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def __pow__(self, other):
         """Vectorized a ** b."""
+        self._prototype_support_warning("__pow__")
+
         if isinstance(other, NumericalColumnCpu):
             col = velox.Column(get_velox_type(self.dtype))
             assert len(self) == len(other)
@@ -434,6 +451,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def __rpow__(self, other):
         """Vectorized b ** a."""
+        self._prototype_support_warning("__rpow__")
+
         if isinstance(other, NumericalColumnCpu):
             col = velox.Column(get_velox_type(self.dtype))
             assert len(self) == len(other)
@@ -568,6 +587,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def isin(self, values, invert=False):
         """Check whether list values are contained in data, or column/dataframe (row/column specific)."""
+        self._prototype_support_warning("isin")
+
         # Todo decide on wether mask matters?
         if invert:
             raise NotImplementedError()
@@ -609,6 +630,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def round(self, decimals=0):
         """Round each value in a data to the given number of decimals."""
+        self._prototype_support_warning("round")
+
         # TODO: round(-2.5) returns -2.0 in Numpy/PyTorch but returns -3.0 in Velox
         # return ColumnFromVelox.from_velox(self.device, self.dtype, self._data.round(), True)
 
@@ -626,6 +649,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def fill_null(self, fill_value: Union[dt.ScalarTypes, Dict]):
         """Fill NA/NaN values using the specified method."""
+        self._prototype_support_warning("fill_null")
+
         if not isinstance(fill_value, IColumn._scalar_types):
             raise TypeError(f"fill_null with {type(fill_value)} is not supported")
         if not self.is_nullable:
@@ -646,6 +671,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def drop_null(self, how: Literal["any", "all"] = "any"):
         """Return a column with rows removed where a row has any or all nulls."""
+        self._prototype_support_warning("drop_null")
+
         if not self.is_nullable:
             return self
         else:
@@ -664,6 +691,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         subset: Optional[List[str]] = None,
     ):
         """Remove duplicate values from row/frame"""
+        self._prototype_support_warning("drop_duplicates")
+
         if subset is not None:
             raise TypeError(f"subset parameter for numerical columns not supported")
         seen = set()
@@ -684,6 +713,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def all(self):
         """Return whether all non-null elements are True in Column"""
+        self._prototype_support_warning("all")
+
         for i in range(len(self)):
             if not self._getmask(i):
                 value = self._getdata(i)
@@ -695,6 +726,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def any(self, skipna=True, boolean_only=None):
         """Return whether any non-null element is True in Column"""
+        self._prototype_support_warning("any")
+
         for i in range(len(self)):
             if not self._getmask(i):
                 value = self._getdata(i)
@@ -707,6 +740,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     def sum(self):
         # TODO Should be def sum(self, initial=None) but didn't get to work
         """Return sum of all non-null elements in Column (starting with initial)"""
+        self._prototype_support_warning("sum")
+
         result = 0
         for i in range(len(self)):
             if not self._getmask(i):
@@ -746,42 +781,56 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def cummin(self):
         """Return cumulative minimum of the data."""
+        self._prototype_support_warning("cummin")
+
         return self._accumulate_column(min, skipna=True, initial=None)
 
     @trace
     @expression
     def cummax(self):
         """Return cumulative maximum of the data."""
+        self._prototype_support_warning("cummax")
+
         return self._accumulate_column(max, skipna=True, initial=None)
 
     @trace
     @expression
     def cumsum(self):
         """Return cumulative sum of the data."""
+        self._prototype_support_warning("cumsum")
+
         return self._accumulate_column(operator.add, skipna=True, initial=None)
 
     @trace
     @expression
     def cumprod(self):
         """Return cumulative product of the data."""
+        self._prototype_support_warning("cumprod")
+
         return self._accumulate_column(operator.mul, skipna=True, initial=None)
 
     @trace
     @expression
     def mean(self):
         """Return the mean of the values in the series."""
+        self._prototype_support_warning("mean")
+
         return statistics.mean(value for value in self if value is not None)
 
     @trace
     @expression
     def median(self):
         """Return the median of the values in the data."""
+        self._prototype_support_warning("median")
+
         return statistics.median(value for value in self if value is not None)
 
     @trace
     @expression
     def quantile(self, q, interpolation="midpoint"):
         """Compute the q-th percentile of non-null data."""
+        self._prototype_support_warning("quantile")
+
         if len(self) == 0 or len(q) == 0:
             return []
         out = []
@@ -809,6 +858,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @property  # type: ignore
     @traceproperty
     def is_monotonic_increasing(self):
+        self._prototype_support_warning("is_monotonic_increasing")
+
         """Return boolean if values in the object are monotonic increasing"""
         first = True
         prev = None
@@ -826,6 +877,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @property  # type: ignore
     @traceproperty
     def is_monotonic_decreasing(self):
+        self._prototype_support_warning("is_monotonic_decreasing")
+
         """Return boolean if values in the object are monotonic decreasing"""
         first = True
         prev = None

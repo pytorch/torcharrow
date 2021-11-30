@@ -8,6 +8,7 @@ import math
 import operator
 import statistics
 import typing as ty
+import warnings
 from collections import OrderedDict, defaultdict
 from functools import partial, reduce
 
@@ -169,6 +170,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         Return boolean if data values are unique.
         """
+        self._prototype_support_warning("is_unique")
+
         seen = set()
         return not any(i in seen or seen.add(i) for i in self)
 
@@ -180,6 +183,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         Return boolean if values in the object are monotonic increasing
         """
+        self._prototype_support_warning("is_monotonic_increasing")
+
         return self._compare(operator.lt, initial=True)
 
     @property  # type: ignore
@@ -190,6 +195,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         Return boolean if values in the object are monotonic decreasing
         """
+        self._prototype_support_warning("is_monotonic_decreasing")
+
         return self._compare(operator.gt, initial=True)
 
     # public append/copy/cast------------------------------------------------
@@ -214,6 +221,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         2  ['I', 'am', 'fine']
         dtype: List(string), length: 3, null_count: 0
         """
+        self._prototype_support_warning("append")
+
         # TODO use _column_copy, but for now this works...
         res = Scope._EmptyColumn(self.dtype)
         for (m, d) in self._items():
@@ -797,6 +806,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
               1    1    5    1  100
         dtype: Struct([Field('a', int64), Field('b', int64), Field('c', int64), Field('d', int64)]), count: 2, null_count: 0
         """
+        self._prototype_support_warning("sort")
+
         if by is not None:
             raise TypeError("sorting a non-structured column can't have 'by' parameter")
         res = Scope._EmptyColumn(self.dtype)
@@ -812,60 +823,70 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __add__(self, other):
         """Vectorized a + b."""
+        self._prototype_support_warning("__add__")
         return self._py_arithmetic_op(other, operator.add)
 
     @trace
     @expression
     def __radd__(self, other):
         """Vectorized b + a."""
+        self._prototype_support_warning("__radd__")
         return self._py_arithmetic_op(other, IColumn._swap(operator.add))
 
     @trace
     @expression
     def __sub__(self, other):
         """Vectorized a - b."""
+        self._prototype_support_warning("__sub__")
         return self._py_arithmetic_op(other, operator.sub)
 
     @trace
     @expression
     def __rsub__(self, other):
         """Vectorized b - a."""
+        self._prototype_support_warning("__rsub__")
         return self._py_arithmetic_op(other, IColumn._swap(operator.sub))
 
     @trace
     @expression
     def __mul__(self, other):
         """Vectorized a * b."""
+        self._prototype_support_warning("__mul__")
         return self._py_arithmetic_op(other, operator.mul)
 
     @trace
     @expression
     def __rmul__(self, other):
         """Vectorized b * a."""
+        self._prototype_support_warning("__rmul__")
         return self._py_arithmetic_op(other, IColumn._swap(operator.mul))
 
     @trace
     @expression
     def __floordiv__(self, other):
         """Vectorized a // b."""
+        self._prototype_support_warning("__floordiv__")
         return self._py_arithmetic_op(other, operator.floordiv)
 
     @trace
     @expression
     def __rfloordiv__(self, other):
         """Vectorized b // a."""
+        self._prototype_support_warning("__rfloordiv__")
         return self._py_arithmetic_op(other, IColumn._swap(operator.floordiv))
 
     @trace
     @expression
     def __truediv__(self, other):
         """Vectorized a / b."""
+        self._prototype_support_warning("__truediv__")
         return self._py_arithmetic_op(other, operator.truediv, div="__truediv__")
 
     @trace
     @expression
     def __rtruediv__(self, other):
         """Vectorized b / a."""
+        self._prototype_support_warning("__rtruediv__")
         return self._py_arithmetic_op(
             other, IColumn._swap(operator.truediv), div="__rtruediv__"
         )
@@ -874,102 +895,120 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __mod__(self, other):
         """Vectorized a % b."""
+        self._prototype_support_warning("__mod__")
         return self._py_arithmetic_op(other, operator.mod)
 
     @trace
     @expression
     def __rmod__(self, other):
         """Vectorized b % a."""
+        self._prototype_support_warning("__rmod__")
         return self._py_arithmetic_op(other, IColumn._swap(operator.mod))
 
     @trace
     @expression
     def __pow__(self, other):
         """Vectorized a ** b."""
+        self._prototype_support_warning("__pow__")
         return self._py_arithmetic_op(other, operator.pow)
 
     @trace
     @expression
     def __rpow__(self, other):
         """Vectorized b ** a."""
+        self._prototype_support_warning("__rpow__")
         return self._py_arithmetic_op(other, IColumn._swap(operator.pow))
 
     @trace
     @expression
     def __eq__(self, other):
         """Vectorized a == b."""
+        self._prototype_support_warning("__eq__")
         return self._py_comparison_op(other, operator.eq)
 
     @trace
     @expression
     def __ne__(self, other):
         """Vectorized a != b."""
+        self._prototype_support_warning("__ne__")
         return self._py_comparison_op(other, operator.ne)
 
     @trace
     @expression
     def __lt__(self, other):
         """Vectorized a < b."""
+        self._prototype_support_warning("__lt__")
         return self._py_comparison_op(other, operator.lt)
 
     @trace
     @expression
     def __gt__(self, other):
         """Vectorized a > b."""
+        self._prototype_support_warning("__gt__")
         return self._py_comparison_op(other, operator.gt)
 
     @trace
     @expression
     def __le__(self, other):
         """Vectorized a < b."""
+        self._prototype_support_warning("__le__")
         return self._py_comparison_op(other, operator.le)
 
     @trace
     @expression
     def __ge__(self, other):
         """Vectorized a < b."""
+        self._prototype_support_warning("__ge__")
         return self._py_comparison_op(other, operator.ge)
 
     @trace
     @expression
     def __or__(self, other):
         """Vectorized bitwise or operation: a | b."""
+        self._prototype_support_warning("__or__")
         return self._py_arithmetic_op(other, operator.__or__)
 
     @trace
     @expression
     def __ror__(self, other):
         """Vectorized reverse bitwise or operation: b | a."""
+        self._prototype_support_warning("__ror__")
         return self._py_arithmetic_op(other, IColumn._swap(operator.__or__))
 
     @trace
     @expression
     def __xor__(self, other):
         """Vectorized bitwise exclusive or operation: a ^ b."""
+        self._prototype_support_warning("__xor__")
         return self._py_arithmetic_op(other, operator.__xor__)
 
     @trace
     @expression
     def __rxor__(self, other):
         """Vectorized reverse bitwise exclusive or operation: b ^ a."""
+        self._prototype_support_warning("__rxor__")
         return self._py_arithmetic_op(other, IColumn._swap(operator.__xor__))
 
     @trace
     @expression
     def __and__(self, other):
         """Vectorized bitwise and operation: a & b."""
+        self._prototype_support_warning("__and__")
         return self._py_arithmetic_op(other, operator.__and__)
 
     @trace
     @expression
     def __rand__(self, other):
         """Vectorized reverse bitwise and operation: b & a."""
+        self._prototype_support_warning("__rand__")
         return self._py_arithmetic_op(other, IColumn._swap(operator.__and__))
 
     @trace
     @expression
     def __invert__(self):
         """Vectorized bitwise inverse operation: ~a."""
+        self._prototype_support_warning("__invert__")
+
         if dt.is_boolean(self.dtype):
             return self._vectorize(lambda a: not a, self.dtype)
         return self._vectorize(operator.__invert__, self.dtype)
@@ -978,12 +1017,16 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def __neg__(self):
         """Vectorized: -a."""
+        self._prototype_support_warning("__neg__")
+
         return self._vectorize(operator.neg, self.dtype)
 
     @trace
     @expression
     def __pos__(self):
         """Vectorized: +a."""
+        self._prototype_support_warning("__pos__")
+
         return self._vectorize(operator.pos, self.dtype)
 
     def __bool__(self):
@@ -1023,6 +1066,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         dtype: Struct([Field('a', int64), Field('b', int64), Field('c', int64), Field('d', int64)]), count: 1, null_count: 0
 
         """
+        self._prototype_support_warning("isin")
+
         # note mask is True
         res = Scope._EmptyColumn(dt.boolean)
         for m, i in self._items():
@@ -1085,6 +1130,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         dtype: int64, length: 4, null_count: 0
 
         """
+        self._prototype_support_warning("fill_null")
+
         if not isinstance(fill_value, IColumn._scalar_types):
             raise TypeError(f"fill_null with {type(fill_value)} is not supported")
         if isinstance(fill_value, IColumn._scalar_types):
@@ -1125,6 +1172,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         2    4
         dtype: int64, length: 3, null_count: 0
         """
+        self._prototype_support_warning("drop_null")
+
         if how is not None:
             # "any or "all" is only used for DataFrame
             raise TypeError(f"how parameter for flat columns not supported")
@@ -1150,6 +1199,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         Remove duplicate values from row/frame but keep the first, last, none
         """
+        self._prototype_support_warning("drop_duplicates")
+
         # TODO Add functionality for first and last
         assert keep == "first"
         if subset is not None:
@@ -1209,6 +1260,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         >>> s.sum()
         7
         """
+        self._prototype_support_warning("sum")
+
         self._check(dt.is_numerical, "sum")
         return sum(self._data_iter())
 
@@ -1226,6 +1279,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         >>> s.mean(fill_value=999)
         251.5
         """
+        self._prototype_support_warning("mean")
+
         m = statistics.mean((float(i) for i in list(self._data_iter())))
         return m
 
@@ -1233,6 +1288,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def std(self):
         """Return the stddev(s) of the data."""
+        self._prototype_support_warning("std")
+
         self._check(dt.is_numerical, "std")
         return statistics.stdev((float(i) for i in list(self._data_iter())))
 
@@ -1240,6 +1297,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def median(self):
         """Return the median of the values in the data."""
+        self._prototype_support_warning("median")
+
         self._check(dt.is_numerical, "median")
         return statistics.median((float(i) for i in list(self._data_iter())))
 
@@ -1247,6 +1306,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def quantile(self, q, interpolation="midpoint"):
         """Compute the q-th percentile of non-null data."""
+        self._prototype_support_warning("quantile")
+
         if interpolation != "midpoint":
             raise TypeError(
                 f"quantile for '{type(self).__name__}' with parameter other than 'midpoint' not supported "
@@ -1271,6 +1332,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def mode(self):
         """Return the mode(s) of the data."""
+        self._prototype_support_warning("mode")
         self._check(dt.is_numerical, "mode")
         return statistics.mode(self._data_iter())
 
@@ -1278,12 +1340,14 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def all(self):
         """Return whether all non-null elements are True"""
+        self._prototype_support_warning("all")
         return all(self._data_iter())
 
     @trace
     @expression
     def any(self):
         """Return whether any non-null element is True in Column"""
+        self._prototype_support_warning("any")
         return any(self._data_iter())
 
     # cummin/cummax/cumsum/cumprod
@@ -1291,18 +1355,21 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def cummin(self):
         """Return cumulative minimum of the data."""
+        self._prototype_support_warning("cummin")
         return self._accumulate(min)
 
     @trace
     @expression
     def cummax(self):
         """Return cumulative maximum of the data."""
+        self._prototype_support_warning("cummax")
         return self._accumulate(max)
 
     @trace
     @expression
     def cumsum(self):
         """Return cumulative sum of the data."""
+        self._prototype_support_warning("cumsum")
         self._check(dt.is_numerical, "cumsum")
         return self._accumulate(operator.add)
 
@@ -1310,6 +1377,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def cumprod(self):
         """Return cumulative product of the data."""
+        self._prototype_support_warning("cumprod")
         self._check(dt.is_numerical, "cumprod")
         return self._accumulate(operator.mul)
 
@@ -1386,6 +1454,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         import pandas as pd  # type: ignore
 
         # default implementation, normally this should be zero copy...
+        self._prototype_support_warning("to_pandas")
         return pd.Series(self)
 
     @trace
@@ -1394,11 +1463,13 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         import pyarrow as pa  # type: ignore
 
         # default implementation, normally this should be zero copy...
+        self._prototype_support_warning("to_arrow")
         return pa.array(self)
 
     @trace
     def to_pylist(self):
         """Convert to plain Python container (list of scalars or containers)"""
+        self._prototype_support_warning("to_pylist")
         return list(self)
 
     @trace
@@ -1435,6 +1506,11 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     def _not_supported(self, name):
         raise TypeError(f"{name} for type {type(self).__name__} is not supported")
+
+    def _prototype_support_warning(self, name):
+        warnings.warn(
+            f"{name} for type {type(self).__name__} is suported only with prototype implementation, which may result in degenerated performance"
+        )
 
     _scalar_types = (int, float, bool, str)
 
@@ -1488,6 +1564,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             others = itertools.repeat((False, other))
             other_dtype = dt.infer_dtype_from_value(other)
 
+        # TODO: should we just move _py_arithmetic_op to INumericColumn since it only works for boolean/numeric types
         if not dt.is_boolean_or_numerical(self.dtype) or not dt.is_boolean_or_numerical(
             other_dtype
         ):
@@ -1656,6 +1733,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         raise self._not_supported("_concat_with")
 
     def _if_else(self, then_, else_):
+        self._prototype_support_warning("_if_else")
+
         """Vectorized if-then-else"""
         if not dt.is_boolean(self.dtype):
             raise TypeError("condition must be a boolean vector")
