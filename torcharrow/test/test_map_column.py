@@ -56,7 +56,7 @@ class TestMapColumn(unittest.TestCase):
 
         self.assertEqual(list(c.maps.keys()), [["abc"], ["de", "fg"], []])
         self.assertEqual(list(c.maps.values()), [[123], [45, 67], []])
-        self.assertEqual(c.maps.get("de", 0), [0, 45, None])
+        self.assertEqual(list(c.maps.get("de", 0)), [0, 45, None])
 
 
 if __name__ == "__main__":

@@ -385,10 +385,24 @@ class TestDataFrame(unittest.TestCase):
 
         self.assertEqual(list(c == 1), [(i,) for i in [False, True, False]])
         self.assertTrue(
-            (
-                (c == 1)
-                == ta.DataFrame({"a": [False, True, False]}, device=self.device)
-            ).all()
+            ((c == 1) == ta.DataFrame({"a": [False, True, False]}, device=self.device))[
+                "a"
+            ].all()
+        )
+
+        # Ensure you can't accidentally try to coerce to a boolean.
+        with self.assertRaises(ValueError) as ex:
+            assert not c == c
+        self.assertTrue(
+            "The truth value of a DataFrameCpu is ambiguous." in str(ex.exception),
+            f"Exception message is not as expected: {str(ex.exception)}",
+        )
+        with self.assertRaises(ValueError) as ex:
+            assert not c["a"] == c["a"]
+        self.assertTrue(
+            "The truth value of a NumericalColumnCpu is ambiguous."
+            in str(ex.exception),
+            f"Exception message is not as expected: {str(ex.exception)}",
         )
 
         # <, <=, >=, >
@@ -557,9 +571,12 @@ class TestDataFrame(unittest.TestCase):
         c = [1, 4, 2, 7, 9, 0]
         C = ta.DataFrame({"a": [1, 4, 2, 7, 9, 0, None]}, device=self.device)
 
-        self.assertEqual(C.min()["a"], min(c))
-        self.assertEqual(C.max()["a"], max(c))
-        self.assertEqual(C.sum()["a"], sum(c))
+        self.assertEqual(len(C.min()["a"]), 1)
+        self.assertEqual(C.min()["a"][0], min(c))
+        self.assertEqual(len(C.max()["a"]), 1)
+        self.assertEqual(C.max()["a"][0], max(c))
+        self.assertEqual(len(C.sum()["a"]), 1)
+        self.assertEqual(C.sum()["a"][0], sum(c))
         # self.assertEqual(C.prod()["a"], functools.reduce(operator.mul, c, 1))
         # TODO check for mode in numpy
         # self.assertEqual(C.mode()["a"], statistics.mode(c))
@@ -591,8 +608,8 @@ class TestDataFrame(unittest.TestCase):
                 + [None]
             ],
         )
-        self.assertEqual((C % 2 == 0)[:-1].all(), all(i % 2 == 0 for i in c))
-        self.assertEqual((C % 2 == 0)[:-1].any(), any(i % 2 == 0 for i in c))
+        self.assertEqual((C["a"] % 2 == 0)[:-1].all(), all(i % 2 == 0 for i in c))
+        self.assertEqual((C["a"] % 2 == 0)[:-1].any(), any(i % 2 == 0 for i in c))
 
     def base_test_isin(self):
         c = [1, 4, 2, 7]

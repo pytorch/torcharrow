@@ -986,6 +986,13 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """Vectorized: +a."""
         return self._vectorize(operator.pos, self.dtype)
 
+    def __bool__(self):
+        """Prevent accidental coercion of a column to a boolean value"""
+        raise ValueError(
+            f"The truth value of a {type(self).__name__} is ambiguous. "
+            "Use a.any() or a.all()."
+        )
+
     @trace
     @expression
     def isin(self, values: ty.Union[list, dict]):
