@@ -811,7 +811,7 @@ def np_typeof_dtype(t: DType):  # -> np.dtype[]:
     )
 
 
-def typeof_np_ndarray(t: np.ndarray) -> ty.Union[DType, ty.Literal["object"]]:
+def typeof_np_ndarray(t: np.ndarray) -> DType:
     return typeof_np_dtype(t.dtype)
 
 
@@ -909,6 +909,12 @@ def get_underlying_dtype(dtype: DType) -> DType:
 def get_nullable_dtype(dtype: DType) -> DType:
     return replace(dtype, nullable=True)
 
+# Based on https://github.com/pytorch/pytorch/blob/c48e6f014a0cca0adc18e1a39a8fd724fe7ab83a/torch/_jit_internal.py#L1113-L1118
+def get_origin(target_type):
+    return getattr(target_type, "__origin__", None)
+
+def get_args(target_type):
+    return getattr(target_type, "__args__", None)
 
 def dtype_of_type(typ: ty.Union[ty.Type, DType]) -> DType:
     assert typ is not None
@@ -930,19 +936,19 @@ def dtype_of_type(typ: ty.Union[ty.Type, DType]) -> DType:
         return Struct(
             [Field(f.name, dtype_of_type(f.type)) for f in dataclasses.fields(typ)]
         )
-    if ty.get_origin(typ) in (List, list):
-        args = ty.get_args(typ)
+    if get_origin(typ) in (List, list):
+        args = get_args(typ)
         assert len(args) == 1
         elem_type = dtype_of_type(args[0])
         return List(elem_type)
-    if ty.get_origin(typ) in (ty.Dict, dict):
-        args = ty.get_args(typ)
+    if get_origin(typ) in (ty.Dict, dict):
+        args = get_args(typ)
         assert len(args) == 2
         key = dtype_of_type(args[0])
         value = dtype_of_type(args[1])
         return Map(key, value)
     if typing_inspect.is_optional_type(typ):
-        args = ty.get_args(typ)
+        args = get_args(typ)
         assert len(args) == 2
         if issubclass(args[1], type(None)):
             contained = args[0]
@@ -974,8 +980,8 @@ def dtype_from_batch_pytype(typ: ty.Type) -> DType:
         # TODO: we need a type annotation for Columns with statically accessible dtype
         raise TypeError("Cannot infer dtype from IColumn")
 
-    if ty.get_origin(typ) in (List, list):
-        args = ty.get_args(typ)
+    if get_origin(typ) in (List, list):
+        args = get_args(typ)
         assert len(args) == 1
         return dtype_of_type(args[0])
 

@@ -12,7 +12,6 @@ from typing import (
     Dict,
     Iterable,
     List,
-    Literal,
     Mapping,
     Optional,
     Sequence,
@@ -53,7 +52,7 @@ from .typing import get_velox_type
 # -----------------------------------------------------------------------------
 # DataFrames aka (StructColumns, can be nested as StructColumns:-)
 
-DataOrDTypeOrNone = Union[Mapping, Sequence, dt.DType, Literal[None]]
+DataOrDTypeOrNone = Optional[Union[Mapping, Sequence, dt.DType]]
 
 
 class DataFrameCpu(ColumnFromVelox, IDataFrame):
@@ -339,8 +338,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     def map(
         self,
         arg: Union[Dict, Callable],
-        /,
-        na_action: Literal["ignore", None] = None,
+        na_action=None,
         dtype: Optional[dt.DType] = None,
         columns: Optional[List[str]] = None,
     ):
@@ -396,7 +394,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     def flatmap(
         self,
         arg: Union[Dict, Callable],
-        na_action: Literal["ignore", None] = None,
+        na_action=None,
         dtype: Optional[dt.DType] = None,
         columns: Optional[List[str]] = None,
     ):
@@ -503,7 +501,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         self,
         by: Optional[List[str]] = None,
         ascending=True,
-        na_position: Literal["last", "first"] = "last",
+        na_position="last",
     ):
         """Sort a column/a dataframe in ascending or descending order"""
         # Not allowing None in comparison might be too harsh...
@@ -535,7 +533,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         self,
         n=5,
         columns: Optional[List[str]] = None,
-        keep: Literal["last", "first"] = "first",
+        keep="first",
     ):
         """Returns a new dataframe of the *n* largest elements."""
         # Todo add keep arg
@@ -547,7 +545,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         self,
         n=5,
         columns: Optional[List[str]] = None,
-        keep: Literal["last", "first"] = "first",
+        keep="first",
     ):
         """Returns a new dataframe of the *n* smallest elements."""
         return self.sort(by=columns, ascending=True).head(n)
@@ -1267,7 +1265,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
     @trace
     @expression
-    def fill_null(self, fill_value: Union[dt.ScalarTypes, Dict, Literal[None]]):
+    def fill_null(self, fill_value: Optional[Union[dt.ScalarTypes, Dict]]):
         if fill_value is None:
             return self
         if isinstance(fill_value, IColumn._scalar_types):
@@ -1290,7 +1288,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
     @trace
     @expression
-    def drop_null(self, how: Literal["any", "all"] = "any"):
+    def drop_null(self, how="any"):
         """Return a dataframe with rows removed where the row has any or all nulls."""
         self._prototype_support_warning("drop_null")
 
@@ -1312,7 +1310,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     def drop_duplicates(
         self,
         subset: Optional[List[str]] = None,
-        keep: Literal["first", "last", False] = "first",
+        keep="first",
     ):
         """Remove duplicate values from data but keep the first, last, none (keep=False)"""
         self._prototype_support_warning("drop_duplicates")

@@ -16,6 +16,11 @@ jobs:
       - name: Print CPU info
         run: cat /proc/cpuinfo
 
+      - name: Setup Python environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
       - name: Check out source repository
         uses: actions/checkout@v2
 

@@ -614,7 +614,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def transform(
         self,
         func: ty.Callable,
-        /,
         dtype: ty.Optional[dt.DType] = None,
         format: str = "column",
         columns: ty.Optional[ty.List[str]] = None,
