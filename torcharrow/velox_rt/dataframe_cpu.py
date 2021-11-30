@@ -1292,6 +1292,8 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     @expression
     def drop_null(self, how: Literal["any", "all"] = "any"):
         """Return a dataframe with rows removed where the row has any or all nulls."""
+        self._prototype_support_warning("drop_null")
+
         # TODO only flat columns supported...
         assert self._dtype is not None
         res = Scope._EmptyColumn(self._dtype.constructor(nullable=False))
@@ -1313,6 +1315,8 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         keep: Literal["first", "last", False] = "first",
     ):
         """Remove duplicate values from data but keep the first, last, none (keep=False)"""
+        self._prototype_support_warning("drop_duplicates")
+
         columns = subset if subset is not None else self.columns
         self._check_columns(columns)
 
@@ -1932,6 +1936,8 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         ('b',)
            self._fromdata({'B':Column([2, 4], id = c131), id = c132})
         """
+        self._prototype_support_warning("groupby")
+
         # TODO implement
         assert not sort
         assert drop_null
