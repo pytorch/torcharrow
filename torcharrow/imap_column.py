@@ -75,6 +75,8 @@ class IMapMethods(abc.ABC):
         pass
 
     def get(self, i, fill_value):
+        self._parent._prototype_support_warning("maps.get")
+
         me = self._parent
 
         def fun(xs):
