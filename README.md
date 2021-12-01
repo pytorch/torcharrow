@@ -16,11 +16,11 @@ It plans to provide:
 
 ## Installation
 
-You will need Python 3.8 or later. Also, we highly recommend installing an [Miniconda](https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links) environment.
+You will need Python 3.7 or later. Also, we highly recommend installing an [Miniconda](https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links) environment.
 
 First, set up an environment. If you are using conda, create a conda environment:
 ```
-conda create --name torcharrow python=3.8
+conda create --name torcharrow python=3.7
 conda activate torcharrow
 ```
 
@@ -38,7 +38,7 @@ Coming soon!
 
 ### From Source
 
-If you are installing from source, you will need Python 3.8 or later and a C++17 compiler.
+If you are installing from source, you will need Python 3.7 or later and a C++17 compiler.
 
 #### Get the TorchArrow Source
 ```bash

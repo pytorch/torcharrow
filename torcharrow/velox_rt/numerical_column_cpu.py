@@ -3,7 +3,7 @@ import array as ar
 import math
 import operator
 import statistics
-from typing import Dict, List, Literal, Optional, Union, Callable
+from typing import Dict, List, Optional, Union, Callable
 
 import numpy as np
 import torcharrow as ta
@@ -130,7 +130,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         self,
         columns: Optional[List[str]] = None,
         ascending=True,
-        na_position: Literal["last", "first"] = "last",
+        na_position="last",
     ):
         """Sort a column/a dataframe in ascending or descending order"""
         self._prototype_support_warning("sort")
@@ -164,7 +164,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         self,
         n=5,
         columns: Optional[List[str]] = None,
-        keep: Literal["last", "first"] = "first",
+        keep="first",
     ):
         """Returns a new data of the *n* largest element."""
         if columns is not None:
@@ -669,7 +669,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     @trace
     @expression
-    def drop_null(self, how: Literal["any", "all"] = "any"):
+    def drop_null(self, how="any"):
         """Return a column with rows removed where a row has any or all nulls."""
         self._prototype_support_warning("drop_null")
 

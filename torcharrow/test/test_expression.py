@@ -38,7 +38,7 @@ class Cell:
         return self.val + n
 
     # kwargs
-    def get6(self, /, n=100, m=200):
+    def get6(self, n=100, m=200):
         return self.val + n + m
 
     @staticmethod

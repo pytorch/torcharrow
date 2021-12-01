@@ -8,7 +8,6 @@ from typing import (
     Callable,
     Iterable,
     List,
-    Literal,
     Mapping,
     Optional,
     Sequence,
@@ -36,7 +35,7 @@ from .trace import trace, traceproperty
 
 
 def DataFrame(
-    data: Union[Iterable, dt.DType, Literal[None]] = None,
+    data: Optional[Union[Iterable, dt.DType]] = None,
     dtype: Optional[dt.DType] = None,
     columns: Optional[List[str]] = None,
     device: Device = "",
@@ -151,7 +150,7 @@ def DataFrame(
 # -----------------------------------------------------------------------------
 # DataFrames aka (StructColumns, can be nested as StructColumns:-)
 
-DataOrDTypeOrNone = Union[Mapping, Sequence, dt.DType, Literal[None]]
+DataOrDTypeOrNone = Optional[Union[Mapping, Sequence, dt.DType]]
 
 
 class IDataFrame(IColumn):
@@ -213,7 +212,6 @@ class IDataFrame(IColumn):
     def transform(
         self,
         func: Callable,
-        /,
         dtype: Optional[dt.DType] = None,
         format: str = "column",
         columns: Optional[List[str]] = None,
