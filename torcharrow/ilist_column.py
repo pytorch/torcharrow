@@ -81,29 +81,18 @@ class IListMethods(abc.ABC):
 
         return me._vectorize(fun, me.dtype.item_dtype.with_null(me.dtype.nullable))
 
-    def slice(
-        self, start: int = None, stop: int = None, step: int = None
-    ) -> IListColumn:
+    def slice(self, start: int = None, stop: int = None) -> IListColumn:
         """Slice sublist from each element in the column"""
         self._parent._prototype_support_warning("list.slice")
 
         me = self._parent
 
         def fun(i):
-            return i[start:stop:step]
+            return i[start:stop]
 
         return me._vectorize(fun, me.dtype)
 
-    def count(self, elem, flags=0):
-        self._parent._prototype_support_warning("list.count")
-
-        me = self._parent
-
-        def fun(i):
-            return i.count(elem)
-
-        return me._vectorize(fun, dt.Int64(me.dtype.nullable))
-
+    # functional tools
     def map(self, fun, dtype: Optional[dt.DType] = None):
         me = self._parent
 

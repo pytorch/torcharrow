@@ -90,7 +90,6 @@ class TestListColumn(unittest.TestCase):
         c = c.append([["The", "fox"], ["jumps"], ["over", "the", "river"]])
 
         self.assertEqual(list(c.list.get(0)), ["The", "jumps", "over"])
-        self.assertEqual(list(c.list.count("The")), [1, 0, 0])
         self.assertEqual(list(c.list.join(" ")), ["The fox", "jumps", "over the river"])
 
     def base_test_slice(self):
