@@ -1349,21 +1349,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         self._prototype_support_warning("any")
         return any(self._data_iter())
 
-    # cummin/cummax/cumsum/cumprod
-    @trace
-    @expression
-    def cummin(self):
-        """Return cumulative minimum of the data."""
-        self._prototype_support_warning("cummin")
-        return self._accumulate(min)
-
-    @trace
-    @expression
-    def cummax(self):
-        """Return cumulative maximum of the data."""
-        self._prototype_support_warning("cummax")
-        return self._accumulate(max)
-
+    # cumsum
     @trace
     @expression
     def cumsum(self):
@@ -1371,14 +1357,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         self._prototype_support_warning("cumsum")
         self._check(dt.is_numerical, "cumsum")
         return self._accumulate(operator.add)
-
-    @trace
-    @expression
-    def cumprod(self):
-        """Return cumulative product of the data."""
-        self._prototype_support_warning("cumprod")
-        self._check(dt.is_numerical, "cumprod")
-        return self._accumulate(operator.mul)
 
     # describe ----------------------------------------------------------------
     @trace
@@ -1798,3 +1776,26 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             return len(set(self))
         else:
             return len(set(i for i in self if i is not None))
+
+    # cummin/cummax/cumprod
+    @trace
+    @expression
+    def _cummin(self):
+        """Return cumulative minimum of the data."""
+        self._prototype_support_warning("_cummin")
+        return self._accumulate(min)
+
+    @trace
+    @expression
+    def _cummax(self):
+        """Return cumulative maximum of the data."""
+        self._prototype_support_warning("_cummax")
+        return self._accumulate(max)
+
+    @trace
+    @expression
+    def _cumprod(self):
+        """Return cumulative product of the data."""
+        self._prototype_support_warning("_cumprod")
+        self._check(dt.is_numerical, "_cumprod")
+        return self._accumulate(operator.mul)

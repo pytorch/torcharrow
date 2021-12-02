@@ -1417,15 +1417,15 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
     @trace
     @expression
-    def cummin(self):
+    def _cummin(self):
         """Return cumulative minimum of the data."""
-        return self._lift(lambda c: c.cummin)
+        return self._lift(lambda c: c._cummin)
 
     @trace
     @expression
-    def cummax(self):
+    def _cummax(self):
         """Return cumulative maximum of the data."""
-        return self._lift(lambda c: c.cummax)
+        return self._lift(lambda c: c._cummax)
 
     @trace
     @expression
@@ -1435,9 +1435,9 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
     @trace
     @expression
-    def cumprod(self):
+    def _cumprod(self):
         """Return cumulative product of the data."""
-        return self._lift(lambda c: c.cumprod)
+        return self._lift(lambda c: c._cumprod)
 
     @trace
     @expression
