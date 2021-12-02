@@ -408,16 +408,16 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(C.median(), statistics.median(c))
 
         self.assertEqual(
-            list(C.cummin()), [min(c[:i]) for i in range(1, len(c) + 1)] + [None]
+            list(C._cummin()), [min(c[:i]) for i in range(1, len(c) + 1)] + [None]
         )
         self.assertEqual(
-            list(C.cummax()), [max(c[:i]) for i in range(1, len(c) + 1)] + [None]
+            list(C._cummax()), [max(c[:i]) for i in range(1, len(c) + 1)] + [None]
         )
         self.assertEqual(
             list(C.cumsum()), [sum(c[:i]) for i in range(1, len(c) + 1)] + [None]
         )
         self.assertEqual(
-            list(C.cumprod()),
+            list(C._cumprod()),
             [functools.reduce(operator.mul, c[:i], 1) for i in range(1, len(c) + 1)]
             + [None],
         )

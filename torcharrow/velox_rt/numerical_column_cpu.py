@@ -779,17 +779,17 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     @trace
     @expression
-    def cummin(self):
+    def _cummin(self):
         """Return cumulative minimum of the data."""
-        self._prototype_support_warning("cummin")
+        self._prototype_support_warning("_cummin")
 
         return self._accumulate_column(min, skipna=True, initial=None)
 
     @trace
     @expression
-    def cummax(self):
+    def _cummax(self):
         """Return cumulative maximum of the data."""
-        self._prototype_support_warning("cummax")
+        self._prototype_support_warning("_cummax")
 
         return self._accumulate_column(max, skipna=True, initial=None)
 
@@ -803,9 +803,9 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     @trace
     @expression
-    def cumprod(self):
+    def _cumprod(self):
         """Return cumulative product of the data."""
-        self._prototype_support_warning("cumprod")
+        self._prototype_support_warning("_cumprod")
 
         return self._accumulate_column(operator.mul, skipna=True, initial=None)
 
