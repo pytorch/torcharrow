@@ -909,12 +909,15 @@ def get_underlying_dtype(dtype: DType) -> DType:
 def get_nullable_dtype(dtype: DType) -> DType:
     return replace(dtype, nullable=True)
 
+
 # Based on https://github.com/pytorch/pytorch/blob/c48e6f014a0cca0adc18e1a39a8fd724fe7ab83a/torch/_jit_internal.py#L1113-L1118
 def get_origin(target_type):
     return getattr(target_type, "__origin__", None)
 
+
 def get_args(target_type):
     return getattr(target_type, "__args__", None)
+
 
 def dtype_of_type(typ: ty.Union[ty.Type, DType]) -> DType:
     assert typ is not None
