@@ -12,9 +12,8 @@
 #include "column.h"
 #include "functions/functions.h" // @manual=//pytorch/torcharrow/csrc/velox/functions:torcharrow_functions
 #include "velox/buffer/StringViewBufferHolder.h"
-#include "velox/functions/prestosql/SimpleFunctions.h"
-#include "velox/functions/prestosql/VectorFunctions.h"
 #include "velox/vector/TypeAliases.h"
+#include "velox/functions/prestosql/registration/RegistrationFunctions.h"
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -750,8 +749,7 @@ PYBIND11_MODULE(_torcharrow, m) {
 
   // Register Velox UDFs
   // TODO: we may only need to register UDFs that TorchArrow required?
-  velox::functions::registerFunctions();
-  velox::functions::registerVectorFunctions();
+  velox::functions::prestosql::registerAllFunctions();
 
   functions::registerTorchArrowFunctions();
 
