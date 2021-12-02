@@ -586,11 +586,11 @@ class TestDataFrame(unittest.TestCase):
         # self.assertEqual(C.median()["a"], statistics.median(c))
 
         self.assertEqual(
-            list(C.cummin()),
+            list(C._cummin()),
             [(i,) for i in [min(c[:i]) for i in range(1, len(c) + 1)] + [None]],
         )
         self.assertEqual(
-            list(C.cummax()),
+            list(C._cummax()),
             [(i,) for i in [max(c[:i]) for i in range(1, len(c) + 1)] + [None]],
         )
         self.assertEqual(
@@ -598,7 +598,7 @@ class TestDataFrame(unittest.TestCase):
             [(i,) for i in [sum(c[:i]) for i in range(1, len(c) + 1)] + [None]],
         )
         self.assertEqual(
-            list(C.cumprod()),
+            list(C._cumprod()),
             [
                 (i,)
                 for i in [
