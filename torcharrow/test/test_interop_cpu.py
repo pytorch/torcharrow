@@ -14,10 +14,6 @@ class TestInteropCpu(TestInterop):
     def setUp(self):
         self.device = "cpu"
 
-    def test_arrow_array(self):
-        # TODO: support arrow interop in CPU backend
-        pass
-
     @unittest.skipUnless(tap.available, "Requires PyTorch")
     def test_to_pytorch(self):
         return self.base_test_to_pytorch()

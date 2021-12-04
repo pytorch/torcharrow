@@ -80,6 +80,16 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
             True,
         )
 
+    # TODO Add native kernel support
+    @staticmethod
+    def _fromarrow(device: str, array, dtype: dt.DType):
+        import pyarrow as pa
+
+        assert isinstance(array, pa.Array)
+
+        pydata = [i.as_py() for i in array]
+        return StringColumnCpu._fromlist(device, pydata, dtype)
+
     def _append_null(self):
         if self._finialized:
             raise AttributeError("It is already finialized.")
@@ -342,6 +352,9 @@ Dispatcher.register((dt.String.typecode + "_empty", "cpu"), StringColumnCpu._emp
 Dispatcher.register((dt.String.typecode + "_full", "cpu"), StringColumnCpu._full)
 Dispatcher.register(
     (dt.String.typecode + "_fromlist", "cpu"), StringColumnCpu._fromlist
+)
+Dispatcher.register(
+    (dt.String.typecode + "_fromarrow", "cpu"), StringColumnCpu._fromarrow
 )
 
 
