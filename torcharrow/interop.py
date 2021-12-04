@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import pandas as pd  # type: ignore
-import pyarrow as pa  # type: ignore
 import torcharrow.dtypes as dt
 from torcharrow import Scope
 
@@ -37,6 +36,7 @@ def from_pylist(data, dtype=None, device=""):
     """
     Convert Python list of scalars or containers to a TorchArrow Column/DataFrame.
     """
+    # TODO(https://github.com/facebookresearch/torcharrow/issues/80) Infer dtype
     device = device or Scope.default.device
 
     return Scope.default._FromPyList(data, dtype, device)

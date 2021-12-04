@@ -7,14 +7,15 @@
 #include <unordered_map>
 #include "vector.h"
 
+#include "velox/common/base/Exceptions.h"
 #include "velox/common/memory/Memory.h"
 #include "velox/core/QueryCtx.h"
-#include "velox/common/base/Exceptions.h"
 #include "velox/expression/Expr.h"
 #include "velox/type/Type.h"
 #include "velox/vector/BaseVector.h"
 #include "velox/vector/ComplexVector.h"
 #include "velox/vector/FlatVector.h"
+#include "velox/vector/arrow/Bridge.h"
 
 // TODO: Move uses of static variables into .cpp. Static variables are local to
 // the compilation units so every file that includes this header will have its
@@ -601,8 +602,8 @@ class SimpleColumn : public BaseColumn {
 
     const static auto inputRowType =
         velox::ROW({"c0"}, {velox::CppToType<T>::create()});
-    const static auto op = OperatorHandle::fromGenericUDF(
-        inputRowType, "torcharrow_isinteger");
+    const static auto op =
+        OperatorHandle::fromGenericUDF(inputRowType, "torcharrow_isinteger");
     return op->call({_delegate});
   }
 

@@ -135,6 +135,7 @@ setup(
     license="BSD",
     install_requires=[
         "arrow",
+        "cffi",
         "numpy==1.21.4",
         "pandas",
         "typing",
