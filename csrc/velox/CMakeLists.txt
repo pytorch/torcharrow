@@ -66,6 +66,7 @@ target_link_libraries(_torcharrow PRIVATE
   velox_core
   velox_functions_prestosql
   velox_function_registry
+  velox_arrow_bridge
   torcharrow_udfs)
 
 #target_compile_definitions(_torcharrow PRIVATE)

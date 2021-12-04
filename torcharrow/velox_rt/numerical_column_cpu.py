@@ -49,6 +49,34 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
             True,
         )
 
+    @staticmethod
+    def _fromarrow(device: str, array, dtype: dt.DType):
+        import pyarrow as pa
+        from pyarrow.cffi import ffi
+
+        assert isinstance(array, pa.Array)
+
+        c_schema = ffi.new("struct ArrowSchema*")
+        ptr_schema = int(ffi.cast("uintptr_t", c_schema))
+        c_array = ffi.new("struct ArrowArray*")
+        ptr_array = int(ffi.cast("uintptr_t", c_array))
+        array._export_to_c(ptr_array, ptr_schema)
+
+        velox_column = velox._import_from_arrow(
+            get_velox_type(dtype), ptr_array, ptr_schema
+        )
+
+        # Make sure the ownership of c_schema and c_array have been transferred
+        # to velox_column
+        assert c_schema.release == ffi.NULL and c_array.release == ffi.NULL
+
+        return ColumnFromVelox.from_velox(
+            device,
+            dtype,
+            velox_column,
+            True,
+        )
+
     def _append_null(self):
         if self._finialized:
             raise AttributeError("It is already finialized.")
@@ -932,3 +960,6 @@ _primitive_types: List[dt.DType] = [
 for t in _primitive_types:
     Dispatcher.register((t.typecode + "_empty", "cpu"), NumericalColumnCpu._empty)
     Dispatcher.register((t.typecode + "_fromlist", "cpu"), NumericalColumnCpu._fromlist)
+    Dispatcher.register(
+        (t.typecode + "_fromarrow", "cpu"), NumericalColumnCpu._fromarrow
+    )
