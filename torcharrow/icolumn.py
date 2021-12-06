@@ -921,42 +921,42 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @trace
     @expression
     def __eq__(self, other):
-        """Vectorized a == b."""
+        """Return self == other."""
         self._prototype_support_warning("__eq__")
         return self._py_comparison_op(other, operator.eq)
 
     @trace
     @expression
     def __ne__(self, other):
-        """Vectorized a != b."""
+        """Return self != other."""
         self._prototype_support_warning("__ne__")
         return self._py_comparison_op(other, operator.ne)
 
     @trace
     @expression
     def __lt__(self, other):
-        """Vectorized a < b."""
+        """Return self < other."""
         self._prototype_support_warning("__lt__")
         return self._py_comparison_op(other, operator.lt)
 
     @trace
     @expression
     def __gt__(self, other):
-        """Vectorized a > b."""
+        """Return self > other."""
         self._prototype_support_warning("__gt__")
         return self._py_comparison_op(other, operator.gt)
 
     @trace
     @expression
     def __le__(self, other):
-        """Vectorized a < b."""
+        """Return self <= other."""
         self._prototype_support_warning("__le__")
         return self._py_comparison_op(other, operator.le)
 
     @trace
     @expression
     def __ge__(self, other):
-        """Vectorized a < b."""
+        """Return self >= other."""
         self._prototype_support_warning("__ge__")
         return self._py_comparison_op(other, operator.ge)
 
