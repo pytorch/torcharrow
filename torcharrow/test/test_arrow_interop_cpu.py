@@ -17,6 +17,9 @@ class TestArrowInteropCpu(TestArrowInterop):
     def test_memory_reclaimed(self):
         return self.base_test_memory_reclaimed()
 
+    def test_unsupported_types(self):
+        return self.base_test_unsupported_types()
+
 
 if __name__ == "__main__":
     unittest.main()
