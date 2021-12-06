@@ -9,7 +9,7 @@ import numpy.ma as ma  # type: ignore
 import pandas as pd  # type: ignore
 import pyarrow as pa  # type: ignore
 import torcharrow.dtypes as dt
-from torcharrow import Scope
+from torcharrow.scope import Scope
 
 
 def from_arrow_table(

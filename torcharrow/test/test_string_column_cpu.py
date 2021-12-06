@@ -1,9 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
-import torcharrow.dtypes as dt
-from torcharrow import Scope, IStringColumn
-
 from .test_string_column import TestStringColumn
 
 

@@ -1,32 +1,26 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-# For relative imports to work in Python 3.6
-from .expression import *  # dependencies: None
-from .trace import *  # dependencies: expression
-
-# don't include
-# from .dtypes import *
-# since dtypes define Tuple and List which confuse mypy
-
-from .scope import *  # dependencies: column_factory, dtypes
-
-# following needs scope*
-from .icolumn import Column, concat, if_else  # noqa
-from .inumerical_column import *
-from .istring_column import *
-from .ilist_column import *
-from .imap_column import *
-from .idataframe import *
-
-from .velox_rt import *
-
-from . import pytorch
-from .interop import from_pylist, from_arrow
+from . import pytorch  # noqa
+from . import velox_rt  # noqa
+from .icolumn import IColumn, Column, concat, if_else  # noqa
+from .idataframe import IDataFrame, DataFrame, me  # noqa
+from .interop import from_pylist, from_arrow  # noqa
 
 try:
     from .version import __version__  # noqa: F401
 except ImportError:
     pass
+
+__all__ = [
+    "DataFrame",
+    "Column",
+    "concat",
+    "if_else",
+    "from_pylist",
+    "me",
+    "IDataFrame",
+    "IColumn",
+]
 
 # module level doc-string
 __doc__ = """

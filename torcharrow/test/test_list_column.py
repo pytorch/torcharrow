@@ -4,7 +4,7 @@ import unittest
 
 import torcharrow as ta
 import torcharrow.dtypes as dt
-from torcharrow import IListColumn, INumericalColumn, Scope
+from torcharrow.ilist_column import IListColumn
 
 
 class TestListColumn(unittest.TestCase):
