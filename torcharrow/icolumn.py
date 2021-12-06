@@ -1446,7 +1446,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @trace
     def to_pylist(self):
         """Convert to plain Python container (list of scalars or containers)"""
-        self._prototype_support_warning("to_pylist")
         return list(self)
 
     @trace
