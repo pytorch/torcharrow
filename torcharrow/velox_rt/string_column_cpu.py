@@ -164,37 +164,31 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
     @trace
     @expression
     def __eq__(self, other):
-        """Return self == other."""
         return self._checked_binary_op_call(other, "eq")
 
     @trace
     @expression
     def __ne__(self, other):
-        """Return self != other."""
         return self._checked_binary_op_call(other, "neq")
 
     @trace
     @expression
     def __lt__(self, other):
-        """Return self < other."""
         return self._checked_binary_op_call(other, "lt")
 
     @trace
     @expression
     def __le__(self, other):
-        """Return self <= other."""
         return self._checked_binary_op_call(other, "lte")
 
     @trace
     @expression
     def __gt__(self, other):
-        """Return self > other."""
         return self._checked_binary_op_call(other, "gt")
 
     @trace
     @expression
     def __ge__(self, other):
-        """Return self >= other."""
         return self._checked_binary_op_call(other, "gte")
 
     # printing ----------------------------------------------------------------
