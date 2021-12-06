@@ -13,7 +13,7 @@ class ColumnFromVelox:
     _finialized: bool
 
     @staticmethod
-    def from_velox(
+    def _from_velox(
         device: Device,
         dtype: DType,
         data: velox.BaseColumn,
@@ -26,11 +26,8 @@ class ColumnFromVelox:
 
     # Velox column returned from generic dispatch always assumes returned column is nullable
     # This help method allows to alter it based on context (e.g. methods in IStringMethods can have better inference)
-    #
-    # TODO: rename this as _with_null as alternating nullability is dangerous.
-    #   We should also infer the type nullability flag better with function metadata on Velox.
-    def with_null(self, nullable: bool):
-        return self.from_velox(
+    def _with_null(self, nullable: bool):
+        return self._from_velox(
             self.device, self.dtype.with_null(nullable), self._data, True
         )
 
