@@ -1,11 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import operator
 import unittest
 
-import numpy.testing
 import torcharrow as ta
 import torcharrow.dtypes as dt
-from torcharrow import IMapColumn
+from torcharrow.imap_column import IMapColumn
 
 
 class TestMapColumn(unittest.TestCase):

@@ -1,10 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import functools
-import statistics
 import unittest
-
-import torcharrow.dtypes as dt
-from torcharrow import IDataFrame, Scope, me
 
 from .test_dataframe import TestDataFrame
 

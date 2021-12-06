@@ -3,7 +3,7 @@ import unittest
 
 import torcharrow as ta
 import torcharrow.dtypes as dt
-from torcharrow import IStringColumn
+from torcharrow.istring_column import IStringColumn
 
 
 class TestStringColumn(unittest.TestCase):

@@ -1,9 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import operator
 import unittest
-
-import torcharrow.dtypes as dt
-from torcharrow import Scope, IMapColumn
 
 from .test_map_column import TestMapColumn
 
