@@ -51,7 +51,7 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
     def _fromlist(device: str, data: List[List], dtype: dt.List):
         if dt.is_primitive(dtype.item_dtype):
             velox_column = velox.Column(get_velox_type(dtype), data)
-            return ColumnFromVelox.from_velox(
+            return ColumnFromVelox._from_velox(
                 device,
                 dtype,
                 velox_column,
@@ -110,7 +110,7 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
             return self.dtype.default_value()
         else:
             return list(
-                ColumnFromVelox.from_velox(
+                ColumnFromVelox._from_velox(
                     self.device,
                     self._dtype.item_dtype,
                     self._data[i],
@@ -149,7 +149,7 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
         # TODO: more efficient/straightfowrad interop
         arrow_array = self.to_arrow()
 
-        elements = ColumnFromVelox.from_velox(
+        elements = ColumnFromVelox._from_velox(
             self.device, self._dtype.item_dtype, self._data.elements(), True
         ).to_torch()
         # special case: if the nested type is List (which happens for List[str] that can't be represented as tensor)

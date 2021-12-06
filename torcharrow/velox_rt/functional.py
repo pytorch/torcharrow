@@ -37,7 +37,7 @@ class VeloxFunctional(types.ModuleType):
             # Generic dispatch always assumes nullable
             result_dtype = result_col.dtype().with_null(True)
 
-            return ColumnFromVelox.from_velox(
+            return ColumnFromVelox._from_velox(
                 first_col.device, result_dtype, result_col, True
             )
 
@@ -57,7 +57,7 @@ class VeloxFunctional(types.ModuleType):
             # Generic dispatch always assumes nullable
             result_dtype = result_col.dtype().with_null(True)
 
-            return ColumnFromVelox.from_velox(device, result_dtype, result_col, True)
+            return ColumnFromVelox._from_velox(device, result_dtype, result_col, True)
 
         if op_name in functional_registry._factory_methods:
             return factory_dispatch

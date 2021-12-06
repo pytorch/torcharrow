@@ -127,13 +127,13 @@ class MapColumnCpu(ColumnFromVelox, IMapColumn):
         if self._data.is_null_at(i):
             return self.dtype.default_value()
         else:
-            key_col = ColumnFromVelox.from_velox(
+            key_col = ColumnFromVelox._from_velox(
                 self.device,
                 self._dtype.key_dtype,
                 self._data.keys()[i],
                 True,
             )
-            value_col = ColumnFromVelox.from_velox(
+            value_col = ColumnFromVelox._from_velox(
                 self.device,
                 self._dtype.item_dtype,
                 self._data.values()[i],
@@ -169,10 +169,10 @@ class MapColumnCpu(ColumnFromVelox, IMapColumn):
         # FIXME: https://github.com/facebookresearch/torcharrow/issues/62 to_arrow doesn't work as expected for map
         # arrow_array = self.to_arrow()
 
-        keys = ColumnFromVelox.from_velox(
+        keys = ColumnFromVelox._from_velox(
             self.device, dt.List(self._dtype.key_dtype), self._data.keys(), True
         ).to_torch(_propagate_py_list=False)
-        values = ColumnFromVelox.from_velox(
+        values = ColumnFromVelox._from_velox(
             self.device, dt.List(self._dtype.item_dtype), self._data.values(), True
         ).to_torch(_propagate_py_list=False)
 
@@ -213,12 +213,12 @@ class MapMethodsCpu(IMapMethods):
 
     def keys(self):
         me = self._parent
-        return ColumnFromVelox.from_velox(
+        return ColumnFromVelox._from_velox(
             me.device, dt.List(me._dtype.key_dtype), me._data.keys(), True
         )
 
     def values(self):
         me = self._parent
-        return ColumnFromVelox.from_velox(
+        return ColumnFromVelox._from_velox(
             me.device, dt.List(me._dtype.item_dtype), me._data.values(), True
         )
