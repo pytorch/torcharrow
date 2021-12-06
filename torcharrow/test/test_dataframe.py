@@ -5,7 +5,8 @@ from typing import List, Optional, NamedTuple
 import numpy.testing
 import torcharrow as ta
 import torcharrow.dtypes as dt
-from torcharrow import IDataFrame, Scope, me
+from torcharrow import me
+from torcharrow.idataframe import IDataFrame
 
 # run python3 -m unittest outside this directory to run all tests
 

@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import pandas as pd  # type: ignore
 import torcharrow.dtypes as dt
-from torcharrow import Scope
+from torcharrow.scope import Scope
 
 from .dispatcher import Dispatcher
 

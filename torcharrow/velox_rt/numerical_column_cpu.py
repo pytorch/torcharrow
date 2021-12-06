@@ -70,7 +70,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         # to velox_column
         assert c_schema.release == ffi.NULL and c_array.release == ffi.NULL
 
-        return ColumnFromVelox.from_velox(
+        return ColumnFromVelox._from_velox(
             device,
             dtype,
             velox_column,

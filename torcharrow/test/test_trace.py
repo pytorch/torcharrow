@@ -4,7 +4,11 @@ import unittest
 
 import torcharrow as ta
 import torcharrow.dtypes as dt
-from torcharrow import IColumn, Scope, me, trace, GroupedDataFrame
+from torcharrow import me
+from torcharrow.icolumn import IColumn
+from torcharrow.scope import Scope
+from torcharrow.trace import trace
+from torcharrow.velox_rt.dataframe_cpu import GroupedDataFrame
 
 # -----------------------------------------------------------------------------
 # testdata

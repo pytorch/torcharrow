@@ -1,9 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import operator
 import unittest
-
-import torcharrow.dtypes as dt
-from torcharrow import IListColumn, INumericalColumn, Scope
 
 from .test_list_column import TestListColumn
 

@@ -2,7 +2,7 @@
 import typing as ty
 
 import torcharrow._torcharrow as velox
-from torcharrow import Scope
+from torcharrow.scope import Scope
 from torcharrow.dispatcher import Device
 from torcharrow.dtypes import DType
 from torcharrow.icolumn import IColumn

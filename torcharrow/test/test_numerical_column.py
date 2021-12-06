@@ -7,8 +7,9 @@ import numpy as np
 import numpy.testing
 import torcharrow as ta
 import torcharrow.dtypes as dt
-from torcharrow import IColumn, INumericalColumn
-from torcharrow import Scope
+from torcharrow.icolumn import IColumn
+from torcharrow.inumerical_column import INumericalColumn
+from torcharrow.scope import Scope
 
 
 class TestNumericalColumn(unittest.TestCase):
