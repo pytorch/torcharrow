@@ -23,7 +23,7 @@ from .typing import get_velox_type
 
 
 class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
-    """A Numerical Column"""
+    """A Numerical Column on Velox backend"""
 
     # private
     def __init__(self, device, dtype, data: velox.BaseColumn):
@@ -99,7 +99,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     @property
     def null_count(self):
-        """Return number of null items"""
         return self._data.get_null_count()
 
     def _getdata(self, i):
@@ -160,7 +159,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         ascending=True,
         na_position="last",
     ):
-        """Sort a column/a dataframe in ascending or descending order"""
         self._prototype_support_warning("sort")
 
         if columns is not None:
@@ -194,7 +192,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         columns: Optional[List[str]] = None,
         keep="first",
     ):
-        """Returns a new data of the *n* largest element."""
         if columns is not None:
             raise TypeError(
                 "computing n-largest on numerical column can't have 'columns' parameter"
@@ -204,7 +201,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def _nsmallest(self, n=5, columns: Optional[List[str]] = None, keep="first"):
-        """Returns a new data of the *n* smallest element."""
         if columns is not None:
             raise TypeError(
                 "computing n-smallest on numerical column can't have 'columns' parameter"
@@ -215,7 +211,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def _nunique(self, drop_null=True):
-        """Returns the number of unique values of the column"""
         self._prototype_support_warning("_nunique")
 
         result = set()
@@ -291,13 +286,11 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __add__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
-        """Vectorized a + b."""
         return self._checked_arithmetic_op_call(other, "add", operator.add)
 
     @trace
     @expression
     def __radd__(self, other: Union[int, float]) -> INumericalColumn:
-        """Vectorized b + a."""
         return self._checked_arithmetic_op_call(
             other, "radd", IColumn._swap(operator.add)
         )
@@ -305,13 +298,11 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __sub__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
-        """Vectorized a - b."""
         return self._checked_arithmetic_op_call(other, "sub", operator.sub)
 
     @trace
     @expression
     def __rsub__(self, other: Union[int, float]) -> INumericalColumn:
-        """Vectorized b - a."""
         return self._checked_arithmetic_op_call(
             other, "rsub", IColumn._swap(operator.sub)
         )
@@ -319,13 +310,11 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __mul__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
-        """Vectorized a * b."""
         return self._checked_arithmetic_op_call(other, "mul", operator.mul)
 
     @trace
     @expression
     def __rmul__(self, other: Union[int, float]) -> INumericalColumn:
-        """Vectorized b * a."""
         return self._checked_arithmetic_op_call(
             other, "rmul", IColumn._swap(operator.mul)
         )
@@ -333,7 +322,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __floordiv__(self, other):
-        """Vectorized a // b."""
         self._prototype_support_warning("__floordiv__")
 
         if isinstance(other, NumericalColumnCpu):
@@ -357,7 +345,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __rfloordiv__(self, other):
-        """Vectorized b // a."""
         self._prototype_support_warning("__rfloordiv__")
 
         if isinstance(other, NumericalColumnCpu):
@@ -381,7 +368,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __truediv__(self, other):
-        """Vectorized a / b."""
         self._prototype_support_warning("__truediv__")
 
         if isinstance(other, NumericalColumnCpu):
@@ -410,7 +396,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __rtruediv__(self, other):
-        """Vectorized b / a."""
         self._prototype_support_warning("__rtruediv__")
 
         if isinstance(other, NumericalColumnCpu):
@@ -440,13 +425,11 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __mod__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
-        """Vectorized a % b."""
         return self._checked_arithmetic_op_call(other, "mod", operator.mod)
 
     @trace
     @expression
     def __rmod__(self, other: Union[int, float]) -> INumericalColumn:
-        """Vectorized b % a."""
         return self._checked_arithmetic_op_call(
             other, "rmod", IColumn._swap(operator.mod)
         )
@@ -454,7 +437,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __pow__(self, other):
-        """Vectorized a ** b."""
         self._prototype_support_warning("__pow__")
 
         if isinstance(other, NumericalColumnCpu):
@@ -478,7 +460,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __rpow__(self, other):
-        """Vectorized b ** a."""
         self._prototype_support_warning("__rpow__")
 
         if isinstance(other, NumericalColumnCpu):
@@ -504,7 +485,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     def __eq__(
         self, other: Union[INumericalColumn, List[int], List[float], int, float]
     ):
-        """Vectorized a == b."""
         return self._checked_comparison_op_call(other, "eq")
 
     @trace
@@ -512,7 +492,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     def __ne__(
         self, other: Union[INumericalColumn, List[int], List[float], int, float]
     ):
-        """Vectorized a != b."""
         return self._checked_comparison_op_call(other, "neq")
 
     @trace
@@ -520,7 +499,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     def __lt__(
         self, other: Union[INumericalColumn, List[int], List[float], int, float]
     ):
-        """Vectorized a < b."""
         return self._checked_comparison_op_call(other, "lt")
 
     @trace
@@ -528,7 +506,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     def __gt__(
         self, other: Union[INumericalColumn, List[int], List[float], int, float]
     ):
-        """Vectorized a > b."""
         return self._checked_comparison_op_call(other, "gt")
 
     @trace
@@ -536,7 +513,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     def __le__(
         self, other: Union[INumericalColumn, List[int], List[float], int, float]
     ):
-        """Vectorized a <= b."""
         return self._checked_comparison_op_call(other, "lte")
 
     @trace
@@ -544,19 +520,16 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     def __ge__(
         self, other: Union[INumericalColumn, List[int], List[float], int, float]
     ):
-        """Vectorized a >= b."""
         return self._checked_comparison_op_call(other, "gte")
 
     @trace
     @expression
     def __and__(self, other: Union[INumericalColumn, int]) -> INumericalColumn:
-        """Vectorized a & b."""
         return self._checked_arithmetic_op_call(other, "bitwise_and", operator.__and__)
 
     @trace
     @expression
     def __rand__(self, other: Union[int]) -> INumericalColumn:
-        """Vectorized b & a."""
         return self._checked_arithmetic_op_call(
             other, "bitwise_rand", IColumn._swap(operator.__and__)
         )
@@ -564,13 +537,11 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __or__(self, other: Union[INumericalColumn, int]) -> INumericalColumn:
-        """Vectorized a | b."""
         return self._checked_arithmetic_op_call(other, "bitwise_or", operator.__or__)
 
     @trace
     @expression
     def __ror__(self, other: Union[int]) -> INumericalColumn:
-        """Vectorized b | a."""
         return self._checked_arithmetic_op_call(
             other, "bitwise_ror", IColumn._swap(operator.__or__)
         )
@@ -578,13 +549,11 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __xor__(self, other: Union[INumericalColumn, int]) -> INumericalColumn:
-        """Vectorized a | b."""
         return self._checked_arithmetic_op_call(other, "bitwise_xor", operator.__xor__)
 
     @trace
     @expression
     def __rxor__(self, other: Union[int]) -> INumericalColumn:
-        """Vectorized b | a."""
         return self._checked_arithmetic_op_call(
             other, "bitwise_rxor", IColumn._swap(operator.__xor__)
         )
@@ -592,7 +561,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __invert__(self):
-        """Vectorized: ~a."""
         return ColumnFromVelox.from_velox(
             self.device, self.dtype, self._data.invert(), True
         )
@@ -600,7 +568,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __neg__(self):
-        """Vectorized: - a."""
         return ColumnFromVelox.from_velox(
             self.device, self.dtype, self._data.neg(), True
         )
@@ -608,18 +575,13 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __pos__(self):
-        """Vectorized: + a."""
         return self
 
     @trace
     @expression
-    def isin(self, values, invert=False):
-        """Check whether list values are contained in data, or column/dataframe (row/column specific)."""
+    def isin(self, values):
         self._prototype_support_warning("isin")
 
-        # Todo decide on wether mask matters?
-        if invert:
-            raise NotImplementedError()
         col = velox.Column(get_velox_type(dt.boolean))
         for i in range(len(self)):
             if self._getmask(i):
@@ -633,7 +595,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def abs(self):
-        """Absolute value of each element of the series."""
         return ColumnFromVelox.from_velox(
             self.device, self.dtype, self._data.abs(), True
         )
@@ -641,7 +602,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def ceil(self):
-        """Rounds each value upward to the smallest integral"""
         return ColumnFromVelox.from_velox(
             self.device, self.dtype, self._data.ceil(), True
         )
@@ -649,7 +609,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def floor(self):
-        """Rounds each value downward to the largest integral value"""
         return ColumnFromVelox.from_velox(
             self.device, self.dtype, self._data.floor(), True
         )
@@ -657,7 +616,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def round(self, decimals=0):
-        """Round each value in a data to the given number of decimals."""
         self._prototype_support_warning("round")
 
         # TODO: round(-2.5) returns -2.0 in Numpy/PyTorch but returns -3.0 in Velox
@@ -676,7 +634,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def fill_null(self, fill_value: Union[dt.ScalarTypes, Dict]):
-        """Fill NA/NaN values using the specified method."""
         self._prototype_support_warning("fill_null")
 
         if not isinstance(fill_value, IColumn._scalar_types):
@@ -698,7 +655,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def drop_null(self, how="any"):
-        """Return a column with rows removed where a row has any or all nulls."""
         self._prototype_support_warning("drop_null")
 
         if not self.is_nullable:
@@ -718,7 +674,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         self,
         subset: Optional[List[str]] = None,
     ):
-        """Remove duplicate values from row/frame"""
         self._prototype_support_warning("drop_duplicates")
 
         if subset is not None:
@@ -740,7 +695,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def all(self):
-        """Return whether all non-null elements are True in Column"""
         self._prototype_support_warning("all")
 
         for i in range(len(self)):
@@ -752,8 +706,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     @trace
     @expression
-    def any(self, skipna=True, boolean_only=None):
-        """Return whether any non-null element is True in Column"""
+    def any(self):
         self._prototype_support_warning("any")
 
         for i in range(len(self)):
@@ -766,8 +719,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def sum(self):
-        # TODO Should be def sum(self, initial=None) but didn't get to work
-        """Return sum of all non-null elements in Column (starting with initial)"""
         self._prototype_support_warning("sum")
 
         result = 0
@@ -808,7 +759,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def _cummin(self):
-        """Return cumulative minimum of the data."""
         self._prototype_support_warning("_cummin")
 
         return self._accumulate_column(min, skipna=True, initial=None)
@@ -816,7 +766,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def _cummax(self):
-        """Return cumulative maximum of the data."""
         self._prototype_support_warning("_cummax")
 
         return self._accumulate_column(max, skipna=True, initial=None)
@@ -824,7 +773,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def cumsum(self):
-        """Return cumulative sum of the data."""
         self._prototype_support_warning("cumsum")
 
         return self._accumulate_column(operator.add, skipna=True, initial=None)
@@ -832,7 +780,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def _cumprod(self):
-        """Return cumulative product of the data."""
         self._prototype_support_warning("_cumprod")
 
         return self._accumulate_column(operator.mul, skipna=True, initial=None)
@@ -840,7 +787,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def mean(self):
-        """Return the mean of the values in the series."""
         self._prototype_support_warning("mean")
 
         return statistics.mean(value for value in self if value is not None)
@@ -848,7 +794,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def median(self):
-        """Return the median of the values in the data."""
         self._prototype_support_warning("median")
 
         return statistics.median(value for value in self if value is not None)
@@ -856,7 +801,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def quantile(self, q, interpolation="midpoint"):
-        """Compute the q-th percentile of non-null data."""
         self._prototype_support_warning("quantile")
 
         if len(self) == 0 or len(q) == 0:
@@ -880,7 +824,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @property  # type: ignore
     @traceproperty
     def is_unique(self):
-        """Return boolean if data values are unique."""
         return self._nunique(drop_null=False) == len(self)
 
     @property  # type: ignore
@@ -888,7 +831,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     def is_monotonic_increasing(self):
         self._prototype_support_warning("is_monotonic_increasing")
 
-        """Return boolean if values in the object are monotonic increasing"""
         first = True
         prev = None
         for i in range(len(self)):
@@ -907,7 +849,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     def is_monotonic_decreasing(self):
         self._prototype_support_warning("is_monotonic_decreasing")
 
-        """Return boolean if values in the object are monotonic decreasing"""
         first = True
         prev = None
         for i in range(len(self)):
