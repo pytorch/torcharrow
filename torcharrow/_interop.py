@@ -244,14 +244,6 @@ def _arrowtype_to_dtype(t, nullable):
         return dt.Float32(nullable)
     if pa.types.is_float64(t):
         return dt.Float64(nullable)
-    if pa.types.is_list(t):
-        return List(t.value_type, nullable)
-    if pa.types.is_struct(t):
-        return _pandatype_to_dtype(t.to_pandas_dtype(), True)
-    if pa.types.is_null(t):
-        return dt.Void()
-    if pa.types.is_string(t):
+    if pa.types.is_string(t) or pa.types.is_large_string(t):
         return dt.String(nullable)
-    if pa.types.is_map(t):
-        return dt.Map(t.item_type, t.key_type, nullable)
-    raise NotImplementedError("unsupported case")
+    raise NotImplementedError(f"Unsupported Arrow type: {str(t)}")
