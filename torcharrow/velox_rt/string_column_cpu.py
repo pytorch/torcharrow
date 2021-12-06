@@ -73,7 +73,7 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
     @staticmethod
     def _fromlist(device: str, data: List[str], dtype: dt.DType):
         velox_column = velox.Column(get_velox_type(dtype), data)
-        return ColumnFromVelox.from_velox(
+        return ColumnFromVelox._from_velox(
             device,
             dtype,
             velox_column,
@@ -143,12 +143,12 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
     # operators ---------------------------------------------------------------
     def __add__(self, other):
         if isinstance(other, StringColumnCpu):
-            return functional.concat(self, other).with_null(
+            return functional.concat(self, other)._with_null(
                 self.dtype.nullable or other.dtype.nullable
             )
         else:
             assert isinstance(other, str)
-            return functional.concat(self, other).with_null(self.dtype.nullable)
+            return functional.concat(self, other)._with_null(self.dtype.nullable)
 
     def _checked_binary_op_call(self, other, op_name):
         f = functional.__getattr__(op_name)
@@ -159,7 +159,7 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
             nullable = nullable or other.dtype.nullable
         else:
             assert isinstance(other, str)
-        return f(self, other).with_null(nullable)
+        return f(self, other)._with_null(nullable)
 
     @trace
     @expression
@@ -225,76 +225,80 @@ class StringMethodsCpu(IStringMethods):
         super().__init__(parent)
 
     def length(self):
-        return functional.length(self._parent).with_null(self._parent.dtype.nullable)
+        return functional.length(self._parent)._with_null(self._parent.dtype.nullable)
 
     def slice(self, start: int = None, stop: int = None) -> IStringColumn:
         start = start or 0
         if stop is None:
-            return functional.substr(self._parent, start + 1).with_null(
+            return functional.substr(self._parent, start + 1)._with_null(
                 self._parent.dtype.nullable
             )
         else:
-            return functional.substr(self._parent, start + 1, stop - start).with_null(
+            return functional.substr(self._parent, start + 1, stop - start)._with_null(
                 self._parent.dtype.nullable
             )
 
     def split(self, sep=None):
         sep = sep or " "
-        return functional.split(self._parent, sep).with_null(
+        return functional.split(self._parent, sep)._with_null(
             self._parent.dtype.nullable
         )
 
     def strip(self):
-        return functional.trim(self._parent).with_null(self._parent.dtype.nullable)
+        return functional.trim(self._parent)._with_null(self._parent.dtype.nullable)
 
     def lower(self) -> IStringColumn:
-        return functional.lower(self._parent).with_null(self._parent.dtype.nullable)
+        return functional.lower(self._parent)._with_null(self._parent.dtype.nullable)
 
     def upper(self) -> IStringColumn:
-        return functional.upper(self._parent).with_null(self._parent.dtype.nullable)
+        return functional.upper(self._parent)._with_null(self._parent.dtype.nullable)
 
     # Check whether all characters in each string are  -----------------------------------------------------
     # alphabetic/numeric/digits/decimal...
 
     def isalpha(self) -> IStringColumn:
-        return functional.torcharrow_isalpha(self._parent).with_null(
+        return functional.torcharrow_isalpha(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
     def isalnum(self) -> IStringColumn:
-        return functional.torcharrow_isalnum(self._parent).with_null(
+        return functional.torcharrow_isalnum(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
     def isdecimal(self) -> IStringColumn:
-        return functional.isdecimal(self._parent).with_null(self._parent.dtype.nullable)
+        return functional.isdecimal(self._parent)._with_null(
+            self._parent.dtype.nullable
+        )
 
     def islower(self) -> IStringColumn:
-        return functional.torcharrow_islower(self._parent).with_null(
+        return functional.torcharrow_islower(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
     def isupper(self) -> IStringColumn:
-        return functional.isupper(self._parent).with_null(self._parent.dtype.nullable)
+        return functional.isupper(self._parent)._with_null(self._parent.dtype.nullable)
 
     def isspace(self) -> IStringColumn:
-        return functional.torcharrow_isspace(self._parent).with_null(
+        return functional.torcharrow_isspace(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
     def istitle(self) -> IStringColumn:
-        return functional.torcharrow_istitle(self._parent).with_null(
+        return functional.torcharrow_istitle(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
     def isnumeric(self) -> IStringColumn:
-        return functional.isnumeric(self._parent).with_null(self._parent.dtype.nullable)
+        return functional.isnumeric(self._parent)._with_null(
+            self._parent.dtype.nullable
+        )
 
     # Pattern matching related methods  -----------------------------------------------------
 
     def startswith(self, pat):
         return (
-            functional.substr(self._parent, 1, len(pat)).with_null(
+            functional.substr(self._parent, 1, len(pat))._with_null(
                 self._parent.dtype.nullable
             )
             == pat
@@ -304,25 +308,25 @@ class StringMethodsCpu(IStringMethods):
         return (
             functional.substr(
                 self._parent, self._parent.str.length() - len(pat) + 1
-            ).with_null(self._parent.dtype.nullable)
+            )._with_null(self._parent.dtype.nullable)
             == pat
         )
 
     def find(self, sub):
         return (
-            functional.strpos(self._parent, sub).with_null(self._parent.dtype.nullable)
+            functional.strpos(self._parent, sub)._with_null(self._parent.dtype.nullable)
             - 1
         )
 
     def replace(self, old, new):
-        return functional.replace(self._parent, old, new).with_null(
+        return functional.replace(self._parent, old, new)._with_null(
             self._parent.dtype.nullable
         )
 
     # Regular expressions -----------------------------------------------------
 
     def match_re(self, pattern: str):
-        return functional.match_re(self._parent, pattern).with_null(
+        return functional.match_re(self._parent, pattern)._with_null(
             self._parent.dtype.nullable
         )
 
@@ -330,12 +334,12 @@ class StringMethodsCpu(IStringMethods):
         self,
         pattern: str,
     ):
-        return functional.regexp_like(self._parent, pattern).with_null(
+        return functional.regexp_like(self._parent, pattern)._with_null(
             self._parent.dtype.nullable
         )
 
     def findall_re(self, pattern: str):
-        return functional.regexp_extract_all(self._parent, pattern).with_null(
+        return functional.regexp_extract_all(self._parent, pattern)._with_null(
             self._parent.dtype.nullable
         )
 
