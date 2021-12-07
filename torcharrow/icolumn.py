@@ -19,6 +19,7 @@ from tabulate import tabulate
 
 from .dispatcher import Device
 from .expression import expression
+from .interop import from_arrow
 from .scope import Scope
 from .trace import trace, traceproperty
 
@@ -1129,18 +1130,12 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         dtype: int64, length: 4, null_count: 0
 
         """
-        self._prototype_support_warning("fill_null")
-
-        if not isinstance(fill_value, IColumn._scalar_types):
-            raise TypeError(f"fill_null with {type(fill_value)} is not supported")
         if isinstance(fill_value, IColumn._scalar_types):
-            res = Scope._EmptyColumn(self.dtype.constructor(nullable=False))
-            for m, i in self._items():
-                if not m:
-                    res._append_value(i)
-                else:
-                    res._append_value(fill_value)
-            return res._finalize()
+            import pyarrow.compute as pc
+
+            arr = pc.fill_null(self.to_arrow(), fill_value)
+            arr_dtype = self.dtype.with_null(nullable=False)
+            return from_arrow(arr, dtype=arr_dtype, device=self.device)
         else:
             raise TypeError(f"fill_null with {type(fill_value)} is not supported")
 
