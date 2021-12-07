@@ -11,11 +11,11 @@ import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
 from tabulate import tabulate
-from torcharrow.scope import Scope
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.icolumn import IColumn
 from torcharrow.imap_column import IMapColumn, IMapMethods
+from torcharrow.scope import Scope
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type
