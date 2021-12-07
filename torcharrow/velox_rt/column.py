@@ -2,10 +2,10 @@
 import typing as ty
 
 import torcharrow._torcharrow as velox
-from torcharrow.scope import Scope
 from torcharrow.dispatcher import Device
 from torcharrow.dtypes import DType
 from torcharrow.icolumn import IColumn
+from torcharrow.scope import Scope
 
 # TODO: Rename this class to IColumnVelox or IColumnCpu
 class ColumnFromVelox:
