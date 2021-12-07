@@ -393,7 +393,7 @@ class TestNumericalColumn(unittest.TestCase):
         import functools
         import operator
 
-        c = [1, 4, 2, 7, 9, 0]
+        c = [1, 4, 2, 7, 9, 1]
         D = ta.Column(c, device=self.device)
         C = ta.Column(c + [None], device=self.device)
 
@@ -401,6 +401,7 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(C.min(), min(c))
         self.assertEqual(C.max(), max(c))
         self.assertEqual(C.sum(), sum(c))
+        self.assertEqual(C.mode(), statistics.mode(c))
 
         self.assertEqual(D.std(), (statistics.stdev((float(i) for i in c))))
 

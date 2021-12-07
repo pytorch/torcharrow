@@ -716,17 +716,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
                     return True
         return False
 
-    @trace
-    @expression
-    def sum(self):
-        self._prototype_support_warning("sum")
-
-        result = 0
-        for i in range(len(self)):
-            if not self._getmask(i):
-                result += self._getdata(i)
-        return result
-
     def _accumulate_column(self, func, *, skipna=True, initial=None):
         it = iter(self)
         res = []
@@ -783,13 +772,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         self._prototype_support_warning("_cumprod")
 
         return self._accumulate_column(operator.mul, skipna=True, initial=None)
-
-    @trace
-    @expression
-    def mean(self):
-        self._prototype_support_warning("mean")
-
-        return statistics.mean(value for value in self if value is not None)
 
     @trace
     @expression
