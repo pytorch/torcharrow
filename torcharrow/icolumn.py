@@ -1259,10 +1259,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         >>> s.sum()
         7
         """
-        self._prototype_support_warning("sum")
+        import pyarrow.compute as pc
 
-        self._check(dt.is_numerical, "sum")
-        return sum(self._data_iter())
+        return pc.sum(self.to_arrow()).as_py()
 
     @trace
     @expression
@@ -1278,10 +1277,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         >>> s.mean(fill_value=999)
         251.5
         """
-        self._prototype_support_warning("mean")
+        import pyarrow.compute as pc
 
-        m = statistics.mean((float(i) for i in list(self._data_iter())))
-        return m
+        return pc.mean(self.to_arrow()).as_py()
 
     @trace
     @expression
@@ -1331,9 +1329,17 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def mode(self):
         """Return the mode(s) of the data."""
-        self._prototype_support_warning("mode")
         self._check(dt.is_numerical, "mode")
-        return statistics.mode(self._data_iter())
+
+        import pyarrow as pa
+
+        modes = pa.compute.mode(self.to_arrow())
+        if isinstance(modes, pa.StructArray):
+            # pyarrow.compute.mode returns StructArray in >=3.0. but StructScalar in 2.0
+            assert len(modes) == 1
+            modes = modes[0]
+
+        return modes["mode"].as_py()
 
     @trace
     @expression
