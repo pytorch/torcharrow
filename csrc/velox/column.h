@@ -682,6 +682,8 @@ class ArrayColumn : public BaseColumn {
       velox::vector_size_t length) {
     return std::make_unique<ArrayColumn>(*this, offset, length);
   }
+
+  std::unique_ptr<ArrayColumn> withElements(const BaseColumn& newElements);
 };
 
 class MapColumn : public BaseColumn {
