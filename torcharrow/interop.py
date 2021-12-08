@@ -1,14 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from typing import Optional, List, Union
 
-import pandas as pd  # type: ignore
 import torcharrow.dtypes as dt
-from torcharrow.scope import Scope
 
-from .dispatcher import Dispatcher
 from .icolumn import IColumn
 from .idataframe import IDataFrame
 from .interop_arrow import _from_arrow_array, _from_arrow_table
+from .scope import Scope
 
 
 def from_arrow(
@@ -21,15 +19,12 @@ def from_arrow(
 
     assert isinstance(data, pa.Array) or isinstance(data, pa.Table)
 
-    if dtype is not None:
-        raise NotImplementedError
-
     device = device or Scope.default.device
 
     if isinstance(data, pa.Array):
-        return _from_arrow_array(data, device=device)
+        return _from_arrow_array(data, dtype, device=device)
     elif isinstance(data, pa.Table):
-        return _from_arrow_table(data, device=device)
+        return _from_arrow_table(data, dtype, device=device)
     else:
         raise ValueError
 
