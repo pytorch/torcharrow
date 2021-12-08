@@ -58,7 +58,7 @@ DataOrDTypeOrNone = Optional[Union[Mapping, Sequence, dt.DType]]
 class DataFrameCpu(ColumnFromVelox, IDataFrame):
     """Dataframe, ordered dict of typed columns of the same length"""
 
-    def __init__(self, device, dtype, data):
+    def __init__(self, device: str, dtype: dt.Struct, data: Dict[str, ColumnFromVelox]):
         assert dt.is_struct(dtype)
         IDataFrame.__init__(self, device, dtype)
 
@@ -84,7 +84,12 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
     # Any _full requires no further type changes..
     @staticmethod
-    def _full(device, data: Dict[str, ColumnFromVelox], dtype=None, mask=None):
+    def _full(
+        device: str,
+        data: Dict[str, ColumnFromVelox],
+        dtype: Optional[dt.Struct] = None,
+        mask=None,
+    ):
         assert mask is None  # TODO: remove mask parameter in _FullColumn
         cols = data.values()  # TODO: also allow data to be a single Velox RowColumn
         assert all(isinstance(c, ColumnFromVelox) for c in data.values())
@@ -106,12 +111,12 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     # Any _empty must be followed by a _finalize; no other ops are allowed during this time
 
     @staticmethod
-    def _empty(device, dtype):
+    def _empty(device: str, dtype: dt.Struct):
         field_data = {f.name: Scope._EmptyColumn(f.dtype, device) for f in dtype.fields}
         return DataFrameCpu(device, dtype, field_data)
 
     @staticmethod
-    def _fromlist(device, data: List, dtype):
+    def _fromlist(device: str, data: List, dtype: dt.Struct):
         # default (ineffincient) implementation
         col = DataFrameCpu._empty(device, dtype)
         for i in data:
