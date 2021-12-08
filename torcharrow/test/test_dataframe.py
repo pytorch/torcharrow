@@ -537,13 +537,13 @@ class TestDataFrame(unittest.TestCase):
             assert c == c.append([None])
 
     def base_test_na_handling(self):
-        c = ta.DataFrame({"a": [None, 2, 17]}, device=self.device)
+        c = ta.DataFrame({"a": [None, 2, 17.0]}, device=self.device)
 
-        self.assertEqual(list(c.fill_null(99)), [(i,) for i in [99, 2, 17]])
-        self.assertEqual(list(c.drop_null()), [(i,) for i in [2, 17]])
+        self.assertEqual(list(c.fill_null(99.0)), [(i,) for i in [99.0, 2, 17.0]])
+        self.assertEqual(list(c.drop_null()), [(i,) for i in [2, 17.0]])
 
         c = c.append([(2,)])
-        self.assertEqual(list(c.drop_duplicates()), [(i,) for i in [None, 2, 17]])
+        self.assertEqual(list(c.drop_duplicates()), [(i,) for i in [None, 2, 17.0]])
 
         # duplicates with subset
         d = ta.DataFrame(
