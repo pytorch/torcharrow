@@ -1692,6 +1692,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         map = {}
         for n, c in self._field_data.items():
             map[n] = c.to_arrow()
+        # FIXME! nullable
         return pa.table(map)
 
     def to_torch(self):
