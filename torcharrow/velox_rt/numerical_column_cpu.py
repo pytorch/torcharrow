@@ -845,6 +845,17 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         return True
 
     # interop
+    def to_arrow(self):
+        import pyarrow as pa
+        from pyarrow.cffi import ffi
+        from torcharrow._interop import _dtype_to_arrowtype
+
+        c_array = ffi.new("struct ArrowArray*")
+        ptr_array = int(ffi.cast("uintptr_t", c_array))
+        self._data._export_to_arrow(ptr_array)
+
+        return pa.Array._import_from_c(ptr_array, _dtype_to_arrowtype(self.dtype))
+
     def to_torch(self):
         pytorch.ensure_available()
         import torch
