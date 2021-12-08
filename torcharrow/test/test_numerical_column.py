@@ -381,13 +381,13 @@ class TestNumericalColumn(unittest.TestCase):
     # TODO Test type promotion rules
 
     def base_test_na_handling(self):
-        c = ta.Column([None, 2, 17], device=self.device)
+        c = ta.Column([None, 2, 17.0], device=self.device)
 
-        self.assertEqual(list(c.fill_null(99)), [99, 2, 17])
-        self.assertEqual(list(c.drop_null()), [2, 17])
+        self.assertEqual(list(c.fill_null(99.0)), [99.0, 2, 17.0])
+        self.assertEqual(list(c.drop_null()), [2.0, 17.0])
 
         c = c.append([2])
-        self.assertEqual(set(c.drop_duplicates()), {None, 2, 17})
+        self.assertEqual(set(c.drop_duplicates()), {None, 2, 17.0})
 
     def base_test_agg_handling(self):
         import functools

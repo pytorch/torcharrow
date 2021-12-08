@@ -633,6 +633,27 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     @trace
     @expression
+    def fill_null(self, fill_value: Union[dt.ScalarTypes, Dict]):
+        self._prototype_support_warning("fill_null")
+
+        if not isinstance(fill_value, IColumn._scalar_types):
+            raise TypeError(f"fill_null with {type(fill_value)} is not supported")
+        if not self.is_nullable:
+            return self
+        else:
+            col = velox.Column(get_velox_type(self.dtype))
+            for i in range(len(self)):
+                if self._getmask(i):
+                    if isinstance(fill_value, Dict):
+                        raise NotImplementedError()
+                    else:
+                        col.append(fill_value)
+                else:
+                    col.append(self._getdata(i))
+            return ColumnFromVelox._from_velox(self.device, self.dtype, col, True)
+
+    @trace
+    @expression
     def drop_null(self, how="any"):
         self._prototype_support_warning("drop_null")
 
