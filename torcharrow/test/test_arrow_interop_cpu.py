@@ -38,6 +38,9 @@ class TestArrowInteropCpu(TestArrowInterop):
     def test_to_arrow_array_slice(self):
         return self.base_test_to_arrow_array_slice
 
+    def test_to_arrow_table(self):
+        return self.base_test_to_arrow_table
+
     def test_array_ownership_transferred(self):
         return self.base_test_array_ownership_transferred()
 
