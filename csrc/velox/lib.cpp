@@ -10,11 +10,13 @@
 
 #include "bindings.h"
 #include "column.h"
+#include "vector.h"
 #include "functions/functions.h" // @manual=//pytorch/torcharrow/csrc/velox/functions:torcharrow_functions
 #include "velox/buffer/StringViewBufferHolder.h"
+#include "velox/common/base/Exceptions.h"
+#include "velox/functions/prestosql/registration/RegistrationFunctions.h"
 #include "velox/type/Type.h"
 #include "velox/vector/TypeAliases.h"
-#include "velox/functions/prestosql/registration/RegistrationFunctions.h"
 #include "velox/vector/arrow/Bridge.h"
 
 #define STRINGIFY(x) #x
@@ -25,7 +27,6 @@ namespace py = pybind11;
 PYBIND11_MAKE_OPAQUE(std::vector<bool>);
 
 namespace facebook::torcharrow {
-
 //
 // SimpleColumn (scalar types)
 //
@@ -139,7 +140,7 @@ py::class_<SimpleColumn<T>, BaseColumn> declareSimpleType(
         return std::make_unique<SimpleColumn<T>>(flatVectorFromPyList<T>(data));
       });
 
-  // Import Arrow data
+  // Import/Export Arrow data
   //
   // VARCHAR is not supported at the moment
   // https://github.com/facebookincubator/velox/blob/f420d3115eeb8ad782aa9979f47be03671ed02f4/velox/vector/arrow/Bridge.cpp#L128
@@ -148,13 +149,19 @@ py::class_<SimpleColumn<T>, BaseColumn> declareSimpleType(
       kind == velox::TypeKind::SMALLINT || kind == velox::TypeKind::INTEGER ||
       kind == velox::TypeKind::BIGINT || kind == velox::TypeKind::REAL ||
       kind == velox::TypeKind::DOUBLE) {
+    // _torcharrow._import_from_arrow
     m.def(
         "_import_from_arrow",
         [](std::shared_ptr<I> type, uintptr_t ptrArray, uintptr_t ptrSchema) {
+          ArrowArray* castedArray = reinterpret_cast<ArrowArray*>(ptrArray);
+          ArrowSchema* castedSchema = reinterpret_cast<ArrowSchema*>(ptrSchema);
+          VELOX_CHECK_NOT_NULL(castedArray);
+          VELOX_CHECK_NOT_NULL(castedSchema);
+
           auto column =
               std::make_unique<SimpleColumn<T>>(velox::importFromArrowAsOwner(
-                  *reinterpret_cast<ArrowSchema*>(ptrSchema),
-                  *reinterpret_cast<ArrowArray*>(ptrArray),
+                  *castedSchema,
+                  *castedArray,
                   TorchArrowGlobalStatic::rootMemoryPool()));
 
           VELOX_CHECK(
@@ -164,6 +171,27 @@ py::class_<SimpleColumn<T>, BaseColumn> declareSimpleType(
               column->type()->kindName());
 
           return column;
+        });
+
+    // _torcharrow.SimpleColumn<Type>._export_to_arrow
+    result.def(
+        "_export_to_arrow", [](SimpleColumn<T>& self, uintptr_t ptrArray) {
+          ArrowArray* castedArray = reinterpret_cast<ArrowArray*>(ptrArray);
+          VELOX_CHECK_NOT_NULL(castedArray);
+
+          if (self.getOffset() != 0 ||
+              self.getLength() < self.getUnderlyingVeloxVector()->size()) {
+            // This is a slice. Make a copy of the slice and then export the
+            // slice to Arrow
+            velox::VectorPtr temp = vectorSlice(
+                *self.getUnderlyingVeloxVector(),
+                self.getOffset(),
+                self.getOffset() + self.getLength());
+            temp->setNullCount(self.getNullCount());
+            velox::exportToArrow(temp, *castedArray);
+          } else {
+            velox::exportToArrow(self.getUnderlyingVeloxVector(), *castedArray);
+          }
         });
   }
 

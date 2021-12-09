@@ -446,6 +446,58 @@ class TestSimpleColumns(BaseTestColumns):
         self.assertEqual(colSlice.get_null_count(), 0)
         self.assertEqual(col.get_null_count(), 2)
 
+    def test_ToArrow(self):
+        from pyarrow.cffi import ffi  # @manual=@/third-party:python-cffi:python-cffi-py
+
+        c_array = ffi.new("struct ArrowArray*")
+        ptr_array = int(ffi.cast("uintptr_t", c_array))
+
+        col = infer_column([None, 1, 2, None])
+        col._export_to_arrow(ptr_array)
+        self.assertEqual(c_array.length, 4)
+        self.assertEqual(c_array.null_count, 2)
+        self.assertEqual(c_array.n_buffers, 2)
+        vals = ffi.cast("int64_t*", c_array.buffers[1])
+        self.assertEqual(vals[1], 1)
+        self.assertEqual(vals[2], 2)
+        self.assertEqual(c_array.n_children, 0)
+        self.assertNotEqual(c_array.release, ffi.NULL)
+
+        c_array_slice = ffi.new("struct ArrowArray*")
+        ptr_array_slice = int(ffi.cast("uintptr_t", c_array_slice))
+
+        col_slice = col.slice(1, 3)
+        col_slice._export_to_arrow(ptr_array_slice)
+        self.assertEqual(c_array_slice.length, 3)
+        self.assertEqual(c_array_slice.null_count, 1)
+        self.assertEqual(c_array_slice.n_buffers, 2)
+        vals_slice = ffi.cast("int64_t*", c_array_slice.buffers[1])
+        self.assertEqual(vals_slice[0], 1)
+        self.assertEqual(vals_slice[1], 2)
+        self.assertEqual(c_array_slice.n_children, 0)
+        self.assertNotEqual(c_array_slice.release, ffi.NULL)
+
+    def test_FromArrow(self):
+        import pyarrow as pa  # @manual=@/third-party:apache-arrow:apache-arrow-py
+        from pyarrow.cffi import ffi  # @manual=@/third-party:python-cffi:python-cffi-py
+
+        c_schema = ffi.new("struct ArrowSchema*")
+        ptr_schema = int(ffi.cast("uintptr_t", c_schema))
+        c_array = ffi.new("struct ArrowArray*")
+        ptr_array = int(ffi.cast("uintptr_t", c_array))
+
+        a = pa.array([None, 1, 2, None])
+        a._export_to_c(ptr_array, ptr_schema)
+        col = ta._import_from_arrow(ta.VeloxType_BIGINT(), ptr_array, ptr_schema)
+        self.assertEqual(len(col), 4)
+        self.assertEqual(col.get_null_count(), 2)
+        self.assertTrue(col.is_null_at(0))
+        self.assertEqual(col[1], 1)
+        self.assertEqual(col[2], 2)
+        self.assertTrue(col.is_null_at(3))
+        self.assertEqual(c_array.release, ffi.NULL)
+        self.assertEqual(c_schema.release, ffi.NULL)
+
 
 def is_same_type(a, b) -> bool:
     if isinstance(a, ta.VeloxType_BIGINT):
