@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import array as ar
 import warnings
-from typing import List
+from typing import List, Callable
 
 import numpy as np
 import torcharrow as ta
@@ -10,6 +10,7 @@ import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
 from tabulate import tabulate
 from torcharrow.dispatcher import Dispatcher
+from torcharrow.icolumn import IColumn
 from torcharrow.ilist_column import IListColumn, IListMethods
 from torcharrow.scope import Scope
 
@@ -191,6 +192,20 @@ class ListMethodsCpu(IListMethods):
 
     def __init__(self, parent: ListColumnCpu):
         super().__init__(parent)
+
+    def vmap(self, fun: Callable[[IColumn], IColumn]):
+        elements = ColumnFromVelox._from_velox(
+            self._parent.device,
+            self._parent._dtype.item_dtype,
+            self._parent._data.elements(),
+            True,
+        )
+        new_elements = fun(elements)
+
+        new_data = self._parent._data.withElements(new_elements._data)
+        return ColumnFromVelox._from_velox(
+            self._parent.device, new_data.dtype(), new_data, True
+        )
 
 
 # ------------------------------------------------------------------------------
