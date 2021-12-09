@@ -273,12 +273,13 @@ class BaseColumn {
       const BaseColumn& other,
       velox::vector_size_t offset,
       velox::vector_size_t length)
-      : _delegate(other._delegate),
-        _offset(offset),
-        _length(length),
-        // Always re-count nulls. This is a "slice" constructor so the null
-        // count should be the number of nulls within the slice
-        _nullCount(countNulls(_delegate, _offset, _length)) {}
+      : _delegate(other._delegate), _offset(offset), _length(length) {
+    if (!_delegate->getNullCount().has_value() ||
+        *_delegate->getNullCount() == 0) {
+      _delegate->setNullCount(countNulls(_delegate, 0, _delegate->size()));
+    }
+    _nullCount = countNulls(_delegate, _offset, _length);
+  }
 
   explicit BaseColumn(velox::TypePtr type)
       : _offset(0), _length(0), _nullCount(0) {
@@ -286,11 +287,13 @@ class BaseColumn {
   }
 
   explicit BaseColumn(velox::VectorPtr delegate)
-      : _delegate(delegate),
-        _offset(0),
-        _length(delegate->size()),
-        _nullCount(delegate->getNullCount().value_or(
-            countNulls(delegate, _offset, _length))) {}
+      : _delegate(delegate), _offset(0), _length(delegate->size()) {
+    if (!_delegate->getNullCount().has_value() ||
+        *_delegate->getNullCount() == 0) {
+      _delegate->setNullCount(countNulls(_delegate, 0, _delegate->size()));
+    }
+    _nullCount = *_delegate->getNullCount();
+  }
 
   virtual ~BaseColumn() = default;
 
@@ -415,6 +418,7 @@ class SimpleColumn : public BaseColumn {
     _delegate->resize(index + 1);
     _delegate->setNull(index, true);
     _nullCount++;
+    _delegate->setNullCount(_nullCount);
     bumpLength();
   }
 
@@ -670,6 +674,8 @@ class ArrayColumn : public BaseColumn {
     auto new_size = 0;
     dataPtr->setOffsetAndSize(new_index, new_offset, new_size);
     dataPtr->setNull(new_index, true);
+    _nullCount++;
+    _delegate->setNullCount(_nullCount);
     bumpLength();
   }
 
@@ -734,6 +740,8 @@ class MapColumn : public BaseColumn {
     auto new_size = 0;
     dataPtr->setOffsetAndSize(new_index, new_offset, new_size);
     dataPtr->setNull(new_index, true);
+    _nullCount++;
+    _delegate->setNullCount(_nullCount);
     bumpLength();
   }
 

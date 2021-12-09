@@ -6,7 +6,7 @@ from typing import List, Tuple
 import pyarrow as pa
 import torcharrow as ta
 import torcharrow.dtypes as dt
-from torcharrow._interop import _arrowtype_to_dtype
+from torcharrow._interop import _arrowtype_to_dtype, _dtype_to_arrowtype
 from torcharrow.idataframe import IDataFrame
 
 
@@ -47,7 +47,7 @@ class TestArrowInterop(unittest.TestCase):
         # Union type needs to be tested differently
     )
 
-    def _test_construction_numeric(
+    def _test_from_arrow_array_numeric(
         self, pydata: List, arrow_type: pa.DataType, expected_dtype: dt.DType
     ):
         s = pa.array(pydata, type=arrow_type)
@@ -55,41 +55,50 @@ class TestArrowInterop(unittest.TestCase):
         self.assertFalse(isinstance(t, IDataFrame))
         expected_dtype = expected_dtype.with_null(nullable=s.null_count > 0)
         self.assertEqual(t.dtype, expected_dtype)
-        for pa_val, ta_val in zip([i.as_py() for i in s], list(t)):
+        for pa_val, ta_val in zip(s.to_pylist(), list(t)):
             if pa_val and math.isnan(pa_val) and ta_val and math.isnan(ta_val):
                 pass
             else:
                 self.assertEqual(pa_val, ta_val)
 
-    def base_test_arrow_array(self):
-        s = pa.array([True, True, False, None, False])
-        t = ta.from_arrow(s, device=self.device)
-        self.assertFalse(isinstance(t, IDataFrame))
-        self.assertEqual(t.dtype, dt.Boolean(True))
-        self.assertEqual([i.as_py() for i in s], list(t))
+    def base_test_from_arrow_array_boolean(self):
+        pydata = [True, True, False, None, False]
+        for (arrow_type, expected_dtype) in TestArrowInterop.supported_types:
+            if pa.types.is_boolean(arrow_type):
+                s = pa.array(pydata, type=arrow_type)
+                t = ta.from_arrow(s, device=self.device)
+                self.assertFalse(isinstance(t, IDataFrame))
+                expected_dtype = expected_dtype.with_null(nullable=s.null_count > 0)
+                self.assertEqual(t.dtype, expected_dtype)
+                self.assertEqual(s.to_pylist(), list(t))
 
+    def base_test_from_arrow_array_integer(self):
+        pydata = [1, 2, 3, None, 5, None]
+        for (arrow_type, expected_dtype) in TestArrowInterop.supported_types:
+            if pa.types.is_integer(arrow_type):
+                self._test_from_arrow_array_numeric(pydata, arrow_type, expected_dtype)
+
+    def base_test_from_arrow_array_float(self):
+        pydata = [1.0, math.nan, 3, None, 5.0, None]
+        for (arrow_type, expected_dtype) in TestArrowInterop.supported_types:
+            if pa.types.is_floating(arrow_type):
+                self._test_from_arrow_array_numeric(pydata, arrow_type, expected_dtype)
+
+    def base_test_from_arrow_array_string(self):
         self.assertEqual(pa.utf8(), pa.string())
         self.assertEqual(pa.large_utf8(), pa.large_string())
 
-        pydata_int = [1, 2, 3, None, 5, None]
-        pydata_float = [1.0, math.nan, 3, None, 5.0, None]
-        pydata_string = ["a", "b", None, "d", None, "f", "g"]
+        pydata = ["a", "b", None, "d", None, "f", "g"]
         for (arrow_type, expected_dtype) in TestArrowInterop.supported_types:
-            if pa.types.is_integer(arrow_type):
-                self._test_construction_numeric(pydata_int, arrow_type, expected_dtype)
-            elif pa.types.is_floating(arrow_type):
-                self._test_construction_numeric(
-                    pydata_float, arrow_type, expected_dtype
-                )
-            elif pa.types.is_string(arrow_type) or pa.types.is_large_string(arrow_type):
-                s = pa.array(pydata_string, type=arrow_type)
+            if pa.types.is_string(arrow_type) or pa.types.is_large_string(arrow_type):
+                s = pa.array(pydata, type=arrow_type)
                 t = ta.from_arrow(s, device=self.device)
                 self.assertFalse(isinstance(t, IDataFrame))
-                dt.replace(expected_dtype, nullable=False)
+                expected_dtype = expected_dtype.with_null(nullable=s.null_count > 0)
                 self.assertEqual(t.dtype, expected_dtype)
-                self.assertEqual([i.as_py() for i in s], list(t))
+                self.assertEqual(s.to_pylist(), list(t))
 
-    def base_test_arrow_table(self):
+    def base_test_from_arrow_table(self):
         pt = pa.table(
             {
                 "f1": pa.array([1, 2, 3], type=pa.int64()),
@@ -108,6 +117,66 @@ class TestArrowInterop(unittest.TestCase):
                 ta_field.dtype, _arrowtype_to_dtype(pa_field.type, pa_field.nullable)
             )
             self.assertEqual(list(df[ta_field.name]), pt[i].to_pylist())
+
+    def _test_to_arrow_array_numeric(
+        self, pydata: List, dtype: dt.DType, expected_arrowtype: pa.DataType
+    ):
+        t = ta.Column(pydata, dtype=dtype, device=self.device)
+        s = t.to_arrow()
+        self.assertTrue(isinstance(s, type(pa.array([], type=expected_arrowtype))))
+        self.assertEqual(s.type, expected_arrowtype)
+        for pa_val, ta_val in zip(s.to_pylist(), list(t)):
+            if pa_val and math.isnan(pa_val) and ta_val and math.isnan(ta_val):
+                pass
+            else:
+                self.assertEqual(pa_val, ta_val)
+
+    def base_test_to_arrow_array_boolean(self):
+        pydata = [True, True, False, None, False]
+        for (expected_arrowtype, dtype) in TestArrowInterop.supported_types:
+            if dt.is_boolean(dtype):
+                t = ta.Column(pydata, dtype=dtype, device=self.device)
+                s = t.to_arrow()
+                self.assertTrue(
+                    isinstance(s, type(pa.array([], type=expected_arrowtype)))
+                )
+                self.assertEqual(s.type, expected_arrowtype)
+                self.assertEqual(s.to_pylist(), list(t))
+
+    def base_test_to_arrow_array_integer(self):
+        pydata = [1, 2, 3, None, 5, None]
+        for (expected_arrowtype, dtype) in TestArrowInterop.supported_types:
+            if dt.is_integer(dtype):
+                self._test_to_arrow_array_numeric(pydata, dtype, expected_arrowtype)
+
+    def base_test_to_arrow_array_float(self):
+        pydata = [1.0, math.nan, 3, None, 5.0, None]
+        for (expected_arrowtype, dtype) in TestArrowInterop.supported_types:
+            if dt.is_floating(dtype):
+                self._test_to_arrow_array_numeric(pydata, dtype, expected_arrowtype)
+
+    def base_test_to_arrow_array_string(self):
+        pydata = ["a", "b", None, "d", None, "f", "g"]
+        for (expected_arrowtype, dtype) in TestArrowInterop.supported_types:
+            if dt.is_string(dtype):
+                t = ta.Column(pydata, dtype=dtype, device=self.device)
+                s = t.to_arrow()
+                self.assertTrue(
+                    isinstance(s, type(pa.array([], type=expected_arrowtype)))
+                )
+                self.assertEqual(s.type, expected_arrowtype)
+                self.assertEqual(s.to_pylist(), list(t))
+
+    def base_test_to_arrow_array_slice(self):
+        # Only export the slice part but not the entire buffer when it's a slice
+        pydata = [1, 2, 3, None, 5, None]
+        t = ta.Column(pydata, device=self.device)
+        t_slice = t[1:4]
+        s = t_slice.to_arrow()
+        self.assertEqual(len(s), len(t_slice))
+        self.assertEqual(s.type, _dtype_to_arrowtype(t.dtype))
+        self.assertEqual(s.to_pylist(), list(t_slice))
+        self.assertEqual(s.is_valid(), [True, True, False])
 
     def base_test_array_ownership_transferred(self):
         pydata = [1, 2, 3]
