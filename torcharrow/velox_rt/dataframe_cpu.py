@@ -1690,14 +1690,23 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         import pyarrow as pa  # type: ignore
 
         map = {}
-        for n, c in self._field_data.items():
-            map[n] = c.to_arrow()
-        # FIXME! nullable
-        return pa.table(map)
+        fields = []
+        for i in range(0, self._data.children_size()):
+            n = self.dtype.fields[i].name
+            c = ColumnFromVelox._from_velox(
+                self.device,
+                self.dtype.fields[i].dtype,
+                self._data.child_at(i),
+                True,
+            )
+            arrow_array = c.to_arrow()
+            map[n] = arrow_array
+            fields.append(pa.field(n, arrow_array.type, nullable=c.dtype.nullable))
+
+        return pa.table(map, schema=pa.schema(fields))
 
     def to_torch(self):
         pytorch.ensure_available()
-        import torch
 
         # TODO: this actually puts the type annotations on the tuple wrong.
         # We might need to address it eventually, but because it's Python it doesn't matter

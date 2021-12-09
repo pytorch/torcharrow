@@ -178,6 +178,27 @@ class TestArrowInterop(unittest.TestCase):
         self.assertEqual(s.to_pylist(), list(t_slice))
         self.assertEqual(s.is_valid(), [True, True, False])
 
+    def base_test_to_arrow_table(self):
+        df = ta.DataFrame(
+            {
+                "f1": [1, 2, 3],
+                "f2": ["foo", "bar", None],
+                "f3": [3.0, 1, 2.4],
+            },
+            device=self.device,
+        )
+        pt = df.to_arrow()
+        self.assertTrue(isinstance(pt, pa.Table))
+        self.assertTrue(dt.is_struct(df.dtype))
+        self.assertEqual(len(df), len(pt))
+        for (i, ta_field) in enumerate(df.dtype.fields):
+            pa_field = pt.schema.field(i)
+            self.assertEqual(ta_field.name, pa_field.name)
+            self.assertEqual(
+                ta_field.dtype, _arrowtype_to_dtype(pa_field.type, pa_field.nullable)
+            )
+            self.assertEqual(list(df[ta_field.name]), pt[i].to_pylist())
+
     def base_test_array_ownership_transferred(self):
         pydata = [1, 2, 3]
         s = pa.array(pydata)
