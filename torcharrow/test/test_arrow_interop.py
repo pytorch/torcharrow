@@ -6,6 +6,8 @@ from typing import List, Tuple
 import pyarrow as pa
 import torcharrow as ta
 import torcharrow.dtypes as dt
+from torcharrow._interop import _arrowtype_to_dtype
+from torcharrow.idataframe import IDataFrame
 
 
 class TestArrowInterop(unittest.TestCase):
@@ -50,6 +52,7 @@ class TestArrowInterop(unittest.TestCase):
     ):
         s = pa.array(pydata, type=arrow_type)
         t = ta.from_arrow(s, device=self.device)
+        self.assertFalse(isinstance(t, IDataFrame))
         expected_dtype = expected_dtype.with_null(nullable=s.null_count > 0)
         self.assertEqual(t.dtype, expected_dtype)
         for pa_val, ta_val in zip([i.as_py() for i in s], list(t)):
@@ -61,6 +64,7 @@ class TestArrowInterop(unittest.TestCase):
     def base_test_arrow_array(self):
         s = pa.array([True, True, False, None, False])
         t = ta.from_arrow(s, device=self.device)
+        self.assertFalse(isinstance(t, IDataFrame))
         self.assertEqual(t.dtype, dt.Boolean(True))
         self.assertEqual([i.as_py() for i in s], list(t))
 
@@ -80,19 +84,40 @@ class TestArrowInterop(unittest.TestCase):
             elif pa.types.is_string(arrow_type) or pa.types.is_large_string(arrow_type):
                 s = pa.array(pydata_string, type=arrow_type)
                 t = ta.from_arrow(s, device=self.device)
+                self.assertFalse(isinstance(t, IDataFrame))
                 dt.replace(expected_dtype, nullable=False)
                 self.assertEqual(t.dtype, expected_dtype)
                 self.assertEqual([i.as_py() for i in s], list(t))
 
-    def base_test_ownership_transferred(self):
+    def base_test_arrow_table(self):
+        pt = pa.table(
+            {
+                "f1": pa.array([1, 2, 3], type=pa.int64()),
+                "f2": pa.array(["foo", "bar", None], type=pa.string()),
+                "f3": pa.array([3.0, 1, 2.4], type=pa.float32()),
+            }
+        )
+        df = ta.from_arrow(pt, device=self.device)
+        self.assertTrue(isinstance(df, IDataFrame))
+        self.assertTrue(dt.is_struct(df.dtype))
+        self.assertEqual(len(df), len(pt))
+        for (i, ta_field) in enumerate(df.dtype.fields):
+            pa_field = pt.schema.field(i)
+            self.assertEqual(ta_field.name, pa_field.name)
+            self.assertEqual(
+                ta_field.dtype, _arrowtype_to_dtype(pa_field.type, pa_field.nullable)
+            )
+            self.assertEqual(list(df[ta_field.name]), pt[i].to_pylist())
+
+    def base_test_array_ownership_transferred(self):
         pydata = [1, 2, 3]
         s = pa.array(pydata)
-        t = ta.from_arrow(s)
+        t = ta.from_arrow(s, device=self.device)
         del s
         # Check that the data are still around
         self.assertEqual(pydata, list(t))
 
-    def base_test_memory_reclaimed(self):
+    def base_test_array_memory_reclaimed(self):
         initial_memory = pa.total_allocated_bytes()
 
         s = pa.array([1, 2, 3])
@@ -102,7 +127,7 @@ class TestArrowInterop(unittest.TestCase):
         # Extra memory are allocated when exporting Arrow data, for the new
         # ArrowArray and ArrowSchema objects and the private_data inside the
         # objects
-        t = ta.from_arrow(s)
+        t = ta.from_arrow(s, device=self.device)
         memory_checkpoint_2 = pa.total_allocated_bytes()
         self.assertGreater(memory_checkpoint_2, memory_checkpoint_1)
 
@@ -112,9 +137,9 @@ class TestArrowInterop(unittest.TestCase):
         self.assertEqual(pa.total_allocated_bytes(), memory_checkpoint_2)
 
         del t
-        self.assertEqual(pa.total_allocated_bytes(), initial_memory)
+        self.assertLessEqual(pa.total_allocated_bytes(), initial_memory)
 
-    def base_test_unsupported_types(self):
+    def base_test_array_unsupported_types(self):
         for arrow_type in TestArrowInterop.unsupported_types:
             s = pa.array([], type=arrow_type)
             with self.assertRaises(RuntimeError) as ex:
@@ -130,4 +155,98 @@ class TestArrowInterop(unittest.TestCase):
             t = ta.from_arrow(union_array, device=self.device)
         self.assertTrue(
             f"Unsupported Arrow type: {str(union_array.type)}" in str(ex.exception)
+        )
+
+    def base_test_table_ownership_transferred(self):
+        f1_pydata = [1, 2, 3]
+        f2_pydata = ["foo", "bar", None]
+        f3_pydata = [3.0, None, 2.0]
+        pt = pa.table(
+            {
+                "f1": pa.array(f1_pydata, type=pa.int64()),
+                "f2": pa.array(f2_pydata, type=pa.string()),
+                "f3": pa.array(f3_pydata, type=pa.float32()),
+            }
+        )
+        df = ta.from_arrow(pt, device=self.device)
+        del pt
+        # Check that the data are still around
+        self.assertEqual(list(df["f1"]), f1_pydata)
+        self.assertEqual(list(df["f2"]), f2_pydata)
+        self.assertEqual(list(df["f3"]), f3_pydata)
+
+    def base_test_table_memory_reclaimed(self):
+        initial_memory = pa.total_allocated_bytes()
+
+        pt = pa.table(
+            {
+                "f1": pa.array([1, 2, 3], type=pa.int64()),
+                "f2": pa.array(["foo", "bar", None], type=pa.string()),
+                "f3": pa.array([3.0, None, 2.4], type=pa.float64()),
+            }
+        )
+        memory_checkpoint_1 = pa.total_allocated_bytes()
+        self.assertGreater(memory_checkpoint_1, initial_memory)
+
+        # Extra memory are allocated when exporting Arrow data, for the new
+        # ArrowArray and ArrowSchema objects and the private_data inside the
+        # objects
+        df = ta.from_arrow(pt, device=self.device)
+        memory_checkpoint_2 = pa.total_allocated_bytes()
+        self.assertGreater(memory_checkpoint_2, memory_checkpoint_1)
+
+        del pt
+        del df
+        self.assertEqual(pa.total_allocated_bytes(), initial_memory)
+
+    def base_test_table_unsupported_types(self):
+        pt = pa.table(
+            {
+                "f1": pa.array([1, 2, 3], type=pa.int64()),
+                "f2": pa.array(["foo", "bar", None], type=pa.string()),
+                "f3": pa.array([[1, 2], [3, 4, 5], [6]], type=pa.list_(pa.int8())),
+            }
+        )
+        with self.assertRaises(RuntimeError) as ex:
+            df = ta.from_arrow(pt, device=self.device)
+        self.assertTrue(
+            f"Unsupported Arrow type: {str(pt.field(2).type)}" in str(ex.exception)
+        )
+
+    def base_test_nullability(self):
+        pydata = [1, 2, 3]
+        s = pa.array(pydata)
+        t = ta.from_arrow(s, device=self.device)
+        self.assertFalse(t.dtype.nullable)
+
+        pydata = [1, 2, 3, None]
+        s = pa.array(pydata)
+        t = ta.from_arrow(s, device=self.device)
+        self.assertTrue(t.dtype.nullable)
+
+        pt = pa.table(
+            {"f1": [1, 2, 3, None], "f2": [4, 5, 6, 7]},
+            schema=pa.schema(
+                [
+                    pa.field("f1", pa.int64(), nullable=True),
+                    pa.field("f2", pa.float32(), nullable=False),
+                ]
+            ),
+        )
+        df = ta.from_arrow(pt, device=self.device)
+        self.assertEqual(df["f1"].dtype.nullable, pt.schema.field("f1").nullable)
+        self.assertEqual(df["f2"].dtype.nullable, pt.schema.field("f2").nullable)
+
+        pt = pa.table(
+            {"f1": [1, 2, 3, None]},
+            schema=pa.schema(
+                [
+                    pa.field("f1", pa.int64(), nullable=False),
+                ]
+            ),
+        )
+        with self.assertRaises(RuntimeError) as ex:
+            df = ta.from_arrow(pt, device=self.device)
+        self.assertTrue(
+            "Cannot store nulls in a non-nullable column" in str(ex.exception)
         )
