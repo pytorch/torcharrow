@@ -173,7 +173,7 @@ def _pandatype_to_dtype(t, nullable):
     return dt.typeof_nptype(t, nullable)
 
 
-def _arrowtype_to_dtype(t, nullable):
+def _arrowtype_to_dtype(t: pa.DataType, nullable: bool) -> dt.DType:
     if pa.types.is_boolean(t):
         return dt.Boolean(nullable)
     if pa.types.is_int8(t):
@@ -191,3 +191,24 @@ def _arrowtype_to_dtype(t, nullable):
     if pa.types.is_string(t) or pa.types.is_large_string(t):
         return dt.String(nullable)
     raise NotImplementedError(f"Unsupported Arrow type: {str(t)}")
+
+
+def _dtype_to_arrowtype(t: dt.DType) -> pa.DataType:
+    underlying_dtype = dt.get_underlying_dtype(t)
+    if underlying_dtype == dt.boolean:
+        return pa.bool_()
+    elif underlying_dtype == dt.int8:
+        return pa.int8()
+    elif underlying_dtype == dt.int16:
+        return pa.int16()
+    elif underlying_dtype == dt.int32:
+        return pa.int32()
+    elif underlying_dtype == dt.int64:
+        return pa.int64()
+    elif underlying_dtype == dt.float32:
+        return pa.float32()
+    elif underlying_dtype == dt.float64:
+        return pa.float64()
+    elif underlying_dtype == dt.string:
+        return pa.string()
+    raise NotImplementedError(f"Unsupported DType to Arrow type: {str(t)}")

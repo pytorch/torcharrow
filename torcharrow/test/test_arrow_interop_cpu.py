@@ -8,11 +8,35 @@ class TestArrowInteropCpu(TestArrowInterop):
     def setUp(self):
         self.device = "cpu"
 
-    def test_arrow_array(self):
-        return self.base_test_arrow_array()
+    def test_from_arrow_array_boolean(self):
+        return self.base_test_from_arrow_array_boolean()
 
-    def test_arrow_table(self):
-        return self.base_test_arrow_table()
+    def test_from_arrow_array_integer(self):
+        return self.base_test_from_arrow_array_integer()
+
+    def test_from_arrow_array_float(self):
+        return self.base_test_from_arrow_array_float()
+
+    def test_from_arrow_array_string(self):
+        return self.base_test_from_arrow_array_string()
+
+    def test_from_arrow_table(self):
+        return self.base_test_from_arrow_table()
+
+    def test_to_arrow_array_boolean(self):
+        return self.base_test_to_arrow_array_boolean
+
+    def test_to_arrow_array_integer(self):
+        return self.base_test_to_arrow_array_integer
+
+    def test_to_arrow_array_float(self):
+        return self.base_test_to_arrow_array_float
+
+    def test_to_arrow_array_string(self):
+        return self.base_test_to_arrow_array_string
+
+    def test_to_arrow_array_slice(self):
+        return self.base_test_to_arrow_array_slice
 
     def test_array_ownership_transferred(self):
         return self.base_test_array_ownership_transferred()
