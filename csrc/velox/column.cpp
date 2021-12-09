@@ -107,6 +107,28 @@ std::unique_ptr<BaseColumn> ArrayColumn::elements() {
   return createColumn(elementVectorPtr, elementOffset, elementsTotalLength);
 }
 
+std::unique_ptr<ArrayColumn> ArrayColumn::withElements(
+    const BaseColumn& newElements) {
+  velox::ArrayVector* currentArrayVec =
+      _delegate.get()->as<velox::ArrayVector>();
+  velox::VectorPtr newElementVec = newElements.getUnderlyingVeloxVector();
+  VELOX_CHECK(newElements.getLength() == newElementVec->size());
+
+  if (this->_length == currentArrayVec->size()) {
+    velox::VectorPtr newArrayVec = std::make_unique<velox::ArrayVector>(
+        TorchArrowGlobalStatic::rootMemoryPool(),
+        ARRAY(newElementVec->type()),
+        currentArrayVec->nulls(),
+        currentArrayVec->size(),
+        currentArrayVec->offsets(),
+        currentArrayVec->sizes(),
+        newElementVec);
+    return std::make_unique<ArrayColumn>(newArrayVec);
+  }
+
+  VELOX_CHECK(false, "Not supported yet");
+}
+
 std::unique_ptr<BaseColumn> MapColumn::valueAt(velox::vector_size_t i) {
   velox::TypePtr keyType = type()->as<velox::TypeKind::MAP>().keyType();
   velox::TypePtr valueType = type()->as<velox::TypeKind::MAP>().valueType();

@@ -4,7 +4,7 @@ import array as ar
 import builtins
 import functools
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Callable
 
 import numpy as np
 import torcharrow.dtypes as dt
@@ -91,6 +91,44 @@ class IListMethods(abc.ABC):
             return i[start:stop]
 
         return me._vectorize(fun, me.dtype)
+
+    def vmap(self, fun: Callable[[IColumn], IColumn]):
+        """
+        EXPERIMENTAL API
+
+        Vectorizing map. Expects a callable that working on a batch (represents by a IColumn).
+
+        Examples:
+        >>> import torcharrow as ta
+        >>> a = ta.Column([[1, 2, None, 3], [4, None, 5]])
+
+        >>> a
+        0  [1, 2, None, 3]
+        1  [4, None, 5]
+        dtype: List(Int64(nullable=True)), length: 2, null_count: 0
+
+        >>> a.list.vmap(lambda col: col + 1)
+        0  [2, 3, None, 4]
+        1  [5, None, 6]
+        dtype: List(Int64(nullable=True), nullable=True), length: 2, null_count: 0
+
+        >>> import torcharrow.dtypes as dt
+        >>> b = ta.Column([[(1, "a"), (2, "b")], [(3, "c")]],
+            dtype=dt.List(
+                dt.Struct([dt.Field("f1", dt.int64), dt.Field("f2", dt.string)])
+            ))
+
+        >>> b
+        0  [(1, 'a'), (2, 'b')]
+        1  [(3, 'c')]
+        dtype: List(Struct([Field('f1', int64), Field('f2', string)])), length: 2, null_count: 0
+
+        >>> b.list.vmap(lambda df: df["f2"])
+        0  ['a', 'b']
+        1  ['c']
+        dtype: List(String(nullable=True), nullable=True), length: 2, null_count: 0
+        """
+        raise NotImplementedError()
 
     # functional tools
     def map(self, fun, dtype: Optional[dt.DType] = None):
