@@ -288,10 +288,27 @@ class TestArrowInterop(unittest.TestCase):
         t = ta.from_arrow(s, device=self.device)
         self.assertFalse(t.dtype.nullable)
 
+        pydata = [1, 2, 3]
+        s = pa.array(pydata)
+        t = ta.from_arrow(
+            s, dtype=_arrowtype_to_dtype(s.type, nullable=True), device=self.device
+        )
+        self.assertTrue(t.dtype.nullable)
+
         pydata = [1, 2, 3, None]
         s = pa.array(pydata)
         t = ta.from_arrow(s, device=self.device)
         self.assertTrue(t.dtype.nullable)
+
+        pydata = [1, 2, 3, None]
+        s = pa.array(pydata)
+        with self.assertRaises(ValueError) as ex:
+            t = ta.from_arrow(
+                s, dtype=_arrowtype_to_dtype(s.type, nullable=False), device=self.device
+            )
+        self.assertTrue(
+            "Cannot store nulls in a non-nullable column" in str(ex.exception)
+        )
 
         pt = pa.table(
             {"f1": [1, 2, 3, None], "f2": [4, 5, 6, 7]},
@@ -303,8 +320,34 @@ class TestArrowInterop(unittest.TestCase):
             ),
         )
         df = ta.from_arrow(pt, device=self.device)
-        self.assertEqual(df["f1"].dtype.nullable, pt.schema.field("f1").nullable)
-        self.assertEqual(df["f2"].dtype.nullable, pt.schema.field("f2").nullable)
+        self.assertEqual(df["f1"].dtype.nullable, pt.field("f1").nullable)
+        self.assertEqual(df["f2"].dtype.nullable, pt.field("f2").nullable)
+
+        # Test that the `nullable` set in the `dtype` parameter of `from_arrow`
+        # is respected over the nullable inferred from pa.Table
+        pt = pa.table(
+            {"f1": [1, 2, 3, None], "f2": [4, 5, 6, 7]},
+            schema=pa.schema(
+                [
+                    pa.field("f1", pa.int64(), nullable=True),
+                    pa.field("f2", pa.float32(), nullable=True),
+                ]
+            ),
+        )
+        f1_arrowtype = pt.field("f1").type
+        f2_arrowtype = pt.field("f2").type
+        df = ta.from_arrow(
+            pt,
+            dtype=dt.Struct(
+                fields=[
+                    dt.Field(name="f1", dtype=_arrowtype_to_dtype(f1_arrowtype, True)),
+                    dt.Field(name="f2", dtype=_arrowtype_to_dtype(f2_arrowtype, False)),
+                ]
+            ),
+            device=self.device,
+        )
+        self.assertTrue(df["f1"].dtype.nullable)
+        self.assertFalse(df["f2"].dtype.nullable)
 
         pt = pa.table(
             {"f1": [1, 2, 3, None]},
@@ -314,7 +357,7 @@ class TestArrowInterop(unittest.TestCase):
                 ]
             ),
         )
-        with self.assertRaises(RuntimeError) as ex:
+        with self.assertRaises(ValueError) as ex:
             df = ta.from_arrow(pt, device=self.device)
         self.assertTrue(
             "Cannot store nulls in a non-nullable column" in str(ex.exception)
