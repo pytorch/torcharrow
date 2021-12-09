@@ -12,43 +12,6 @@ import torcharrow.dtypes as dt
 from torcharrow.scope import Scope
 
 
-def from_arrow_table(
-    table,
-    dtype: Optional[dt.DType] = None,
-    columns: Optional[List[str]] = None,
-    scope=None,
-    device="",
-):
-    """ "
-    Convert arrow table to a torcharrow dataframe.
-    """
-    scope = scope or Scope.default
-    device = device or scope.device
-    assert isinstance(table, pa.Table)
-    if dtype is not None:
-        assert dt.is_struct(dtype)
-        dtype = cast(dt.Struct, dtype)
-        res = {}
-        for f in dtype.fields:
-            chunked_array = table.column(f.name)
-            pydata = chunked_array.to_pylist()
-            res[f.name] = scope.Column(pydata, f.dtype)
-        return scope.DataFrame(res, device=device)
-    else:
-        res = {}
-        table = table.select(columns) if columns is not None else table
-        for n in table.column_names:
-            chunked_array = table.column(n)
-            pydata = chunked_array.to_pylist()
-            res[n] = scope.Column(
-                pydata,
-                dtype=_arrowtype_to_dtype(
-                    table.schema.field(n).type, table.column(n).null_count > 0
-                ),
-            )
-        return scope.DataFrame(res, device=device)
-
-
 def from_pandas_dataframe(
     df,
     dtype: Optional[dt.DType] = None,
@@ -110,25 +73,6 @@ def from_pandas_dataframe(
             if columns is None or n in columns:
                 res[n] = from_pandas_series(pd.Series(df[n]), scope=scope)
         return scope.Frame(res, device=device)
-
-
-def from_arrow_array(array, dtype=None, scope=None, device=""):
-    """
-    Convert arrow array to a torcharrow column.
-    """
-    scope = scope or Scope.default
-    device = device or scope.device
-    assert isinstance(array, pa.Array)
-    pydata = _arrow_scalar_to_py(array)
-    if dtype is not None:
-        assert not dt.is_struct(dtype)
-        return scope.Column(pydata, dtype, device=device)
-    else:
-        return scope.Column(
-            pydata,
-            dtype=_arrowtype_to_dtype(array.type, array.null_count > 0),
-            device=device,
-        )
 
 
 def from_pandas_series(series, dtype=None, scope=None, device=""):
