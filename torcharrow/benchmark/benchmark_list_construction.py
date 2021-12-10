@@ -3,14 +3,13 @@ import timeit
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-import torcharrow as ta
 import torcharrow.dtypes as dt
+from torcharrow.scope import Scope
 
 
 class BenchmarkListConstruction:
     def setup(self):
         self.nLoop: int = 300
-        self.tsCpu: ta.Scope = ta.Scope({"device": "cpu"})
 
         self.test_strings: List[str] = [f"short{x}" for x in range(1000)]
         self.test_strings.extend(
@@ -19,7 +18,7 @@ class BenchmarkListConstruction:
 
     class ListConstructionRunner(ABC):
         @abstractmethod
-        def setup(self, test_strings: List[str], ts: ta.Scope):
+        def setup(self, test_strings: List[str]):
             pass
 
         @abstractmethod
@@ -29,14 +28,12 @@ class BenchmarkListConstruction:
     class AppendRunner(ListConstructionRunner):
         def __init__(self):
             self.test_strings: List[str]
-            self.ts: ta.Scope
 
-        def setup(self, test_strings: List[str], ts: ta.Scope):
+        def setup(self, test_strings: List[str]):
             self.test_strings = test_strings
-            self.ts = ts
 
         def run(self):
-            col = self.ts._EmptyColumn(dtype=dt.string)
+            col = Scope.default._EmptyColumn(dtype=dt.string)
             for s in self.test_strings:
                 col._append(s)
             col._finalize()
@@ -44,14 +41,12 @@ class BenchmarkListConstruction:
     class FromlistRunner(ListConstructionRunner):
         def __init__(self):
             self.test_strings: List[str]
-            self.ts: ta.Scope
 
-        def setup(self, test_strings: List[str], ts: ta.Scope):
+        def setup(self, test_strings: List[str]):
             self.test_strings = test_strings
-            self.ts = ts
 
         def run(self):
-            col = self.ts._FromPyList(self.test_strings, dtype=dt.string)
+            col = Scope.default._FromPyList(self.test_strings, dtype=dt.string)
 
     def runListConstruction(
         self, runner: ListConstructionRunner, test_strings: Optional[List[str]] = None
@@ -59,7 +54,7 @@ class BenchmarkListConstruction:
         test_strings = test_strings or self.test_strings
         return timeit.repeat(
             stmt=lambda: runner.run(),
-            setup=lambda: runner.setup(test_strings, self.tsCpu),
+            setup=lambda: runner.setup(test_strings),
             number=self.nLoop,
         )
 

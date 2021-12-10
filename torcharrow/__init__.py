@@ -4,7 +4,11 @@ from . import pytorch  # noqa
 from . import velox_rt  # noqa
 from .icolumn import IColumn, Column, concat, if_else  # noqa
 from .idataframe import IDataFrame, DataFrame, me  # noqa
+from .ilist_column import IListColumn  # noqa
+from .imap_column import IMapColumn  # noqa
 from .interop import from_pylist, from_arrow  # noqa
+from .inumerical_column import INumericalColumn  # noqa
+from .istring_column import IStringColumn  # noqa
 
 try:
     from .version import __version__  # noqa: F401
@@ -20,6 +24,10 @@ __all__ = [
     "me",
     "IDataFrame",
     "IColumn",
+    "INumericalColumn",
+    "IStringColumn",
+    "IListColumn",
+    "IMapColumn",
 ]
 
 # module level doc-string
