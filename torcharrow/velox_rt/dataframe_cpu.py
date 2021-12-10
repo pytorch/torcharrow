@@ -1679,31 +1679,33 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         # Skipping analyzing 'pandas': found module but no type hints or library stubs
         import pandas as pd  # type: ignore
 
-        map = {}
+        data = {}
         for n, c in self._field_data.items():
-            map[n] = c.to_pandas()
-        return pd.DataFrame(map)
+            data[n] = c.to_pandas()
+        return pd.DataFrame(data)
 
     def to_arrow(self):
         """Convert self to arrow table"""
         # TODO Add type translation
         import pyarrow as pa  # type: ignore
 
-        map = {}
+        data = {}
         fields = []
         for i in range(0, self._data.children_size()):
-            n = self.dtype.fields[i].name
-            c = ColumnFromVelox._from_velox(
+            name = self.dtype.fields[i].name
+            column = ColumnFromVelox._from_velox(
                 self.device,
                 self.dtype.fields[i].dtype,
                 self._data.child_at(i),
                 True,
             )
-            arrow_array = c.to_arrow()
-            map[n] = arrow_array
-            fields.append(pa.field(n, arrow_array.type, nullable=c.dtype.nullable))
+            arrow_array = column.to_arrow()
+            data[name] = arrow_array
+            fields.append(
+                pa.field(name, arrow_array.type, nullable=column.dtype.nullable)
+            )
 
-        return pa.table(map, schema=pa.schema(fields))
+        return pa.table(data, schema=pa.schema(fields))
 
     def to_torch(self):
         pytorch.ensure_available()
