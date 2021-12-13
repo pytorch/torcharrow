@@ -1,3 +1,4 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
 import unittest
 
 import torcharrow as ta
