@@ -1,6 +1,6 @@
 # TorchArrow (Warning: Unstable Prototype)
 
-**This is a prototype library currently under heavy development. It does not currently have stable releases, and as such will likely be modified significantly in backwards compatibility breaking ways until beta release (targeting early 2022). If you have suggestions on the API or use cases you would like to be covered, please open a GitHub issue. We would love to hear thoughts and feedback.**
+**This is a prototype library currently under heavy development. It does not currently have stable releases, and as such will likely be modified significantly in backwards compatibility breaking ways until alpha release (targeting early 2022). If you have suggestions on the API or use cases you would like to be covered, please open a GitHub issue. We would love to hear thoughts and feedback.**
 
 TorchArrow is a [torch](https://github.com/pytorch/pytorch).Tensor-like Python DataFrame library for data preprocessing in deep learning. It supports multiple execution runtimes and [Arrow](https://github.com/apache/arrow) as a common format.
 
@@ -11,7 +11,7 @@ It plans to provide:
 * Zero copy for external readers via [Arrow](https://github.com/apache/arrow) in-memory columnar format
 * Multiple execution runtimes support:
     - High-performance CPU backend via [Velox](https://github.com/facebookincubator/velox/)
-    - GPU backend via [libcudf](https://docs.rapids.ai/api/libcudf/stable/)
+    - (Future Work) GPU backend via [libcudf](https://docs.rapids.ai/api/libcudf/stable/)
 * High-performance C++ UDF support with vectorization
 
 ## Installation
@@ -24,17 +24,18 @@ conda create --name torcharrow python=3.7
 conda activate torcharrow
 ```
 
+### Colab (Experimental)
+
+Follow the instructions [in this Colab notebook](https://colab.research.google.com/drive/1S0ldwN7qNM37E4WZnnAEnzn1DWnAQ6Vt)
+
 ### Binaries (Experimental)
 
-#### MacOS
-
-Experimental binary on MacOS can be installed via pip wheels:
+Experimental binary on MacOS and Linux (Ubuntu 18.04 or later, CentOS 8 or later) can be installed via pip wheels:
 ```
-pip install torcharrow==0.0.2.dev20211122
+pip install torcharrow
 ```
 
-#### Linux
-Coming soon!
+Make sure you have `pip>=20.3` on Linux to install the wheel.
 
 ### From Source
 
@@ -96,7 +97,7 @@ python setup.py install
 This [10 minutes tutorial](https://github.com/facebookresearch/torcharrow/blob/main/tutorial/tutorial.ipynb) provides a short introduction to TorchArrow, and you can also try it in [this Colab](https://colab.research.google.com/drive/1mQ3S6dwmU-zhBe2Tdvq_VRAnjQ3paiay). More documents on advanced topics are coming soon!
 
 ## Future Plans
-We hope to sufficiently expand the library, harden APIs, and gather feedback to enable a beta release at the time of the PyTorch 1.11 release (early 2022).
+We hope to sufficiently expand the library, harden APIs, and gather feedback to enable a alpha release (early 2022).
 
 ## License
 
