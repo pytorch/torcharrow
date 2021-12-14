@@ -237,6 +237,20 @@ class TestDataFrame(unittest.TestCase):
     def _add(a, b):
         return a + b
 
+    @staticmethod
+    def _add3(a, b, c):
+        return a + b + c
+
+    @staticmethod
+    def _add4(a, b, c, d):
+        return a + b + c + d
+
+    @staticmethod
+    def _addNullable(a, b):
+        if (a is None) or (b is None):
+            return None
+        return a + b
+
     def base_test_map_where_filter(self):
         # TODO have to decide on whether to follow Pandas, map, filter or our own.
 
@@ -263,10 +277,34 @@ class TestDataFrame(unittest.TestCase):
         )
 
         # maps as function
-        self.assertEqual(
+        # a few subvariants to ensure we get full coverage of the fast & slow paths.
+        self.assertEqual(  # 2 arg fast path
             list(df.map(TestDataFrame._add, columns=["a", "a"], dtype=dt.int64)),
             [2, 4, 6],
         )
+        self.assertEqual(  # 3 arg fast path
+            list(df.map(TestDataFrame._add3, columns=["a", "a", "b"], dtype=dt.int64)),
+            [13, 26, 39],
+        )
+        self.assertEqual(  # 4 arg fast path
+            list(
+                df.map(
+                    TestDataFrame._add4, columns=["a", "a", "b", "b"], dtype=dt.int64
+                )
+            ),
+            [24, 48, 72],
+        )
+        self.assertEqual(  # slow path (nulls)
+            list(
+                df.map(TestDataFrame._addNullable, columns=["a", "d"], dtype=dt.int64)
+            ),
+            [101, 202, None],
+        )
+        # TODO: na_action = ignore is not supported in dataframe_cpu.py:map
+        # self.assertEqual( # slow path (nulls)
+        #    list(df.map(TestDataFrame._add, columns=["a", "d"], dtype=dt.int64, na_action='ignore')),
+        #    [101, 48, 72],
+        # )
 
         # filter
         self.assertEqual(
