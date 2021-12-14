@@ -364,35 +364,50 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                 self._data.child_at(idx),
                 True,
             ).map(arg, na_action, dtype)
-        else:
-            if not isinstance(arg, dict) and dtype is None:
-                (dtype, _) = dt.infer_dype_from_callable_hint(arg)
-            dtype = dtype or self._dtype
 
-            def func(*x):
-                return arg.get(tuple(*x), None) if isinstance(arg, dict) else arg(*x)
+        if not isinstance(arg, dict) and dtype is None:
+            (dtype, _) = dt.infer_dype_from_callable_hint(arg)
+        dtype = dtype or self._dtype
 
-            cols = []
-            for n in columns:
-                idx = self._data.type().get_child_idx(n)
-                cols.append(
-                    ColumnFromVelox._from_velox(
-                        self.device,
-                        self.dtype.fields[idx].dtype,
-                        self._data.child_at(idx),
-                        True,
-                    )
+        cols = []
+        for n in columns:
+            idx = self._data.type().get_child_idx(n)
+            cols.append(
+                ColumnFromVelox._from_velox(
+                    self.device,
+                    self.dtype.fields[idx].dtype,
+                    self._data.child_at(idx),
+                    True,
                 )
+            )
 
+        # Faster path (for the very slow python path)
+        if all([col.null_count == 0 for col in cols]) and not (isinstance(arg, dict)):
             res = []
-            for i in range(len(self)):
-                if self.is_valid_at(i):
-                    res.append(func(*[col[i] for col in cols]))
-                elif na_action is None:
-                    res.append(func(None))
-                else:
-                    res.append(None)
+            dcols = [col._data for col in cols]
+            if len(dcols) == 2:
+                a, b = dcols[0], dcols[1]
+                res = [arg(a[i], b[i]) for i in range(len(a))]
+            elif len(dcols) == 3:
+                a, b, c = dcols[0], dcols[1], dcols[2]
+                res = [arg(a[i], b[i], c[i]) for i in range(len(a))]
+            else:
+                res = [arg(*[dcol[i] for dcol in dcols]) for i in range(len(dcols[0]))]
             return Scope._FromPyList(res, dtype)
+
+        # Slow path for very slow path
+        def func(*x):
+            return arg.get(tuple(*x), None) if isinstance(arg, dict) else arg(*x)
+
+        res = []
+        for i in range(len(self)):
+            if self.is_valid_at(i):
+                res.append(func(*[col[i] for col in cols]))
+            elif na_action is None:
+                res.append(func(None))
+            else:
+                res.append(None)
+        return Scope._FromPyList(res, dtype)
 
     @trace
     @expression
