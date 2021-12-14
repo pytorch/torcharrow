@@ -384,15 +384,15 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                     )
                 )
 
-            res = Scope.default._EmptyColumn(dtype)
+            res = []
             for i in range(len(self)):
                 if self.is_valid_at(i):
-                    res._append(func(*[col[i] for col in cols]))
+                    res.append(func(*[col[i] for col in cols]))
                 elif na_action is None:
-                    res._append(func(None))
+                    res.append(func(None))
                 else:
-                    res._append(None)
-            return res._finalize()
+                    res.append(None)
+            return Scope._FromPyList(res, dtype)
 
     @trace
     @expression
