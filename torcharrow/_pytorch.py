@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import abc
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import TypeVar, Generic, Union, List, Any, Optional, Tuple
@@ -9,8 +10,6 @@ from torcharrow.scope import Scope
 
 from . import dtypes
 from .dtypes import DType, is_numerical, is_struct, is_list, is_map, is_string
-from .icolumn import Column
-from .idataframe import DataFrame
 
 T = TypeVar("T")
 KT = TypeVar("KT")
@@ -226,3 +225,57 @@ def from_torch(
         return ta.Column(data.tolist(), dtype=dtype, device=device)
 
     raise ValueError(f"Unexpected data in `from_torch`: {type(data)}")
+
+
+class ITorchConversion(abc.ABC):
+    """
+    PyTorch Conversion class.
+
+    For built-in PyTorch conversion class, it dispatches to the corresponding internal methods in
+    IColumn. Such as IColumn._to_torch_default() or IColumn._to_torch_padseq().
+
+    Some PyTorch conversion strategy may be one way (e.g. doesn't support converting from PyTorch representation
+    back to DataFrame), in that case only to_torch needs to be implemented.
+
+    It's also easy to extend with your own Torch conversion class, as long as the
+    to_torch and from_torch is implemented.
+    """
+
+    @abc.abstractmethod
+    def to_torch(self, col):
+        self._not_supported("to_torch")
+
+    def from_torch(self, data, dtype, device):
+        self._not_supported("from_torch")
+
+    def _not_supported(self, name):
+        raise TypeError(f"{name} for type {type(self).__name__} is not supported")
+
+
+class DefaultTorchConversion(ITorchConversion):
+    """
+    Default PyTorch representation.
+    """
+
+    def to_torch(self, col):
+        return col._to_torch_default()
+
+    def from_torch(self, data, dtype=None, device=None):
+        return from_torch(data, dtype, device)
+
+
+class PadSequence(ITorchConversion):
+    """
+    Pad a batch of variable length numeric lists with ``padding_value``.
+    See also https://github.com/pytorch/pytorch/blob/515d9fb2a99586e62cfb941cfc51e86e7d58c1f4/torch/nn/utils/rnn.py#L323-L359
+    """
+
+    def __init__(self, batch_first: bool = True, padding_value=0.0):
+        self.batch_first = batch_first
+        self.padding_value = padding_value
+
+    def to_torch(self, col):
+        return col._to_torch_pad_sequence(self.batch_first, self.padding_value)
+
+    def from_torch(self, data, dtype=None, device=None):
+        self._not_supported("from_torch")

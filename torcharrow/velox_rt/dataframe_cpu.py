@@ -1707,14 +1707,29 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
         return pa.table(data, schema=pa.schema(fields))
 
-    def to_torch(self):
+    def to_torch(self, conversion=None):
         pytorch.ensure_available()
 
+        conversion = conversion or {}
+        if isinstance(conversion, pytorch.ITorchConversion):
+            return conversion.to_torch(self)
+
+        assert isinstance(conversion, dict)
         # TODO: this actually puts the type annotations on the tuple wrong.
         # We might need to address it eventually, but because it's Python it doesn't matter
         tup_type = self._dtype.py_type
 
-        return tup_type(*(self[f.name].to_torch() for f in self.dtype.fields))
+        return tup_type(
+            *(
+                conversion.get(f.name, pytorch.DefaultTorchConversion()).to_torch(
+                    self[f.name]
+                )
+                for f in self.dtype.fields
+            )
+        )
+
+    def _to_torch_default(self):
+        return self.to_torch()
 
     # fluent with symbolic expressions ----------------------------------------
 

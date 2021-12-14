@@ -143,7 +143,7 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
                 yield list(item)
 
     # inerop
-    def to_torch(self, _propagate_py_list=True):
+    def _to_torch_default(self, _propagate_py_list=True):
         pytorch.ensure_available()
         import torch
 
@@ -152,7 +152,7 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
 
         elements = ColumnFromVelox._from_velox(
             self.device, self._dtype.item_dtype, self._data.elements(), True
-        ).to_torch()
+        )._to_torch_default()
         # special case: if the nested type is List (which happens for List[str] that can't be represented as tensor)
         # then we fallback to string types
         if isinstance(elements, list) and _propagate_py_list:
@@ -181,6 +181,31 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
             arrow_array.is_valid().to_numpy(zero_copy_only=False), dtype=torch.bool
         )
         return pytorch.WithPresence(values=res, presence=presence)
+
+    def _to_torch_pad_sequence(self, batch_first: bool, padding_value):
+        pytorch.ensure_available()
+
+        # TODO: pad_sequence also works for nest numeric list
+        assert dt.is_numerical(self.dtype.item_dtype)
+        assert not self.dtype.nullable
+
+        import torch
+        from torch.nn.utils.rnn import pad_sequence
+
+        packed_list: pytorch.PackedList = self._to_torch_default()
+
+        unpad_tensors: List[torch.tensor] = [
+            packed_list.values[packed_list.offsets[i] : packed_list.offsets[i + 1]]
+            for i in range(len(self))
+        ]
+
+        pad_token_ids = pad_sequence(
+            unpad_tensors,
+            batch_first=batch_first,
+            padding_value=float(padding_value),
+        )
+
+        return pad_token_ids
 
 
 # ------------------------------------------------------------------------------
