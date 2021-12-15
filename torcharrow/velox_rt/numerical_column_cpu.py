@@ -775,13 +775,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     @trace
     @expression
-    def median(self):
-        self._prototype_support_warning("median")
-
-        return statistics.median(value for value in self if value is not None)
-
-    @trace
-    @expression
     def quantile(self, q, interpolation="midpoint"):
         self._prototype_support_warning("quantile")
 
