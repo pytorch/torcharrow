@@ -1286,10 +1286,15 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def std(self):
         """Return the stddev(s) of the data."""
-        self._prototype_support_warning("std")
+        import math
 
-        self._check(dt.is_numerical, "std")
-        return statistics.stdev((float(i) for i in list(self._data_iter())))
+        import pyarrow.compute as pc
+
+        # PyArrow's variance/stdev returns 1/N * \sigma (X_i - mu)^2, while
+        # we expect unbiased estimation of variance/standard deviation, which is
+        # 1/(N-1) * \sigma (X_i - mu)^2
+        N = len(self) - self.null_count
+        return math.sqrt(pc.variance(self.to_arrow()).as_py() * N / (N - 1))
 
     @trace
     @expression
@@ -1299,32 +1304,6 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         self._check(dt.is_numerical, "median")
         return statistics.median((float(i) for i in list(self._data_iter())))
-
-    @trace
-    @expression
-    def quantile(self, q, interpolation="midpoint"):
-        """Compute the q-th percentile of non-null data."""
-        self._prototype_support_warning("quantile")
-
-        if interpolation != "midpoint":
-            raise TypeError(
-                f"quantile for '{type(self).__name__}' with parameter other than 'midpoint' not supported "
-            )
-        if len(self) == 0 or len(q) == 0:
-            return []
-        out = []
-        s = sorted(self)
-        for percent in q:
-            k = (len(self) - 1) * (percent / 100)
-            f = math.floor(k)
-            c = math.ceil(k)
-            if f == c:
-                out.append(s[int(k)])
-                continue
-            d0 = s[int(f)] * (c - k)
-            d1 = s[int(c)] * (k - f)
-            out.append(d0 + d1)
-        return out
 
     @trace
     @expression
@@ -1370,16 +1349,16 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def describe(
         self,
-        percentiles_=None,
-        include_columns: ty.Union[ty.List[dt.DType], ty.Literal[None]] = None,
-        exclude_columns: ty.Union[ty.List[dt.DType], ty.Literal[None]] = None,
+        percentiles=None,
+        include: ty.Union[ty.List[dt.DType], ty.Literal[None]] = None,
+        exclude: ty.Union[ty.List[dt.DType], ty.Literal[None]] = None,
     ):
         """
         Generate descriptive statistics.
 
         Parameters
         ----------
-        percentiles_ - array-like, default None
+        percentiles - array-like, default None
             Defines which percentiles to calculate.  If None, uses [25,50,75].
 
         Examples
@@ -1401,15 +1380,15 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         import torcharrow.idataframe
 
         # Not supported: datetime_is_numeric=False,
-        if include_columns is not None or exclude_columns is not None:
+        if include is not None or exclude is not None:
             raise TypeError(
                 f"'include/exclude columns' parameter for '{type(self).__name__}' not supported "
             )
-        if percentiles_ is None:
-            percentiles_ = [25, 50, 75]
-        percentiles_ = sorted(set(percentiles_))
-        if len(percentiles_) > 0:
-            if percentiles_[0] < 0 or percentiles_[-1] > 100:
+        if percentiles is None:
+            percentiles = [25, 50, 75]
+        percentiles = sorted(set(percentiles))
+        if len(percentiles) > 0:
+            if percentiles[0] < 0 or percentiles[-1] > 100:
                 raise ValueError("percentiles must be betwen 0 and 100")
 
         if dt.is_numerical(self.dtype):
@@ -1422,8 +1401,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             res._append(("mean", self.mean()))
             res._append(("std", self.std()))
             res._append(("min", self.min()))
-            values = self.quantile(percentiles_, "midpoint")
-            for p, v in zip(percentiles_, values):
+            values = self._quantile(percentiles, "midpoint")
+            for p, v in zip(percentiles, values):
                 res._append((f"{p}%", v))
             res._append(("max", self.max()))
             return res._finalize()
@@ -1782,7 +1761,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def _to_torch_default(self):
         self._not_supported("_to_torch_default")
 
-    # private aggregation/topK functions -- names are to be discussed
+    # private aggregation/topK functions
 
     def _count(self):
         """Return number of non-NA/null observations pgf the column/frame"""
@@ -1847,3 +1826,33 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         self._prototype_support_warning("_cumprod")
         self._check(dt.is_numerical, "_cumprod")
         return self._accumulate(operator.mul)
+
+    # quantile
+    @trace
+    @expression
+    def _quantile(self, q, interpolation="midpoint"):
+        """
+        Compute the q-th percentile of non-null data.
+
+        Inefficient prototype implementation.
+        """
+
+        if interpolation != "midpoint":
+            raise TypeError(
+                f"quantile for '{type(self).__name__}' with parameter other than 'midpoint' not supported "
+            )
+        if len(self) == 0 or len(q) == 0:
+            return []
+        out = []
+        s = sorted(self)
+        for percent in q:
+            k = (len(self) - 1) * (percent / 100)
+            f = math.floor(k)
+            c = math.ceil(k)
+            if f == c:
+                out.append(s[int(k)])
+                continue
+            d0 = s[int(f)] * (c - k)
+            d1 = s[int(c)] * (k - f)
+            out.append(d0 + d1)
+        return out

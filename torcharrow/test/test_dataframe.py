@@ -663,18 +663,55 @@ class TestDataFrame(unittest.TestCase):
 
     def base_test_describe_dataframe(self):
         # TODO introduces cyclic dependency between Column and Dataframe, need diff design...
-        c = ta.DataFrame({"a": ta.Column([1, 2, 3])}, device=self.device)
+        c = ta.DataFrame(
+            {
+                "a": ta.Column([1, 2, 3], dtype=dt.int32),
+                "b": ta.Column([10, 20, 30], dtype=dt.int64),
+                "c": ta.Column([1.0, 2.0, 3.0], dtype=dt.float32),
+                "d": ta.Column([10.0, 20.0, 30.0], dtype=dt.float64),
+            },
+            device=self.device,
+        )
+
         self.assertEqual(
             list(c.describe()),
             [
-                ("count", 3.0),
-                ("mean", 2.0),
-                ("std", 1.0),
-                ("min", 1.0),
-                ("25%", 1.5),
-                ("50%", 2.0),
-                ("75%", 2.5),
-                ("max", 3.0),
+                ("count", 3.0, 3.0, 3.0, 3.0),
+                ("mean", 2.0, 20.0, 2.0, 20.0),
+                ("std", 1.0, 10.0, 1.0, 10.0),
+                ("min", 1.0, 10.0, 1.0, 10.0),
+                ("25%", 1.5, 15.0, 1.5, 15.0),
+                ("50%", 2.0, 20.0, 2.0, 20.0),
+                ("75%", 2.5, 25.0, 2.5, 25.0),
+                ("max", 3.0, 30.0, 3.0, 30.0),
+            ],
+        )
+
+        self.assertEqual(
+            list(c.describe(include=[dt.int32, dt.float64])),
+            [
+                ("count", 3.0, 3.0),
+                ("mean", 2.0, 20.0),
+                ("std", 1.0, 10.0),
+                ("min", 1.0, 10.0),
+                ("25%", 1.5, 15.0),
+                ("50%", 2.0, 20.0),
+                ("75%", 2.5, 25.0),
+                ("max", 3.0, 30.0),
+            ],
+        )
+
+        self.assertEqual(
+            list(c.describe(exclude=[dt.int32, dt.float64])),
+            [
+                ("count", 3.0, 3.0),
+                ("mean", 20.0, 2.0),
+                ("std", 10.0, 1.0),
+                ("min", 10.0, 1.0),
+                ("25%", 15.0, 1.5),
+                ("50%", 20.0, 2.0),
+                ("75%", 25.0, 2.5),
+                ("max", 30.0, 3.0),
             ],
         )
 
