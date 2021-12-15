@@ -32,6 +32,10 @@ class Counter:
 # Scope will be deprecated in the future.
 # Please DON'T use it in user-level code.
 class Scope:
+    """
+    This class will be deprecated in the future.
+    Please don't use it in user code.
+    """
 
     default: ty.ClassVar["Scope"]
 

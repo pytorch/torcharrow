@@ -1431,12 +1431,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
     @trace
     @expression
-    def prod(self):
-        """Return produce of the values in the data"""
-        return self._summarize(lambda c: c.prod)
-
-    @trace
-    @expression
     def _cummin(self):
         """Return cumulative minimum of the data."""
         return self._lift(lambda c: c._cummin)
@@ -1551,29 +1545,29 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     def describe(
         self,
         percentiles=None,
-        include_columns=None,
-        exclude_columns=None,
+        include=None,
+        exclude=None,
     ):
         """Generate descriptive statistics."""
         # Not supported: datetime_is_numeric=False,
         includes = []
-        if include_columns is None:
+        if include is None:
             includes = [f.name for f in self.dtype.fields if dt.is_numerical(f.dtype)]
-        elif isinstance(include_columns, list):
-            includes = [f.name for f in self.dtype.fields if f.dtype in include_columns]
+        elif isinstance(include, list):
+            includes = [f.name for f in self.dtype.fields if f.dtype in include]
         else:
             raise TypeError(
-                f"describe with include_columns of type {type(include_columns).__name__} is not supported"
+                f"describe with include of type {type(include).__name__} is not supported"
             )
 
         excludes = []
-        if exclude_columns is None:
+        if exclude is None:
             excludes = []
-        elif isinstance(exclude_columns, list):
-            excludes = [f.name for f in self.dtype.fields if f.dtype in exclude_columns]
+        elif isinstance(exclude, list):
+            excludes = [f.name for f in self.dtype.fields if f.dtype in exclude]
         else:
             raise TypeError(
-                f"describe with exclude_columns of type {type(exclude_columns).__name__} is not supported"
+                f"describe with exclude of type {type(exclude).__name__} is not supported"
             )
         selected = [i for i in includes if i not in excludes]
 
@@ -1598,7 +1592,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
             )
             res[s] = ta.Column(
                 [c._count(), c.mean(), c.std(), c.min()]
-                + c.quantile(percentiles, "midpoint")
+                + c._quantile(percentiles, "midpoint")
                 + [c.max()]
             )
         return self._fromdata(res, [False] * len(res["metric"]))
@@ -1846,8 +1840,8 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         input_columns = set(self.columns)
 
         has_star = False
-        include_columns = []
-        exclude_columns = []
+        include = []
+        exclude = []
         for arg in args:
             if not isinstance(arg, str):
                 raise TypeError("args must be column names")
@@ -1856,33 +1850,31 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                     raise ValueError("select received repeated stars")
                 has_star = True
             elif arg in input_columns:
-                if arg in include_columns:
+                if arg in include:
                     raise ValueError(
                         f"select received a repeated column-include ({arg})"
                     )
-                include_columns.append(arg)
+                include.append(arg)
             elif arg[0] == "-" and arg[1:] in input_columns:
-                if arg in exclude_columns:
+                if arg in exclude:
                     raise ValueError(
                         f"select received a repeated column-exclude ({arg[1:]})"
                     )
-                exclude_columns.append(arg[1:])
+                exclude.append(arg[1:])
             else:
                 raise ValueError(f"argument ({arg}) does not denote an existing column")
-        if exclude_columns and not has_star:
+        if exclude and not has_star:
             raise ValueError("select received column-exclude without a star")
-        if has_star and include_columns:
+        if has_star and include:
             raise ValueError("select received both a star and column-includes")
-        if set(include_columns) & set(exclude_columns):
+        if set(include) & set(exclude):
             raise ValueError(
                 "select received overlapping column-includes and " + "column-excludes"
             )
 
-        include_columns_inc_star = self.columns if has_star else include_columns
+        include_inc_star = self.columns if has_star else include
 
-        output_columns = [
-            col for col in include_columns_inc_star if col not in exclude_columns
-        ]
+        output_columns = [col for col in include_inc_star if col not in exclude]
 
         res = {}
         for i in range(self._data.children_size()):
@@ -2160,12 +2152,6 @@ class GroupedDataFrame:
         # skipna == True
         return self._lift("sum")
 
-    def prod(self):
-        """Return produce of the values in the data"""
-        # skipna == True
-        # only_numerical == True
-        return self._lift("prod")
-
     def mean(self):
         """Return the mean of the values in the series."""
         return self._lift("mean")
@@ -2183,7 +2169,7 @@ class GroupedDataFrame:
         return self._lift("std")
 
     def count(self):
-        """Return the stddev(s) of the data."""
+        """Return the count(s) of the data."""
         return self._lift("count")
 
     # TODO should add reduce here as well...
@@ -2199,8 +2185,8 @@ class GroupedDataFrame:
         # a.groupby('a').agg({'b': ['min', 'mean']}) -- applied on
         # TODO
         # a.groupby('a').aggregate( a= me['a'].mean(), b_min =me['b'].min(), b_mean=me['c'].mean()))
-        # f1 = lambda x: x.quantile(0.5); f1.__name__ = "q0.5"
-        # f2 = lambda x: x.quantile(0.75); f2.__name__ = "q0.75"
+        # f1 = lambda x: x._quantile(0.5); f1.__name__ = "q0.5"
+        # f2 = lambda x: x._quantile(0.75); f2.__name__ = "q0.75"
         # a.groupby('a').agg([f1, f2])
 
         res = {}
