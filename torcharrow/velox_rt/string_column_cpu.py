@@ -209,7 +209,7 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
         return tab + dt.NL + typ
 
     # interop
-    def to_torch(self):
+    def _to_torch_default(self):
         # there are no string tensors, so we're using regular python list conversion
         return self.to_pylist()
 

@@ -15,6 +15,7 @@ from functools import partial, reduce
 import numpy as np
 import torcharrow as ta
 import torcharrow.dtypes as dt
+import torcharrow.pytorch as pytorch
 from tabulate import tabulate
 
 from .dispatcher import Device
@@ -1455,9 +1456,44 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         return list(self)
 
     @trace
-    def to_torch(self):
-        """Convert to PyTorch containers (Tensor, PackedList, PackedMap, etc)"""
-        raise NotImplementedError()
+    def to_torch(self, conversion=None):
+        """
+        Convert to PyTorch containers (Tensor, PackedList, PackedMap, etc)
+
+        Parameters
+        ----------
+        conversion : ITorchConversion, or dict
+            conversion can only be a dict type for IDataFrame.to_torch(). The dict maps from
+            column name to the conversion methods.
+            For column names not contained in dict, default PyTorch conversion will be used.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> import torcharrow.pytorch as tap
+        >>> df = ta.DataFrame({"label_ids": [0, 1], "token_ids": [[1, 2, 3, 4, 5], [101, 102]]})
+
+        >>> df
+        index    label_ids  token_ids
+        -------  -----------  ---------------
+            0            0  [1, 2, 3, 4, 5]
+            1            1  [101, 102]
+        dtype: Struct([Field('label_ids', int64), Field('token_ids', List(int64))]), count: 2, null_count: 0
+
+        >>> df.to_torch({"token_ids": tap.PadSequence(padding_value=-1)})
+        TorchArrowStruct_0(
+            label_ids=tensor([0, 1]),
+            token_ids=tensor([
+                [  1,   2,   3,   4,   5],
+                [101, 102,  -1,  -1,  -1]]
+            )
+        )
+        """
+        pytorch.ensure_available()
+
+        conversion = conversion or pytorch.DefaultTorchConversion()
+        assert isinstance(conversion, pytorch.ITorchConversion)
+        return conversion.to_torch(self)
 
     # batching/unbatching
     # NOTE experimental
@@ -1738,6 +1774,13 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             else:
                 res._append(e)
         return res._finalize()
+
+    # private PyTorch interop related methods
+    def _to_torch_pad_sequence(self, batch_first: bool, padding_value):
+        self._not_supported("_to_torch_pad_sequence")
+
+    def _to_torch_default(self):
+        self._not_supported("_to_torch_default")
 
     # private aggregation/topK functions -- names are to be discussed
 

@@ -303,7 +303,7 @@ class Struct(DType):
             self,
             "_py_type",
             ty.NamedTuple(
-                "_StructGenerated_NamedTuple_" + str(type(self)._py_type_id),
+                "TorchArrowGeneratedStruct_" + str(type(self)._py_type_id),
                 [
                     (fix_name(f.name, idx), f.dtype.py_type)
                     for (idx, f) in enumerate(self.fields)

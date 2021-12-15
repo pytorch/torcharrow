@@ -1,11 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
-import numpy as np
-import pyarrow as pa
-import torcharrow.dtypes as dt
 import torcharrow.pytorch as tap
-from torcharrow.scope import Scope
 
 from .test_interop import TestInterop
 
@@ -17,6 +13,10 @@ class TestInteropCpu(TestInterop):
     @unittest.skipUnless(tap.available, "Requires PyTorch")
     def test_to_pytorch(self):
         return self.base_test_to_pytorch()
+
+    @unittest.skipUnless(tap.available, "Requires PyTorch")
+    def test_pad_sequence(self):
+        return self.base_test_pad_sequence()
 
     @unittest.skipUnless(tap.available, "Requires PyTorch")
     def test_pytorch_transform(self):
