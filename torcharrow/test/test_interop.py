@@ -1,8 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
-import numpy as np
-import pyarrow as pa
 import torcharrow as ta
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as tap
@@ -110,6 +108,65 @@ class TestInterop(unittest.TestCase):
         df3 = tap.from_torch(p, dtype=df.dtype, device=self.device)
         self.assertEqual(df.dtype, df3.dtype)
         self.assertEqual(list(df), list(df3))
+
+    def base_test_pad_sequence(self):
+        import torch
+
+        df = ta.DataFrame(
+            {
+                "int32": [[11, 12, 13, 14], [21, 22], [31], [41, 42, 43]],
+                "int64": [[11, 12, 13, 14], [21, 22], [31], [41, 42, 43]],
+                "float32": [
+                    [11.5, 12.5, 13.5, 14.5],
+                    [21.5, 22.5],
+                    [31.5],
+                    [41.5, 42.5, 43.5],
+                ],
+            },
+            dtype=dt.Struct(
+                [
+                    dt.Field("int32", dt.List(dt.int32)),
+                    dt.Field("int64", dt.List(dt.int64)),
+                    dt.Field("float32", dt.List(dt.float32)),
+                ]
+            ),
+            device=self.device,
+        )
+
+        collated_tensors = df.to_torch(
+            {
+                "int32": tap.PadSequence(padding_value=-1),
+                "int64": tap.PadSequence(padding_value=-2),
+                "float32": tap.PadSequence(padding_value=-3),
+            }
+        )
+
+        # named tuple with 3 fields
+        self.assertTrue(isinstance(collated_tensors, tuple))
+        self.assertEquals(len(collated_tensors), 3)
+
+        self.assertEquals(collated_tensors.int32.dtype, torch.int32)
+        self.assertEquals(
+            collated_tensors.int32.tolist(),
+            [[11, 12, 13, 14], [21, 22, -1, -1], [31, -1, -1, -1], [41, 42, 43, -1]],
+        )
+
+        self.assertEquals(collated_tensors.int64.dtype, torch.int64)
+        self.assertEquals(
+            collated_tensors.int64.tolist(),
+            [[11, 12, 13, 14], [21, 22, -2, -2], [31, -2, -2, -2], [41, 42, 43, -2]],
+        )
+
+        self.assertEquals(collated_tensors.float32.dtype, torch.float32)
+        self.assertEquals(
+            collated_tensors.float32.tolist(),
+            [
+                [11.5, 12.5, 13.5, 14.5],
+                [21.5, 22.5, -3.0, -3.0],
+                [31.5, -3.0, -3.0, -3.0],
+                [41.5, 42.5, 43.5, -3.0],
+            ],
+        )
 
     def base_test_pytorch_transform(self):
         import torch

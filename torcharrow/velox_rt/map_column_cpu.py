@@ -160,7 +160,7 @@ class MapColumnCpu(ColumnFromVelox, IMapColumn):
         return tab + dt.NL + typ
 
     # interop
-    def to_torch(self):
+    def _to_torch_default(self):
         pytorch.ensure_available()
         import torch
 
@@ -171,10 +171,10 @@ class MapColumnCpu(ColumnFromVelox, IMapColumn):
 
         keys = ColumnFromVelox._from_velox(
             self.device, dt.List(self._dtype.key_dtype), self._data.keys(), True
-        ).to_torch(_propagate_py_list=False)
+        )._to_torch_default(_propagate_py_list=False)
         values = ColumnFromVelox._from_velox(
             self.device, dt.List(self._dtype.item_dtype), self._data.values(), True
-        ).to_torch(_propagate_py_list=False)
+        )._to_torch_default(_propagate_py_list=False)
 
         # TODO: should we propagate python list if both keys and vals are lists of strings?
         assert isinstance(keys, pytorch.PackedList)
