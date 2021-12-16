@@ -12,10 +12,12 @@ set(VELOX_ROOT ${CMAKE_BINARY_DIR}/csrc/velox/velox)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# Be consistent with Velox CXX_FLAGS: https://github.com/facebookincubator/velox/blob/1bdf9fc2a0ba7e9351cc6d092aa5c0e4e0f78708/CMakeLists.txt#L125-L127
 # velox/common/base/SimdUtil.h requires AVX
 # TODO: only need to retain -mavx2?
 set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -mavx2 -mfma -mavx -mf16c -masm=intel -mlzcnt")
+    "${CMAKE_CXX_FLAGS} -mavx2 -mfma -mavx -mf16c -mbmi2 -march=native")
 
 # Setup CCache
 # Based off on:
