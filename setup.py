@@ -95,9 +95,8 @@ class CMakeBuild(build_ext):
             f"-DCMAKE_INSTALL_PREFIX={extdir}",
             # "-DCMAKE_VERBOSE_MAKEFILE=ON",
             # f"-DPython_INCLUDE_DIR={distutils.sysconfig.get_python_inc()}",
-            "-DVELOX_BUILD_TESTING=OFF",
-            "-DVELOX_ENABLE_DUCKDB=OFF",
-            "-DCODEGEN_SUPPORT=OFF",
+            "-DVELOX_CODEGEN_SUPPORT=OFF",
+            "-DVELOX_BUILD_MINIMAL=ON",
         ]
         build_args = ["--target", "install"]
 
