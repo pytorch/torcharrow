@@ -401,12 +401,12 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
         res = []
         for i in range(len(self)):
-            if self.is_valid_at(i):
+            if all([col.is_valid_at(i) for col in cols]) or (na_action is None):
                 res.append(func(*[col[i] for col in cols]))
-            elif na_action is None:
-                res.append(func(None))
-            else:
+            elif na_action == "ignore":
                 res.append(None)
+            else:
+                raise TypeError(f"na_action has unsupported value {na_action}")
         return Scope._FromPyList(res, dtype)
 
     @trace
