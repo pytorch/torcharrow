@@ -234,22 +234,8 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(df), [(1, (2, 22)), (2, (3, 33)), (4, (5, 55))])
 
     @staticmethod
-    def _add(a, b):
-        return a + b
-
-    @staticmethod
-    def _add3(a, b, c):
-        return a + b + c
-
-    @staticmethod
-    def _add4(a, b, c, d):
-        return a + b + c + d
-
-    @staticmethod
-    def _addNullable(a, b):
-        if (a is None) or (b is None):
-            return None
-        return a + b
+    def _identity(*args):
+        return [*args]
 
     def base_test_map_where_filter(self):
         # TODO have to decide on whether to follow Pandas, map, filter or our own.
@@ -279,32 +265,65 @@ class TestDataFrame(unittest.TestCase):
         # maps as function
         # a few subvariants to ensure we get full coverage of the fast & slow paths.
         self.assertEqual(  # 2 arg fast path
-            list(df.map(TestDataFrame._add, columns=["a", "a"], dtype=dt.int64)),
-            [2, 4, 6],
+            list(
+                df.map(
+                    TestDataFrame._identity,
+                    columns=["a", "a"],
+                    dtype=dt.List(dt.Int64(nullable=True)),
+                )
+            ),
+            [[1, 1], [2, 2], [3, 3]],
         )
         self.assertEqual(  # 3 arg fast path
-            list(df.map(TestDataFrame._add3, columns=["a", "a", "b"], dtype=dt.int64)),
-            [13, 26, 39],
+            list(
+                df.map(
+                    TestDataFrame._identity,
+                    columns=["a", "a", "b"],
+                    dtype=dt.List(dt.Int64(nullable=True)),
+                )
+            ),
+            [[1, 1, 11], [2, 2, 22], [3, 3, 33]],
         )
         self.assertEqual(  # 4 arg fast path
             list(
                 df.map(
-                    TestDataFrame._add4, columns=["a", "a", "b", "b"], dtype=dt.int64
+                    TestDataFrame._identity,
+                    columns=["a", "a", "b", "b"],
+                    dtype=dt.List(dt.Int64(nullable=True)),
                 )
             ),
-            [24, 48, 72],
+            [[1, 1, 11, 11], [2, 2, 22, 22], [3, 3, 33, 33]],
         )
         self.assertEqual(  # slow path (nulls)
             list(
-                df.map(TestDataFrame._addNullable, columns=["a", "d"], dtype=dt.int64)
+                df.map(
+                    TestDataFrame._identity,
+                    columns=["a", "d"],
+                    dtype=dt.List(dt.Int64(nullable=True)),
+                )
             ),
-            [101, 202, None],
+            [[1, 100], [2, 200], [3, None]],
         )
-        # TODO: na_action = ignore is not supported in dataframe_cpu.py:map
-        # self.assertEqual( # slow path (nulls)
-        #    list(df.map(TestDataFrame._add, columns=["a", "d"], dtype=dt.int64, na_action='ignore')),
-        #    [101, 48, 72],
-        # )
+        self.assertEqual(  # slow path (nulls)
+            list(
+                df.map(
+                    TestDataFrame._identity,
+                    columns=["a", "d"],
+                    na_action="ignore",
+                    dtype=dt.List(dt.Int64(nullable=True)),
+                )
+            ),
+            [[1, 100], [2, 200], None],
+        )
+        with self.assertRaises(TypeError):  # slow path (nulls)
+            list(
+                df.map(
+                    TestDataFrame._identity,
+                    columns=["a", "d"],
+                    na_action="foobar",
+                    dtype=dt.List(dt.Int64(nullable=True)),
+                )
+            )
 
         # filter
         self.assertEqual(
