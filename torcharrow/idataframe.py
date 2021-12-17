@@ -208,6 +208,13 @@ class IDataFrame(IColumn):
         raise self._not_supported("copy")
 
     @trace
+    def drop(self, columns: List[str]):
+        """
+        Returns DataFrame without the removed columns.
+        """
+        raise self._not_supported("drop")
+
+    @trace
     @expression
     def transform(
         self,

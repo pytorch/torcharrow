@@ -1602,9 +1602,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     @trace
     @expression
     def drop(self, columns: List[str]):
-        """
-        Returns DataFrame without the removed columns.
-        """
         self._check_columns(columns)
         return self._fromdata(
             {
