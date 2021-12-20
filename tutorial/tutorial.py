@@ -275,7 +275,7 @@ b = df["a"] > 4
 df[b]
 
 
-# Torcharrow supports all the usual predicates, like <,==,!=>,>=,<= as well as _in_. The later is denoted by `isin`
+# Torcharrow supports all the usual predicates, like ==,!=,<,<=,>,>= as well as _in_. The later is denoted by `isin`
 #
 
 # In[26]:
@@ -303,7 +303,7 @@ s.drop_null()
 
 
 # ## Operators
-# Columns and dataframes support all of Python's usual binary operators, like  ==,!=,<=,<,>,>= for equality  and comparison,  +,-,*,,/.//,** for performing arithmetic and &,|,~ for conjunction, disjunction and negation.
+# Columns and dataframes support all of Python's usual binary operators, like  ==,!=,<,<=,>,>= for equality  and comparison,  +,-,*,**,/,// for performing arithmetic and &,|,~ for conjunction, disjunction and negation.
 #
 # The semantics of each operator is given by lifting their scalar operation to vectors and dataframes. So given for instance a scalar comparison operator, in TorchArrow a scalar can be compared to each item in a column, two columns can be compared pointwise, a column can be compared to each column of a dataframe, and two dataframes can be compared by comparing each of their respective columns.
 #
@@ -495,7 +495,7 @@ def add_ten(num):
 ta.Column([1, 2, None, 4]).map(add_ten, na_action="ignore")
 
 
-# Note that `.map(add_ten, na_action=None)` would fail with a type error since `addten` is not defined for `None`/null. So if we wanted to pass null to `add_ten` we would have to prepare for it, maybe like so:
+# Note that `.map(add_ten, na_action=None)` would fail with a type error since `add_ten` is not defined for `None`/null. So if we wanted to pass null to `add_ten` we would have to prepare for it, maybe like so:
 
 # In[44]:
 
@@ -571,7 +571,7 @@ ta.DataFrame({"a": [17, 29, 30], "b": [3, 5, 11]}).map(
 )
 
 
-# **Functions with state**. Functions need sometimes additional precomputed state. We capture the state in a (data)class and use a method as a delegate:
+# **Functions with state**. Functions sometimes need additional precomputed state. We capture the state in a (data)class and use a method as a delegate:
 #
 
 # In[50]:
