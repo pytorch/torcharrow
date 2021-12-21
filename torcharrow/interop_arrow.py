@@ -68,7 +68,7 @@ def _from_arrow_table(
     # from_arrow for struct type
 
     # May not be zero-copy here if multiple chunks need to be combined
-    table.combine_chunks()
+    table = table.combine_chunks()
 
     df_data = {}
     for i in range(0, len(table.schema)):

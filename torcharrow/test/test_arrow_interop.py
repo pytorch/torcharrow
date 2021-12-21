@@ -118,6 +118,21 @@ class TestArrowInterop(unittest.TestCase):
             )
             self.assertEqual(list(df[ta_field.name]), pt[i].to_pylist())
 
+    def base_test_from_arrow_table_with_chunked_arrays(self):
+        chunked = pa.chunked_array([[1, 2, 3], [4, 5, 6]])
+        pt = pa.table({"f1": chunked})
+        df = ta.from_arrow(pt, device=self.device)
+        self.assertTrue(isinstance(df, IDataFrame))
+        self.assertTrue(dt.is_struct(df.dtype))
+        self.assertEqual(len(df), len(pt))
+        for (i, ta_field) in enumerate(df.dtype.fields):
+            pa_field = pt.schema.field(i)
+            self.assertEqual(ta_field.name, pa_field.name)
+            self.assertEqual(
+                ta_field.dtype, _arrowtype_to_dtype(pa_field.type, pa_field.nullable)
+            )
+            self.assertEqual(list(df[ta_field.name]), pt[i].to_pylist())
+
     def _test_to_arrow_array_numeric(
         self, pydata: List, dtype: dt.DType, expected_arrowtype: pa.DataType
     ):
