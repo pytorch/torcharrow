@@ -1435,14 +1435,14 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         return list(self)
 
     @trace
-    def to_torch(self, conversion=None):
+    def to_tensor(self, conversion=None):
         """
         Convert to PyTorch containers (Tensor, PackedList, PackedMap, etc)
 
         Parameters
         ----------
         conversion : ITorchConversion, or dict
-            conversion can only be a dict type for IDataFrame.to_torch(). The dict maps from
+            conversion can only be a dict type for IDataFrame.to_tensor(). The dict maps from
             column name to the conversion methods.
             For column names not contained in dict, default PyTorch conversion will be used.
 
@@ -1459,7 +1459,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             1            1  [101, 102]
         dtype: Struct([Field('label_ids', int64), Field('token_ids', List(int64))]), count: 2, null_count: 0
 
-        >>> df.to_torch({"token_ids": tap.PadSequence(padding_value=-1)})
+        >>> df.to_tensor({"token_ids": tap.PadSequence(padding_value=-1)})
         TorchArrowStruct_0(
             label_ids=tensor([0, 1]),
             token_ids=tensor([
@@ -1472,7 +1472,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         conversion = conversion or pytorch.DefaultTorchConversion()
         assert isinstance(conversion, pytorch.ITorchConversion)
-        return conversion.to_torch(self)
+        return conversion.to_tensor(self)
 
     # batching/unbatching
     # NOTE experimental
@@ -1649,7 +1649,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         if format == "python":
             return c.to_pylist()
         if format == "torch":
-            return c.to_torch()
+            return c.to_tensor()
         raise ValueError(f"Invalid value for `format` argument: {format}")
 
     def _format_transform_result(
@@ -1659,7 +1659,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             from . import pytorch
 
             pytorch.ensure_available()
-            ret = pytorch.from_torch(raw, dtype=dtype)
+            ret = pytorch.from_tensor(raw, dtype=dtype)
         elif format == "python" or format == "column":
             ret = ta.Column(raw, dtype=dtype)
         else:
@@ -1755,11 +1755,11 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         return res._finalize()
 
     # private PyTorch interop related methods
-    def _to_torch_pad_sequence(self, batch_first: bool, padding_value):
-        self._not_supported("_to_torch_pad_sequence")
+    def _to_tensor_pad_sequence(self, batch_first: bool, padding_value):
+        self._not_supported("_to_tensor_pad_sequence")
 
-    def _to_torch_default(self):
-        self._not_supported("_to_torch_default")
+    def _to_tensor_default(self):
+        self._not_supported("_to_tensor_default")
 
     # private aggregation/topK functions
 
