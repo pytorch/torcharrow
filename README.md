@@ -87,7 +87,7 @@ And run unit tests with
 python -m unittest -v
 ```
 
-To install TorchArrow with release mode (WARNING: may take very long to build):
+To build and install TorchArrow with release mode:
 ```
 python setup.py install
 ```

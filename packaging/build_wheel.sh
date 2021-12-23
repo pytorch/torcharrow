@@ -34,30 +34,27 @@ setup_macos() {
 }
 
 # Inputs:
-#   PYTHON_VERSION (3.8, 3.9)
+#   PYTHON_VERSION (3.7, 3.8, 3.9)
 #
 # Outputs:
 #   PATH modified to put correct Python version in PATH
 setup_wheel_python() {
-  if [[ "$(uname)" == Darwin || "$OSTYPE" == "msys" ]]; then
-    eval "$(conda shell.bash hook)"
-    conda env remove -n "env$PYTHON_VERSION" || true
-    conda create -yn "env$PYTHON_VERSION" python="$PYTHON_VERSION"
-    conda activate "env$PYTHON_VERSION"
-  else
-    echo "Unsupported"
-    exit 1
-  fi
+  eval "$(conda shell.bash hook)"
+  conda env remove -n "env$PYTHON_VERSION" || true
+  conda create -yn "env$PYTHON_VERSION" python="$PYTHON_VERSION"
+  conda activate "env$PYTHON_VERSION"
 }
 
 setup_build_version 0.0.2
 setup_wheel_python
 python setup.py clean
 if [[ "$(uname)" == Darwin ]]; then
-    setup_macos
-    python setup.py bdist_wheel
+  setup_macos
+  python setup.py bdist_wheel
+elif [[ "$(uname)" == Linux ]]; then
+  python setup.py bdist_wheel
 else
-    echo "Unsupported"
-    exit 1
+  echo "Unsupported"
+  exit 1
 fi
 
