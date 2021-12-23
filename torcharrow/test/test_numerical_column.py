@@ -483,6 +483,18 @@ class TestNumericalColumn(unittest.TestCase):
             ],
         )
 
+    def base_test_cast(self):
+        data = [1, 2, 3]
+        col_int64 = ta.Column(data, device="cpu")
+        col2_int32 = col_int64.cast(dt.int32)
+        self.assertEqual(list(col2_int32), data)
+        self.assertEqual(col2_int32.dtype, dt.int32)
+
+        data2 = [1, 2, None]
+        col3 = ta.Column(data2, device="cpu", dtype=dt.int32)
+        self.assertEqual(col3.cast(dt.float64).dtype, dt.float64)
+        self.assertEqual(list(col3.cast(dt.float64)), data2)
+
     # experimental
     def base_test_batch_collate(self):
         c = ta.Column([1, 2, 3, 4, 5, 6, 7], device=self.device)
