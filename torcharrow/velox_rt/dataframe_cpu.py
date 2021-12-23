@@ -1713,12 +1713,12 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
         return pa.table(data, schema=pa.schema(fields))
 
-    def to_torch(self, conversion=None):
+    def to_tensor(self, conversion=None):
         pytorch.ensure_available()
 
         conversion = conversion or {}
         if isinstance(conversion, pytorch.ITorchConversion):
-            return conversion.to_torch(self)
+            return conversion.to_tensor(self)
 
         assert isinstance(conversion, dict)
         # TODO: this actually puts the type annotations on the tuple wrong.
@@ -1727,15 +1727,15 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
         return tup_type(
             *(
-                conversion.get(f.name, pytorch.DefaultTorchConversion()).to_torch(
+                conversion.get(f.name, pytorch.DefaultTorchConversion()).to_tensor(
                     self[f.name]
                 )
                 for f in self.dtype.fields
             )
         )
 
-    def _to_torch_default(self):
-        return self.to_torch()
+    def _to_tensor_default(self):
+        return self.to_tensor()
 
     # fluent with symbolic expressions ----------------------------------------
 
