@@ -38,11 +38,11 @@ class PackedMap(Generic[KT, T]):
     values: Union[T]
 
 
-def infer_dtype_from_torch(
+def infer_dtype_from_tensor(
     data: Union[PackedMap, PackedList, List, torch.Tensor, Tuple]
 ):
     if isinstance(data, WithPresence):
-        t = infer_dtype_from_torch(data.values)
+        t = infer_dtype_from_tensor(data.values)
         if t.nullable:
             raise TypeError("WithPresence structs can't be nested")
         return t.with_null()
@@ -66,7 +66,7 @@ def infer_dtype_from_torch(
             raise TypeError(
                 "PackedList.offsets is expected to be an integer-valued tensor"
             )
-        return dtypes.List(infer_dtype_from_torch(data.values))
+        return dtypes.List(infer_dtype_from_tensor(data.values))
 
     if isinstance(data, PackedMap):
         if not isinstance(data.offsets, torch.Tensor) or data.offsets.dtype not in [
@@ -78,11 +78,11 @@ def infer_dtype_from_torch(
                 "PackedMap.offsets is expected to be an integer-valued tensor"
             )
         return dtypes.Map(
-            infer_dtype_from_torch(data.keys), infer_dtype_from_torch(data.values)
+            infer_dtype_from_tensor(data.keys), infer_dtype_from_tensor(data.values)
         )
 
     if isinstance(data, tuple):
-        types = [infer_dtype_from_torch(x) for x in data]
+        types = [infer_dtype_from_tensor(x) for x in data]
         fields = getattr(data, "_fields", None)
         if fields is not None:
             assert len(fields) == len(types)
@@ -98,13 +98,13 @@ def infer_dtype_from_torch(
     )
 
 
-def from_torch(
+def from_tensor(
     data: Union[PackedMap, PackedList, List, torch.Tensor, Tuple],
     dtype: Optional[DType] = None,
     device="",
 ):
     if dtype is None:
-        dtype = infer_dtype_from_torch(data)
+        dtype = infer_dtype_from_tensor(data)
     device = device or Scope.default.device
     assert isinstance(dtype, DType)
 
@@ -118,7 +118,7 @@ def from_torch(
             raise ValueError(
                 f"Expected nullable type when the value is pytorch.WithPresence: {dtype}"
             )
-        nested = from_torch(data.values, dtype=dtype.with_null(False))
+        nested = from_tensor(data.values, dtype=dtype.with_null(False))
         # TODO: this implementation is very inefficient, we should wrap the column directly instead of round-tripping through python
         return ta.Column(
             [(x if data.presence[i].item() else None) for i, x in enumerate(nested)],
@@ -137,7 +137,7 @@ def from_torch(
                 f"Expected list type when the value is pytorch.PackedList: {dtype}"
             )
         assert isinstance(dtype, dtypes.List)  # make mypy happy
-        nested = list(from_torch(data.values, dtype=dtype.item_dtype))
+        nested = list(from_tensor(data.values, dtype=dtype.item_dtype))
         if not isinstance(data.offsets, torch.Tensor) or data.offsets.dtype not in [
             torch.int16,
             torch.int32,
@@ -159,9 +159,9 @@ def from_torch(
                 f"Expected map type when the value is pytorch.PackedMap: {dtype}"
             )
         assert isinstance(dtype, dtypes.Map)  # make mypy happy
-        nested_keys = list(from_torch(data.keys, dtype=dtype.key_dtype, device=device))
+        nested_keys = list(from_tensor(data.keys, dtype=dtype.key_dtype, device=device))
         nested_values = list(
-            from_torch(data.values, dtype=dtype.item_dtype, device=device)
+            from_tensor(data.values, dtype=dtype.item_dtype, device=device)
         )
         if not isinstance(data.offsets, torch.Tensor) or data.offsets.dtype not in [
             torch.int16,
@@ -200,7 +200,7 @@ def from_torch(
         nested_fields = OrderedDict(
             (
                 dtype.fields[i].name,
-                list(from_torch(data[i], dtype=dtype.fields[i].dtype, device=device)),
+                list(from_tensor(data[i], dtype=dtype.fields[i].dtype, device=device)),
             )
             for i in range(len(data))
         )
@@ -224,7 +224,7 @@ def from_torch(
         # TODO: this implementation is very inefficient, we should wrap the column directly instead of round-tripping through python
         return ta.Column(data.tolist(), dtype=dtype, device=device)
 
-    raise ValueError(f"Unexpected data in `from_torch`: {type(data)}")
+    raise ValueError(f"Unexpected data in `from_tensor`: {type(data)}")
 
 
 class ITorchConversion(abc.ABC):
@@ -232,21 +232,21 @@ class ITorchConversion(abc.ABC):
     PyTorch Conversion class.
 
     For built-in PyTorch conversion class, it dispatches to the corresponding internal methods in
-    IColumn. Such as IColumn._to_torch_default() or IColumn._to_torch_padseq().
+    IColumn. Such as IColumn._to_tensor_default() or IColumn._to_tensor_padseq().
 
     Some PyTorch conversion strategy may be one way (e.g. doesn't support converting from PyTorch representation
-    back to DataFrame), in that case only to_torch needs to be implemented.
+    back to DataFrame), in that case only to_tensor needs to be implemented.
 
     It's also easy to extend with your own Torch conversion class, as long as the
-    to_torch and from_torch is implemented.
+    to_tensor and from_tensor is implemented.
     """
 
     @abc.abstractmethod
-    def to_torch(self, col):
-        self._not_supported("to_torch")
+    def to_tensor(self, col) -> torch.Tensor:
+        self._not_supported("to_tensor")
 
-    def from_torch(self, data, dtype, device):
-        self._not_supported("from_torch")
+    def from_tensor(self, data: torch.Tensor, dtype, device):
+        self._not_supported("from_tensor")
 
     def _not_supported(self, name):
         raise TypeError(f"{name} for type {type(self).__name__} is not supported")
@@ -257,11 +257,11 @@ class DefaultTorchConversion(ITorchConversion):
     Default PyTorch representation.
     """
 
-    def to_torch(self, col):
-        return col._to_torch_default()
+    def to_tensor(self, col):
+        return col._to_tensor_default()
 
-    def from_torch(self, data, dtype=None, device=None):
-        return from_torch(data, dtype, device)
+    def from_tensor(self, data, dtype=None, device=None):
+        return from_tensor(data, dtype, device)
 
 
 class PadSequence(ITorchConversion):
@@ -274,8 +274,8 @@ class PadSequence(ITorchConversion):
         self.batch_first = batch_first
         self.padding_value = padding_value
 
-    def to_torch(self, col):
-        return col._to_torch_pad_sequence(self.batch_first, self.padding_value)
+    def to_tensor(self, col) -> torch.Tensor:
+        return col._to_tensor_pad_sequence(self.batch_first, self.padding_value)
 
-    def from_torch(self, data, dtype=None, device=None):
-        self._not_supported("from_torch")
+    def from_tensor(self, data: torch.Tensor, dtype=None, device=None):
+        self._not_supported("from_tensor")

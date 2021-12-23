@@ -849,7 +849,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
         return pa.Array._import_from_c(ptr_array, _dtype_to_arrowtype(self.dtype))
 
-    def _to_torch_default(self):
+    def _to_tensor_default(self):
         pytorch.ensure_available()
         import torch
 

@@ -43,11 +43,11 @@ class TestInterop(unittest.TestCase):
             },
             device=self.device,
         )
-        p = df["I"][1:4].to_torch()
+        p = df["I"][1:4].to_tensor()
         self.assertEqual(p.dtype, torch.int64)
         self.assertEqual(p.tolist(), [2, 3, 4])
 
-        p = df["N_I"][1:4].to_torch()
+        p = df["N_I"][1:4].to_tensor()
         self.assertEqual(p.values.dtype, torch.int64)
         # last value can be anything
         self.assertEqual(p.values.tolist()[:-1], [2, 3])
@@ -55,7 +55,7 @@ class TestInterop(unittest.TestCase):
         self.assertEqual(p.presence.tolist(), [True, True, False])
 
         # non nullable list with nullable elements
-        p = df["B"][1:4].to_torch()
+        p = df["B"][1:4].to_tensor()
         self.assertEqual(p.values.values.dtype, torch.int64)
         self.assertEqual(p.values.presence.dtype, torch.bool)
         self.assertEqual(p.offsets.dtype, torch.int32)
@@ -66,7 +66,7 @@ class TestInterop(unittest.TestCase):
         self.assertEqual(p.offsets.tolist(), [0, 2, 4, 5])
 
         # nullable list with non nullable elements
-        p = df["N_B"][1:4].to_torch()
+        p = df["N_B"][1:4].to_tensor()
         self.assertEqual(p.values.values.dtype, torch.int64)
         self.assertEqual(p.presence.dtype, torch.bool)
         self.assertEqual(p.values.offsets.dtype, torch.int32)
@@ -75,11 +75,11 @@ class TestInterop(unittest.TestCase):
         self.assertEqual(p.values.offsets.tolist(), [0, 2, 2, 3])
 
         # list of strings -> we skip PackedList all together
-        p = df["SS"][1:4].to_torch()
+        p = df["SS"][1:4].to_tensor()
         self.assertEqual(p, [["b", "bb"], ["c"], ["d", None]])
 
         # map of strings - the keys turns into regular list
-        p = df["DSI"][1:4].to_torch()
+        p = df["DSI"][1:4].to_tensor()
         self.assertEqual(p.keys, ["b", "bb", "d"])
         self.assertEqual(p.values.dtype, torch.int64)
         self.assertEqual(p.offsets.dtype, torch.int32)
@@ -88,7 +88,7 @@ class TestInterop(unittest.TestCase):
 
         # list of tuples
         # FIXME: https://github.com/facebookresearch/torcharrow/issues/60
-        # p = df["N_ROW"][1:4].to_torch()
+        # p = df["N_ROW"][1:4].to_tensor()
         # self.assertEqual(p.offsets.dtype, torch.int32)
         # self.assertEqual(p.offsets.tolist(), [0, 2, 2, 4])
         # self.assertEqual(p.values.i.dtype, torch.int64)
@@ -99,13 +99,13 @@ class TestInterop(unittest.TestCase):
         # np.testing.assert_almost_equal(p.values.f.values.numpy(), [2.2, 3.3, 4.4, 0.0])
 
         # Reverse conversion
-        p = df.to_torch()
-        df2 = tap.from_torch(p, dtype=df.dtype, device=self.device)
+        p = df.to_tensor()
+        df2 = tap.from_tensor(p, dtype=df.dtype, device=self.device)
         self.assertEqual(df.dtype, df2.dtype)
         self.assertEqual(list(df), list(df2))
 
         # Reverse conversion with type inference
-        df3 = tap.from_torch(p, dtype=df.dtype, device=self.device)
+        df3 = tap.from_tensor(p, dtype=df.dtype, device=self.device)
         self.assertEqual(df.dtype, df3.dtype)
         self.assertEqual(list(df), list(df3))
 
@@ -133,7 +133,7 @@ class TestInterop(unittest.TestCase):
             device=self.device,
         )
 
-        collated_tensors = df.to_torch(
+        collated_tensors = df.to_tensor(
             {
                 "int32": tap.PadSequence(padding_value=-1),
                 "int64": tap.PadSequence(padding_value=-2),
