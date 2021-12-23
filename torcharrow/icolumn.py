@@ -10,7 +10,7 @@ import statistics
 import typing as ty
 import warnings
 from collections import OrderedDict, defaultdict
-from functools import partial, reduce
+from functools import partial
 
 import numpy as np
 import torcharrow as ta
@@ -242,11 +242,11 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             if dt.is_primitive(dtype):
                 fun = dt.cast_as(dtype)
                 res = Scope._EmptyColumn(dtype)
-                for m, i in self.item():
+                for m, i in self._items():
                     if m:
                         res._append_null()
                     else:
-                        res.append_value(fun(i))
+                        res._append_value(fun(i))
                 return res._finalize()
             else:
                 raise TypeError('f"{astype}({dtype}) is not supported")')
