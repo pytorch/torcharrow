@@ -742,8 +742,8 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(df.drop([])), [(1, 11, 111), (2, 22, 222), (3, 33, 333)])
         self.assertEqual(list(df.drop(["c", "a"])), [(11,), (22,), (33,)])
 
-        self.assertEqual(list(df.keep([])), [])
-        self.assertEqual(list(df.keep(["c", "a"])), [(1, 111), (2, 222), (3, 333)])
+        self.assertEqual(list(df[[]]), [])
+        self.assertEqual(list(df[["a", "c"]]), [(1, 111), (2, 222), (3, 333)])
 
         self.assertEqual(
             list(df.rename({"a": "c", "c": "a"})),
@@ -784,7 +784,7 @@ class TestDataFrame(unittest.TestCase):
 
         self.assertEqual(list(df.select("*")), list(df))
 
-        self.assertEqual(list(df.select("a")), list(df.keep(["a"])))
+        self.assertEqual(list(df.select("a")), list(df[["a"]]))
         self.assertEqual(list(df.select("*", "-a")), list(df.drop(["a"])))
 
         gf = ta.DataFrame(

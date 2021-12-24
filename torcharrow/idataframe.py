@@ -8,6 +8,7 @@ from typing import (
     Callable,
     Iterable,
     List,
+    Dict,
     Mapping,
     Optional,
     Sequence,
@@ -208,11 +209,30 @@ class IDataFrame(IColumn):
         raise self._not_supported("copy")
 
     @trace
+    @expression
     def drop(self, columns: List[str]):
         """
         Returns DataFrame without the removed columns.
         """
         raise self._not_supported("drop")
+
+    @trace
+    @expression
+    def rename(self, mapper: Dict[str, str]):
+        """
+        Returns DataFrame with column names remapped.
+        """
+        raise self._not_supported("rename")
+
+    @trace
+    @expression
+    def reorder(self, columns: List[str]):
+        """
+        EXPERIMENTAL API
+
+        Returns DataFrame with the columns in the prescribed order.
+        """
+        raise self._not_supported("rename")
 
     @trace
     @expression
