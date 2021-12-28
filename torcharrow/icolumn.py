@@ -327,9 +327,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 raise TypeError(
                     f"slice arguments {[type(a) for a in args]} should all be int or string"
                 )
-        elif isinstance(arg, (tuple, list)):
+        elif isinstance(arg, list):
             if len(arg) == 0:
-                return self
+                return ta.DataFrame(device=self.device)
             if all(isinstance(a, bool) for a in arg):
                 return self.filter(arg)
             if all(isinstance(a, int) for a in arg):
