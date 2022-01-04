@@ -52,8 +52,8 @@ class TestMapColumn(unittest.TestCase):
     def base_test_keys_values_get(self):
         c = ta.Column([{"abc": 123}, {"de": 45, "fg": 67}, None], device=self.device)
 
-        self.assertEqual(list(c.maps.keys()), [["abc"], ["de", "fg"], []])
-        self.assertEqual(list(c.maps.values()), [[123], [45, 67], []])
+        self.assertEqual(list(c.maps.keys()), [["abc"], ["de", "fg"], None])
+        self.assertEqual(list(c.maps.values()), [[123], [45, 67], None])
         self.assertEqual(list(c.maps.get("de", 0)), [0, 45, None])
 
 

@@ -12,7 +12,7 @@ import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
 from tabulate import tabulate
 from torcharrow.dispatcher import Dispatcher
-from torcharrow.dispatcher import Dispatcher
+from torcharrow.functional import functional
 from torcharrow.icolumn import IColumn
 from torcharrow.imap_column import IMapColumn, IMapMethods
 from torcharrow.scope import Scope
@@ -212,13 +212,11 @@ class MapMethodsCpu(IMapMethods):
         super().__init__(parent)
 
     def keys(self):
+        # Delegate to `map_keys` function
         me = self._parent
-        return ColumnFromVelox._from_velox(
-            me.device, dt.List(me._dtype.key_dtype), me._data.keys(), True
-        )
+        return functional.map_keys(me)._with_null(me._dtype.nullable)
 
     def values(self):
+        # Delegate to `map_values` function
         me = self._parent
-        return ColumnFromVelox._from_velox(
-            me.device, dt.List(me._dtype.item_dtype), me._data.values(), True
-        )
+        return functional.map_values(me)._with_null(me._dtype.nullable)
