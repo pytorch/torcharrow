@@ -1,13 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import abc
 
-# TODO: use re2
-import re
-
-import numpy.ma as ma
 import torcharrow.dtypes as dt
 
-from .expression import expression
 from .icolumn import IColumn
 
 # ------------------------------------------------------------------------------
@@ -45,14 +40,15 @@ class IStringMethods(abc.ABC):
 
         return self._vectorize_string(func)
 
-    def split(self, sep=None):
+    def split(self, pat=None):
         """
         Split strings around given separator/delimiter.
 
         Parameters
         ----------
-        sep - str, default None
-            String literal to split on.  When None split according to whitespace.
+        pat - str, default None
+            String literal to split on, does not yet support regular expressions.
+            When None split according to whitespace.
 
         See Also
         --------
@@ -62,19 +58,13 @@ class IStringMethods(abc.ABC):
         --------
         >>> import torcharrow as ta
         >>> s = ta.Column(['what a wonderful world!', 'really?'])
-        >>> s.str.split(sep=' ')
+        >>> s.str.split(pat=' ')
         0  ['what', 'a', 'wonderful', 'world!']
         1  ['really?']
         dtype: List(string), length: 2, null_count: 0
 
         """
-        self._parent._prototype_support_warning("str.split")
-        me = self._parent
-
-        def fun(i):
-            return i.split(sep)
-
-        return self._vectorize_list_string(fun)
+        self._not_supported("split")
 
     def strip(self):
         """
@@ -161,80 +151,33 @@ class IStringMethods(abc.ABC):
 
         return self._vectorize_boolean(pred)
 
+    def count(self, pat: str):
+        """Count occurrences of pattern in each string of column"""
+        # TODO: caculating the count without materializing all the occurance?
+        return self.findall(pat).list.length()
+
     def find(self, sub):
-        self._parent._prototype_support_warning("str.find")
+        self._not_supported("find")
 
-        def fun(i):
-            return i.find(sub)
-
-        return self._vectorize_int64(fun)
-
-    def replace(self, old, new):
+    def replace(self, pat: str, repl: str, regex: bool = True):
         """
         Replace each occurrence of pattern in the Column.
         """
-        self._parent._prototype_support_warning("str.replace")
+        self._not_supported("replace")
 
-        return self._vectorize_string(lambda s: s.replace(old, new))
+    def match(self, pat: str):
+        """Determine if each string matches a regular expression"""
+        self._not_supported("match")
 
-    # Regular expressions -----------------------------------------------------
-    #
-    # Only allow string type for pattern input so it can be dispatch to other runtime (Velox, cuDF, etc)
-
-    def count_re(self, pattern: str):
-        """Count occurrences of pattern in each string"""
-        self._parent._prototype_support_warning("str.count_re")
-
-        return self.findall_re(pattern).list.length()
-
-    def match_re(self, pattern: str):
-        """Determine if each string matches a regular expression (see re.match())"""
-        self._parent._prototype_support_warning("str.match_re")
-
-        pattern = re.compile(pattern)
-
-        def func(text):
-            return True if pattern.match(text) else False
-
-        return self._vectorize_boolean(func)
-
-    def replace_re(self, pattern: str, repl: str, count=0):
-        """Replace for each item the search string or pattern with the given value"""
-        self._parent._prototype_support_warning("str.replace_re")
-
-        pattern = re.compile(pattern)
-
-        def func(text):
-            return re.sub(pattern, repl, text, count)
-
-        return self._vectorize_string(func)
-
-    def contains_re(
-        self,
-        pattern: str,
-    ):
+    def contains(self, pat: str, regex: bool = True):
         """Test for each item if pattern is contained within a string; returns a boolean"""
-        self._parent._prototype_support_warning("str.contains_re")
+        self._not_supported("contains")
 
-        pattern = re.compile(pattern)
-
-        def func(text):
-            return pattern.search(text) is not None
-
-        return self._vectorize_boolean(func)
-
-    def findall_re(self, pattern: str):
+    def findall(self, pat: str):
         """
         Find for each item all occurrences of pattern (see re.findall())
         """
-        self._parent._prototype_support_warning("str.findall_re")
-
-        pattern = re.compile(pattern)
-
-        def func(text):
-            return pattern.findall(text)
-
-        return self._vectorize_list_string(func)
+        self._not_supported("findall")
 
     # helper -----------------------------------------------------
 
