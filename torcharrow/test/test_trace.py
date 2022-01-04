@@ -228,7 +228,7 @@ class TestDataframeTrace(unittest.TestCase):
         df["d"] = c1
 
         d1 = df.drop(["a"])
-        d2 = df.keep(["a", "c"])
+        d2 = df[["a", "c"]]
         # TODO Clarify: Why did we have in 0.2 this as an  self.assertRaises(AttributeError):
         # AttributeError: cannot override existing column d
         # simply overrides the column name, but that's ok...
@@ -246,7 +246,7 @@ class TestDataframeTrace(unittest.TestCase):
         df["d"] = c1
 
         d1 = df.drop(["a"])
-        d2 = df.keep(["a", "c"])
+        d2 = df[["a", "c"]]
         d3 = d2.rename({"c": "e"})
 
         d4 = d3.min()
@@ -260,7 +260,7 @@ class TestDataframeTrace(unittest.TestCase):
             "c4 = torcharrow.icolumn.IColumn.__getitem__(c0, 'a')",
             "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'd', c4)",
             "c11 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.drop(c0, ['a'])",
-            "c16 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.keep(c0, ['a', 'c'])",
+            "c16 = torcharrow.icolumn.IColumn.__getitem__(c0, ['a', 'c'])",
             "c21 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.rename(c16, {'c': 'e'})",
             "c24 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.min(c21)",
         ]
