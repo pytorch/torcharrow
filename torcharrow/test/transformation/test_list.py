@@ -16,7 +16,10 @@ class _TestListBase(unittest.TestCase):
                 "struct_list": ta.Column(
                     [[(1, "a"), (2, "b")], [(3, "c")], None],
                     dtype=dt.List(
-                        dt.Struct([dt.Field("f1", dt.int64), dt.Field("f2", dt.string)])
+                        dt.Struct(
+                            [dt.Field("f1", dt.int64), dt.Field("f2", dt.string)]
+                        ),
+                        nullable=True,
                     ),
                 ),
             }
