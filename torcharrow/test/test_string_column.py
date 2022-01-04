@@ -176,7 +176,11 @@ class TestStringColumn(unittest.TestCase):
         )
 
         self.assertEqual(
-            list(ta.Column(s, device=self.device).str.replace("this", "that")),
+            list(
+                ta.Column(s, device=self.device).str.replace(
+                    "this", "that", regex=False
+                )
+            ),
             [v.replace("this", "that") for v in s],
         )
 
@@ -194,34 +198,35 @@ class TestStringColumn(unittest.TestCase):
             device=self.device,
         )
         # count
-        self.assertEqual(
-            list(S[S.str.count_re(r"(^F.*)") == 1]), ["Finland", "Florida"]
-        )
-        self.assertEqual(S.str.count_re(r"(^F.*)").sum(), 2)
+        self.assertEqual(list(S[S.str.count(r"(^F.*)") == 1]), ["Finland", "Florida"])
+        self.assertEqual(S.str.count(r"(^F.*)").sum(), 2)
         # match
-        self.assertEqual(list(S[S.str.match_re(r"(^P.*)") == True]), ["Puerto Rico"])
+        self.assertEqual(list(S[S.str.match(r"(^P.*)") == True]), ["Puerto Rico"])
+
         # replace
-        self.assertEqual(
-            list(S.str.replace_re("(-d)", "")),
-            [
-                "Finland",
-                "Colombia",
-                "Florida",
-                "Japan",
-                "Puerto Rico",
-                "Russia",
-                "france",
-            ],
-        )
+        # TODO: support replace with regex
+        # self.assertEqual(
+        #    list(S.str.replace("(-d)", "")),
+        #    [
+        #        "Finland",
+        #        "Colombia",
+        #        "Florida",
+        #        "Japan",
+        #        "Puerto Rico",
+        #        "Russia",
+        #        "france",
+        #    ],
+        # )
+
         # contains
         self.assertEqual(
-            list(S.str.contains_re("^F.*")),
+            list(S.str.contains("^F.*")),
             [True, False, True, False, False, False, False],
         )
 
         # findall (creates a list), we select the non empty ones.
 
-        l = S.str.findall_re("^[Ff].*")
+        l = S.str.findall("^[Ff].*")
         self.assertEqual(
             list(l[l.list.length() > 0]),
             [
@@ -232,7 +237,7 @@ class TestStringColumn(unittest.TestCase):
         )
 
         # extract all
-        l = S.str.findall_re("^[Ff](.*)")
+        l = S.str.findall("^[Ff](.*)")
         self.assertEqual(
             list(l[l.list.length() > 0]),
             [
@@ -242,7 +247,7 @@ class TestStringColumn(unittest.TestCase):
             ],
         )
 
-        l = S.str.findall_re("[tCc]o")
+        l = S.str.findall("[tCc]o")
         self.assertEqual(
             list(l[l.list.length() > 0]),
             [

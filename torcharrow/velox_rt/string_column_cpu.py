@@ -1,10 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import array as ar
-from dataclasses import dataclass
-from typing import cast, List
+from typing import List
 
 import numpy as np
-import numpy.ma as ma
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 from tabulate import tabulate
@@ -12,7 +10,6 @@ from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
 from torcharrow.functional import functional
 from torcharrow.istring_column import IStringColumn, IStringMethods
-from torcharrow.scope import Scope, Device
 from torcharrow.trace import trace
 
 from .column import ColumnFromVelox
@@ -238,9 +235,9 @@ class StringMethodsCpu(IStringMethods):
                 self._parent.dtype.nullable
             )
 
-    def split(self, sep=None):
-        sep = sep or " "
-        return functional.split(self._parent, sep)._with_null(
+    def split(self, pat=None):
+        pat = pat or " "
+        return functional.split(self._parent, pat)._with_null(
             self._parent.dtype.nullable
         )
 
@@ -318,28 +315,29 @@ class StringMethodsCpu(IStringMethods):
             - 1
         )
 
-    def replace(self, old, new):
-        return functional.replace(self._parent, old, new)._with_null(
+    def replace(self, pat: str, repl: str, regex: bool = True):
+        if regex:
+            raise TypeError(f"replace with regex is not implemented yet")
+        else:
+            return functional.replace(self._parent, pat, repl)._with_null(
+                self._parent.dtype.nullable
+            )
+
+    def match(self, pat: str):
+        return functional.match_re(self._parent, pat)._with_null(
             self._parent.dtype.nullable
         )
 
-    # Regular expressions -----------------------------------------------------
+    def contains(self, pat: str, regex=True):
+        if regex:
+            return functional.regexp_like(self._parent, pat)._with_null(
+                self._parent.dtype.nullable
+            )
+        else:
+            raise TypeError(f"contains with regex is not implemented yet")
 
-    def match_re(self, pattern: str):
-        return functional.match_re(self._parent, pattern)._with_null(
-            self._parent.dtype.nullable
-        )
-
-    def contains_re(
-        self,
-        pattern: str,
-    ):
-        return functional.regexp_like(self._parent, pattern)._with_null(
-            self._parent.dtype.nullable
-        )
-
-    def findall_re(self, pattern: str):
-        return functional.regexp_extract_all(self._parent, pattern)._with_null(
+    def findall(self, pat: str):
+        return functional.regexp_extract_all(self._parent, pat)._with_null(
             self._parent.dtype.nullable
         )
 
