@@ -210,6 +210,145 @@ class IDataFrame(IColumn):
 
     @trace
     @expression
+    def isin(self, values: Union[list, dict, IColumn]):
+        """
+        Check whether each element in the dataframe is contained in values.
+
+        Parameters
+        ----------
+        values - array-like, column or dict
+            Which values to check the presence of.
+
+        Returns
+        -------
+        DataFrame of booleans showing whether each element is contained in values.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.DataFrame({"a": [1, 2, 3],
+                              "b": [4, 5, 6]
+                              })
+        >>> df.isin([1, 2, 5])
+          index  a      b
+        -------  -----  -----
+            0  True   False
+            1  True   True
+            2  False  False
+        dtype: Struct([Field('a', boolean), Field('b', boolean)]), count: 3, null_count: 0
+        """
+        raise self._not_supported("isin")
+
+    # aggregation
+
+    @trace
+    @expression
+    def min(self):
+        """
+        Return the minimum of the non-null values for each column.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.DataFrame({"a": [1,2,None,4],
+                                "b": [5, 6, None, 8]
+                                })
+        >>> df.min()
+        index    a    b
+        -------  ---  ---
+            0    1    5
+        dtype: Struct([Field('a', Int64(nullable=True)), Field('b', Int64(nullable=True))]), count: 1, null_count: 0
+        """
+        raise self._not_supported("min")
+
+    @trace
+    @expression
+    def max(self):
+        """
+        Return the maximal of the non-null values for each column.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.DataFrame({"a": [1,2,None,4],
+                                "b": [5, 6, None, 8]
+                                })
+        >>> df.max()
+        index    a    b
+        -------  ---  ---
+            0    4    8
+        dtype: Struct([Field('a', Int64(nullable=True)), Field('b', Int64(nullable=True))]), count: 1, null_count: 0
+        """
+        raise self._not_supported("max")
+
+    @trace
+    @expression
+    def sum(self):
+        """
+        Return the sum of the non-null values for each column.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.DataFrame({"a": [1,2,None,4],
+                                "b": [5, 6, None, 8]
+                                })
+        >>> df.sum()
+        index    a    b
+        -------  ---  ---
+            0    7    19
+        dtype: Struct([Field('a', Int64(nullable=True)), Field('b', Int64(nullable=True))]), count: 1, null_count: 0
+        """
+        raise self._not_supported("sum")
+
+    @trace
+    @expression
+    def mean(self):
+        """
+        Return the mean of the non-null values for each column.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.DataFrame({"a": [1.0,2.0,None,6.3],
+                                "b": [5.0, 6.0, None, 10.6]
+                                })
+        >>> df.mean()
+        index    a    b
+        -------  ---  ---
+            0  3.1  7.2
+        dtype: Struct([Field('a', Float32(nullable=True)), Field('b', Float32(nullable=True))]), count: 1, null_count: 0
+        """
+        raise self._not_supported("mean")
+
+    @trace
+    @expression
+    def std(self):
+        raise self._not_supported("std")
+
+    @trace
+    @expression
+    def median(self):
+        raise self._not_supported("median")
+
+    @trace
+    @expression
+    def mode(self):
+        raise self._not_supported("mode")
+
+    @trace
+    @expression
+    def all(self):
+        raise self._not_supported("all")
+
+    @trace
+    @expression
+    def any(self):
+        raise self._not_supported("any")
+
+    # column alnternating
+    @trace
+    @expression
     def drop(self, columns: List[str]):
         """
         Returns DataFrame without the removed columns.
@@ -233,6 +372,8 @@ class IDataFrame(IColumn):
         Returns DataFrame with the columns in the prescribed order.
         """
         raise self._not_supported("rename")
+
+    # functional API
 
     @trace
     @expression
@@ -274,6 +415,18 @@ class IDataFrame(IColumn):
             )
         return self._format_transform_result(raw_res, format, dtype, len(self))
 
+    # interop
+
+    @trace
+    def to_pandas(self):
+        """Convert self to Pandas DataFrame"""
+        raise self._not_supported("to_pandas")
+
+    @trace
+    def to_arrow(self):
+        """Convert self to arrow table"""
+        raise self._not_supported("to_arrow")
+
     @trace
     def to_pylist(self):
         tup_type = self._dtype.py_type
@@ -281,6 +434,10 @@ class IDataFrame(IColumn):
             tup_type(*v)
             for v in zip(*(self[f.name].to_pylist() for f in self._dtype.fields))
         ]
+
+    @trace
+    def to_tensor(self, conversion=None):
+        raise self._not_supported("to_tensor")
 
     def _get_column(self, column):
         """Return the named column"""
