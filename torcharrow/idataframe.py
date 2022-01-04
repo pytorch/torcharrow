@@ -274,18 +274,6 @@ class IDataFrame(IColumn):
             )
         return self._format_transform_result(raw_res, format, dtype, len(self))
 
-    def get_column(self, column):
-        """Return the named column"""
-        raise self._not_supported("get_column")
-
-    def get_columns(self, columns):
-        """Return a new dataframe referencing the columns[s1],..,column[sm]"""
-        raise self._not_supported("get_columns")
-
-    def slice_columns(self, start, stop):
-        """Return a new dataframe with the slice rows[start:stop]"""
-        raise self._not_supported("slice_columns")
-
     @trace
     def to_pylist(self):
         tup_type = self._dtype.py_type
@@ -293,6 +281,18 @@ class IDataFrame(IColumn):
             tup_type(*v)
             for v in zip(*(self[f.name].to_pylist() for f in self._dtype.fields))
         ]
+
+    def _get_column(self, column):
+        """Return the named column"""
+        raise self._not_supported("get_column")
+
+    def _get_columns(self, columns):
+        """Return a new dataframe referencing the columns[s1],..,column[sm]"""
+        raise self._not_supported("get_columns")
+
+    def _slice_columns(self, start, stop):
+        """Return a new dataframe with the slice rows[start:stop]"""
+        raise self._not_supported("slice_columns")
 
 
 # TODO Make this abstract and add all the abstract methods here ...
