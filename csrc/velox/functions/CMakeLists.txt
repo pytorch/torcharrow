@@ -4,6 +4,7 @@ add_library(
   torcharrow_udfs OBJECT
   functions.h
   string_functions.h
+  numeric_functions.h
   register_udf.cpp
 )
 

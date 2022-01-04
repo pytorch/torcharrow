@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import statistics
 import unittest
-from math import ceil, floor
+from math import ceil, floor, log
 
 import numpy as np
 import numpy.testing
@@ -465,6 +465,28 @@ class TestNumericalColumn(unittest.TestCase):
         )
         self.assertEqual(list(C.round(2))[-1], None)
         # self.assertEqual(list(C.hash_values()), [hash(i) for i in c] + [None])
+
+        c1 = ta.Column(
+            [1, 0, 4, None], device=self.device, dtype=dt.Int32(nullable=True)
+        )
+        c2 = ta.Column(
+            [1, 0, 4, None], device=self.device, dtype=dt.Float32(nullable=True)
+        )
+        for col in [c1, c2]:
+            numpy.testing.assert_almost_equal(
+                list(col.log())[:-1], [0.0, -float("inf"), log(4)]
+            )
+            self.assertEqual(col.log().dtype, dt.Float32(nullable=True))
+            self.assertEqual(list(col.log())[-1], None)
+
+        c3 = ta.Column(
+            [1.0, 0.0, 4.0, None], device=self.device, dtype=dt.Float64(nullable=True)
+        )
+        numpy.testing.assert_almost_equal(
+            list(c3.log())[:-1], [0.0, -float("inf"), log(4)]
+        )
+        self.assertEqual(c3.log().dtype, dt.Float64(nullable=True))
+        self.assertEqual(list(c2.log())[-1], None)
 
     def base_test_describe(self):
         # requires 'implicitly' torcharrow.dataframe import DataFrame

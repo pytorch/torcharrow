@@ -27,3 +27,6 @@ class INumericalColumn(IColumn):
             )
         else:
             raise AssertionError("unexpected case")
+
+    def log(self):
+        raise self._not_supported("log")
