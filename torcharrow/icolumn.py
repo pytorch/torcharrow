@@ -309,7 +309,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         if isinstance(arg, int):
             return self._get(arg)
         elif isinstance(arg, str):
-            return self.get_column(arg)
+            return self._get_column(arg)
         elif isinstance(arg, slice):
             args = []
             for i in [arg.start, arg.stop, arg.step]:
@@ -319,13 +319,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                     args.append(i)
             if all(a is None or isinstance(a, int) for a in args):
                 return self._slice(*args)
-            elif all(a is None or isinstance(a, str) for a in args):
-                if arg.step is not None:
-                    raise TypeError(f"column slice can't have step argument {arg.step}")
-                return self.slice_columns(arg.start, arg.stop)
             else:
                 raise TypeError(
-                    f"slice arguments {[type(a) for a in args]} should all be int or string"
+                    f"slice arguments {[type(a) for a in args]} should all be int"
                 )
         elif isinstance(arg, list):
             if len(arg) == 0:
@@ -335,7 +331,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             if all(isinstance(a, int) for a in arg):
                 return self._gets(arg)
             if all(isinstance(a, str) for a in arg):
-                return self.get_columns(arg)
+                return self._get_columns(arg)
             else:
                 raise TypeError("index should be list of int or list of str")
         elif isinstance(arg, IColumn) and dt.is_boolean(arg.dtype):
