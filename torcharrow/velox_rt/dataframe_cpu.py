@@ -305,7 +305,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
             mask,
         )
 
-    def get_column(self, column):
+    def _get_column(self, column):
         idx = self._data.type().get_child_idx(column)
         return ColumnFromVelox._from_velox(
             self.device,
@@ -314,14 +314,14 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
             True,
         )
 
-    def get_columns(self, columns):
+    def _get_columns(self, columns):
         # TODO: decide on nulls, here we assume all defined (mask = False) for new parent...
         res = {}
         for n in columns:
-            res[n] = self.get_column(n)
+            res[n] = self._get_column(n)
         return self._fromdata(res, self._mask)
 
-    def slice_columns(self, start, stop):
+    def _slice_columns(self, start, stop):
         # TODO: decide on nulls, here we assume all defined (mask = False) for new parent...
         _start = 0 if start is None else self._column_index(start)
         _stop = len(self.columns) if stop is None else self._column_index(stop)
