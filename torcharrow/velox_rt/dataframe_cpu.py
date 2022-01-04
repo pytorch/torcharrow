@@ -1619,7 +1619,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
     @trace
     @expression
-    def keep(self, columns: List[str]):
+    def _keep(self, columns: List[str]):
         """
         Returns DataFrame with the kept columns only.
         """
@@ -1640,11 +1640,11 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
     @trace
     @expression
-    def rename(self, column_mapper: Dict[str, str]):
-        self._check_columns(column_mapper.keys())
+    def rename(self, mapper: Dict[str, str]):
+        self._check_columns(mapper.keys())
         return self._fromdata(
             {
-                column_mapper.get(
+                mapper.get(
                     self.dtype.fields[i].name, self.dtype.fields[i].name
                 ): ColumnFromVelox._from_velox(
                     self.device,
@@ -1660,9 +1660,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     @trace
     @expression
     def reorder(self, columns: List[str]):
-        """
-        Returns DataFrame with the columns in the prescribed order.
-        """
         self._check_columns(columns)
         return self._fromdata(
             {
