@@ -56,7 +56,7 @@ DataOrDTypeOrNone = Optional[Union[Mapping, Sequence, dt.DType]]
 
 
 class DataFrameCpu(ColumnFromVelox, IDataFrame):
-    """Dataframe, ordered dict of typed columns of the same length"""
+    """Dataframe on Velox backend"""
 
     def __init__(self, device: str, dtype: dt.Struct, data: Dict[str, ColumnFromVelox]):
         assert dt.is_struct(dtype)
@@ -195,7 +195,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         return ColumnFromVelox._from_velox(self.device, self.dtype, self._data, True)
 
     def append(self, values: Iterable[Union[None, dict, tuple]]):
-        """Returns column/dataframe with values appended."""
         it = iter(values)
 
         try:
@@ -347,11 +346,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         dtype: Optional[dt.DType] = None,
         columns: Optional[List[str]] = None,
     ):
-        """
-        Maps rows according to input correspondence.
-        dtype required if result type != item type.
-        """
-
         if columns is None:
             return super().map(arg, na_action, dtype)
         self._check_columns(columns)
@@ -418,10 +412,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         dtype: Optional[dt.DType] = None,
         columns: Optional[List[str]] = None,
     ):
-        """
-        Maps rows to list of rows according to input correspondence
-        dtype required if result type != item type.
-        """
         if columns is None:
             return super().flatmap(arg, na_action, dtype)
         self._check_columns(columns)
@@ -454,31 +444,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     def filter(
         self, predicate: Union[Callable, Iterable], columns: Optional[List[str]] = None
     ):
-        """
-        Select rows where predicate is True.
-        Different from Pandas. Use keep for Pandas filter.
-
-        Parameters
-        ----------
-        predicate - callable or iterable
-            A predicate function or iterable of booleans the same
-            length as the column.  If an n-ary predicate, use the
-            columns parameter to provide arguments.
-        columns - list of string names, default None
-            Which columns to invoke the filter with.  If None, apply to
-            all columns.
-
-        See Also
-        --------
-        map, reduce, flatmap
-
-        Examples
-        --------
-        >>> ta.Column([1,2,3,4]).filter([True, False, True, False]) == ta.Column([1,2,3,4]).filter(lambda x: x%2==1)
-        0  1
-        1  1
-        dtype: boolean, length: 2, null_count: 0
-        """
         if columns is None:
             return super().filter(predicate)
 
@@ -523,7 +488,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         ascending=True,
         na_position="last",
     ):
-        """Sort a column/a dataframe in ascending or descending order"""
         # Not allowing None in comparison might be too harsh...
         # Move all rows with None that in sort index to back...
         func = None
@@ -1250,7 +1214,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     @trace
     @expression
     def isin(self, values: Union[list, dict, IColumn]):
-        """Check whether values are contained in data."""
         if isinstance(values, list):
             return self._fromdata(
                 {
@@ -1332,7 +1295,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         subset: Optional[List[str]] = None,
         keep="first",
     ):
-        """Remove duplicate values from data but keep the first, last, none (keep=False)"""
         self._prototype_support_warning("drop_duplicates")
 
         columns = subset if subset is not None else self.columns
@@ -1389,7 +1351,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     @trace
     @expression
     def min(self):
-        """Return the minimum of the non-null values of the Column."""
         return self._summarize(DataFrameCpu._cmin)
 
     # with dataclass function
@@ -1407,27 +1368,43 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     @trace
     @expression
     def max(self):
-        """Return the maximum of the non-null values of the column."""
         # skipna == True
         return self._summarize(lambda c: c.max)
 
     @trace
     @expression
     def all(self):
-        """Return whether all non-null elements are True in Column"""
         return self._summarize(lambda c: c.all)
 
     @trace
     @expression
     def any(self):
-        """Return whether any non-null element is True in Column"""
         return self._summarize(lambda c: c.any)
 
     @trace
     @expression
     def sum(self):
-        """Return sum of all non-null elements in Column"""
         return self._summarize(lambda c: c.sum)
+
+    @trace
+    @expression
+    def mean(self):
+        return self._summarize(lambda c: c.mean)
+
+    @trace
+    @expression
+    def median(self):
+        return self._summarize(lambda c: c.median)
+
+    @trace
+    @expression
+    def mode(self):
+        return self._summarize(lambda c: c.mode)
+
+    @trace
+    @expression
+    def std(self):
+        return self._summarize(lambda c: c.std)
 
     @trace
     @expression
@@ -1444,7 +1421,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     @trace
     @expression
     def cumsum(self):
-        """Return cumulative sum of the data."""
         return self._lift(lambda c: c.cumsum)
 
     @trace
@@ -1452,30 +1428,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     def _cumprod(self):
         """Return cumulative product of the data."""
         return self._lift(lambda c: c._cumprod)
-
-    @trace
-    @expression
-    def mean(self):
-        """Return the mean of the values in the series."""
-        return self._summarize(lambda c: c.mean)
-
-    @trace
-    @expression
-    def median(self):
-        """Return the median of the values in the data."""
-        return self._summarize(lambda c: c.median)
-
-    @trace
-    @expression
-    def mode(self):
-        """Return the mode(s) of the data."""
-        return self._summarize(lambda c: c.mode)
-
-    @trace
-    @expression
-    def std(self):
-        """Return the stddev(s) of the data."""
-        return self._summarize(lambda c: c.std)
 
     @trace
     @expression
@@ -1548,7 +1500,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         include=None,
         exclude=None,
     ):
-        """Generate descriptive statistics."""
         # Not supported: datetime_is_numeric=False,
         includes = []
         if include is None:
@@ -1677,7 +1628,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     # interop ----------------------------------------------------------------
 
     def to_pandas(self):
-        """Convert self to pandas dataframe"""
         # TODO Add type translation.
         # Skipping analyzing 'pandas': found module but no type hints or library stubs
         import pandas as pd  # type: ignore
@@ -1688,7 +1638,6 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         return pd.DataFrame(data)
 
     def to_arrow(self):
-        """Convert self to arrow table"""
         # TODO Add type translation
         import pyarrow as pa  # type: ignore
 

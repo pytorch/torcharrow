@@ -1036,7 +1036,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def isin(self, values: ty.Union[list, dict]):
         """
-        Check whether values are contained in column.
+        Check whether each element in the column is contained in values.
 
         Parameters
         ----------
@@ -1045,8 +1045,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         Returns
         -------
-        Boolean column of the same length as self where item x denotes if
-        member x has a value contained in values.
+        Column of booleans indicating if each element is in values.
 
         Examples
         --------
@@ -1247,7 +1246,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def sum(self):
         """
-        Return sum of all non-null elements.
+        Return the sum of the non-null values.
 
         Examples
         --------
@@ -1265,14 +1264,14 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def mean(self):
         self._check(dt.is_numerical, "mean")
         """
-        Return the mean of the non-null values in the series.
+        Return the mean of the non-null values.
 
         Examples
         --------
         >>> import torcharrow as ta
-        >>> s = ta.Column([1,2,None,4])
-        >>> s.mean(fill_value=999)
-        251.5
+        >>> s = ta.Column([1,2,None,6])
+        >>> s.mean()
+        3.0
         """
         import pyarrow.compute as pc
 
@@ -1327,7 +1326,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     @trace
     @expression
     def any(self):
-        """Return whether any non-null element is True in Column"""
+        """Return whether any non-null element is True"""
         self._prototype_support_warning("any")
         return any(self._data_iter())
 
@@ -1409,7 +1408,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     @trace
     def to_pandas(self):
-        """Convert self to pandas dataframe"""
+        """Convert self to Pandas Series"""
         import pandas as pd  # type: ignore
 
         # default implementation, normally this should be zero copy...
@@ -1418,7 +1417,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
     @trace
     def to_arrow(self):
-        """Convert self to pandas dataframe"""
+        """Convert self to arrow array"""
         import pyarrow as pa  # type: ignore
 
         # default implementation, normally this should be zero copy...
