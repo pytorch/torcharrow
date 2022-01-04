@@ -12,6 +12,7 @@ import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
+from torcharrow.functional import functional
 from torcharrow.icolumn import IColumn
 from torcharrow.inumerical_column import INumericalColumn
 from torcharrow.trace import trace, traceproperty
@@ -628,6 +629,11 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
             else:
                 col.append(round(self._getdata(i), decimals))
         return ColumnFromVelox._from_velox(self.device, self.dtype, col, True)
+
+    @trace
+    @expression
+    def log(self):
+        return functional.torcharrow_log(self)._with_null(self.dtype.nullable)
 
     # data cleaning -----------------------------------------------------------
 
