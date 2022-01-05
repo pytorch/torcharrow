@@ -42,6 +42,7 @@ class TestStringColumn(unittest.TestCase):
             list(
                 ta.Column(
                     ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", None],
+                    dt.String(True),
                     device=self.device,
                 ).str.isalpha()
             ),
@@ -51,6 +52,7 @@ class TestStringColumn(unittest.TestCase):
             list(
                 ta.Column(
                     ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", None],
+                    dt.String(True),
                     device=self.device,
                 ).str.isalnum()
             ),
@@ -61,6 +63,7 @@ class TestStringColumn(unittest.TestCase):
             list(
                 ta.Column(
                     ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", "\u00B2", None],
+                    dt.String(True),
                     device=self.device,
                 ).str.isdecimal()
             ),

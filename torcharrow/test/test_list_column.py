@@ -28,10 +28,27 @@ class TestListColumn(unittest.TestCase):
             self.assertEqual(c[i], lst)
         self.assertIsNone(c[4])
 
-        c2 = ta.Column([None, None, [1, 2, 3]], dt.List(dt.int64), device=self.device)
+        c2 = ta.Column(
+            [None, None, [1, 2, 3]],
+            dt.List(dt.int64, nullable=True),
+            device=self.device,
+        )
         self.assertIsNone(c2[0])
         self.assertIsNone(c2[1])
         self.assertEqual(c2[2], [1, 2, 3])
+
+    def base_test_list_with_none(self):
+        with self.assertRaises(ValueError) as ex:
+            ta.Column(
+                [None, None, [1, 2, 3]],
+                dt.List(dt.int64),
+                device=self.device,
+            )
+        self.assertTrue(
+            "None found in the list for non-nullable type: List(int64)"
+            in str(ex.exception),
+            f"Exception message is not as expected: {str(ex.exception)}",
+        )
 
     def base_test_append_concat(self):
         base_list = [["hello", "world"], ["how", "are", "you"]]
