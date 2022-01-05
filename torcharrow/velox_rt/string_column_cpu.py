@@ -235,11 +235,13 @@ class StringMethodsCpu(IStringMethods):
                 self._parent.dtype.nullable
             )
 
-    def split(self, pat=None):
+    def split(self, pat=None, n=-1):
         pat = pat or " "
-        return functional.split(self._parent, pat)._with_null(
-            self._parent.dtype.nullable
-        )
+        if n <= 0:
+            split_result = functional.split(self._parent, pat)
+        else:
+            split_result = functional.split(self._parent, pat, n + 1)
+        return split_result._with_null(self._parent.dtype.nullable)
 
     def strip(self):
         return functional.trim(self._parent)._with_null(self._parent.dtype.nullable)

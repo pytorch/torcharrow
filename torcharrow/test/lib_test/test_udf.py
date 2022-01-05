@@ -94,6 +94,16 @@ class TestSimpleColumns(unittest.TestCase):
         isspace = ta.generic_udf_dispatch("torcharrow_isspace", col3)
         self.assert_SimpleColumn(isspace, [True, False, True, False, True, None])
 
+        data4 = ["a b c", "d,e,f"]
+        col4 = self.construct_simple_column(ta.VeloxType_VARCHAR(), data4)
+        splits = ta.generic_udf_dispatch(
+            "split", col4, ta.ConstantColumn(" ", len(data4))
+        )
+        expected = [["a", "b", "c"], ["d,e,f"]]
+        self.assertEqual(len(splits), len(expected))
+        for i in range(len(splits)):
+            self.assert_SimpleColumn(splits[i], expected[i])
+
     def test_regex(self):
         # test some regex UDF
         data = ["abc", "a1", "b2", "c3", "___d4___", None]
