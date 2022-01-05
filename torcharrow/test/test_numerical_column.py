@@ -517,6 +517,12 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(col3.cast(dt.float64).dtype, dt.float64)
         self.assertEqual(list(col3.cast(dt.float64)), data2)
 
+    def base_test_column_from_np_array(self):
+        seq = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+        a = np.array(seq)
+        c = ta.Column(a, device=self.device)
+        self.assertEqual(list(c), seq)
+
     # experimental
     def base_test_batch_collate(self):
         c = ta.Column([1, 2, 3, 4, 5, 6, 7], device=self.device)

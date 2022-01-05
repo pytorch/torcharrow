@@ -60,6 +60,9 @@ class TestNumericalColumnCpu(TestNumericalColumn):
     def test_describe(self):
         return self.base_test_describe()
 
+    def test_column_from_np_array(self):
+        return self.base_test_column_from_np_array()
+
     def test_batch_collate(self):
         return self.base_test_batch_collate()
 

@@ -205,9 +205,10 @@ class Scope:
 
         # data given, optional column
         if data is not None:
-            if isinstance(data, ty.Sequence):
-                data = iter(data)
             if isinstance(data, ty.Iterable):
+                # make sure that we are dealing with an actual Iterator
+                data = iter(data)
+
                 prefix = []
                 for i, v in enumerate(data):
                     prefix.append(v)
@@ -226,13 +227,13 @@ class Scope:
                 # add prefix and ...
                 for p in prefix:
                     col._append(p)
-                # ... continue enumerate the data
-                for _, v in enumerate(data):
-                    col._append(v)
+                # ... continue to add the rest of the data
+                for i in data:
+                    col._append(i)
                 return col._finalize()
             else:
                 raise TypeError(
-                    f"data parameter of ty.Sequence type expected (got {type(dtype).__name__})"
+                    f"data parameter of ty.Iterable type expected (got {type(dtype).__name__})"
                 )
         else:
             raise AssertionError("unexpected case")
