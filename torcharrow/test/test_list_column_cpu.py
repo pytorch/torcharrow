@@ -14,6 +14,9 @@ class TestListColumnCpu(TestListColumn):
     def test_nonempty(self):
         self.base_test_nonempty()
 
+    def test_list_with_none(self):
+        self.base_test_list_with_none()
+
     def test_append_concat(self):
         return self.base_test_append_concat()
 

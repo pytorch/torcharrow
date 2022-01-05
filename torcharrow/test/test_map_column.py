@@ -21,7 +21,9 @@ class TestMapColumn(unittest.TestCase):
         self.assertIsNone(c[2])
 
         c2 = ta.Column(
-            [None, None, {"foo": 123}], dt.Map(dt.string, dt.int64), device=self.device
+            [None, None, {"foo": 123}],
+            dt.Map(dt.string, dt.int64, nullable=True),
+            device=self.device,
         )
         self.assertIsNone(c2[0])
         self.assertIsNone(c2[1])

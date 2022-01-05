@@ -173,7 +173,14 @@ class Scope:
                 raise ValueError("Column cannot infer type from data")
             if dt.contains_tuple(dtype):
                 raise TypeError("Cannot infer type from Python tuple")
-            return Scope._FromPyList(data, dtype, device)
+
+            result = Scope._FromPyList(data, dtype, device)
+            # since dtype is known, check the nullability
+            if not dtype.nullable and result.null_count != 0:
+                raise ValueError(
+                    f"None found in the list for non-nullable type: {dtype}"
+                )
+            return result
 
         if Scope._is_column(data):
             dtype = dtype or data.dtype
