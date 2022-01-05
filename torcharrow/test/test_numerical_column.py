@@ -513,9 +513,10 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(col2_int32.dtype, dt.int32)
 
         data2 = [1, 2, None]
-        col3 = ta.Column(data2, device="cpu", dtype=dt.int32)
-        self.assertEqual(col3.cast(dt.float64).dtype, dt.float64)
-        self.assertEqual(list(col3.cast(dt.float64)), data2)
+        col3 = ta.Column(data2, device="cpu", dtype=dt.Int32(nullable=True))
+        col3_float64 = col3.cast(dt.Float64(nullable=True))
+        self.assertEqual(col3_float64.dtype, dt.Float64(nullable=True))
+        self.assertEqual(list(col3_float64), data2)
 
     def base_test_column_from_np_array(self):
         seq = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
