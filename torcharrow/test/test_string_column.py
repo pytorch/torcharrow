@@ -35,6 +35,11 @@ class TestStringColumn(unittest.TestCase):
         self.assertEqual(list(c.str.split(".")), [v.split(".") for v in s])
         self.assertEqual(list(c.str.split()), [v.split() for v in s])
         self.assertEqual(list(c.str.split(",")), [v.split(",") for v in s])
+        # with max splits
+        self.assertEqual(list(c.str.split(".", -1)), [v.split(".") for v in s])
+        self.assertEqual(list(c.str.split(".", 0)), [v.split(".") for v in s])
+        self.assertEqual(list(c.str.split(".", 2)), [v.split(".", 2) for v in s])
+        self.assertEqual(list(c.str.split(".", 10)), [v.split(".", 10) for v in s])
 
     def base_test_string_categorization_methods(self):
         # isalpha/isnumeric/isalnum/isdigit/isdecimal/isspace/islower/isupper
