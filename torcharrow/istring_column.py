@@ -40,7 +40,7 @@ class IStringMethods(abc.ABC):
 
         return self._vectorize_string(func)
 
-    def split(self, pat=None):
+    def split(self, pat=None, n=-1):
         """
         Split strings around given separator/delimiter.
 
@@ -49,6 +49,8 @@ class IStringMethods(abc.ABC):
         pat - str, default None
             String literal to split on, does not yet support regular expressions.
             When None split according to whitespace.
+        n - int, default -1 means no limit
+            Maximum number of splits to do. 0 will be interpreted as return all splits.
 
         See Also
         --------
@@ -60,6 +62,10 @@ class IStringMethods(abc.ABC):
         >>> s = ta.Column(['what a wonderful world!', 'really?'])
         >>> s.str.split(pat=' ')
         0  ['what', 'a', 'wonderful', 'world!']
+        1  ['really?']
+        dtype: List(string), length: 2, null_count: 0
+        >>> s.str.split(pat=' ', n=2)
+        0  ['what', 'a', 'wonderful world!']
         1  ['really?']
         dtype: List(string), length: 2, null_count: 0
 
