@@ -35,6 +35,8 @@ Experimental binary on MacOS and Linux (Ubuntu 18.04 or later, CentOS 8 or later
 pip install torcharrow
 ```
 
+Note that only Python 3.7 and 3.8 wheels are available now.
+
 Make sure you have `pip>=20.3` on Linux to install the wheel.
 
 ### From Source
