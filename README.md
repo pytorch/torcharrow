@@ -30,7 +30,7 @@ Follow the instructions [in this Colab notebook](https://colab.research.google.c
 
 ### Binaries (Experimental)
 
-Experimental binary on MacOS and Linux (Ubuntu 18.04 or later, CentOS 8 or later) can be installed via pip wheels:
+Experimental binary on MacOS and Linux (Ubuntu 18.04 or later, CentOS 8 or later) for Python 3.7 and 3.8 can be installed via pip wheels:
 ```
 pip install torcharrow
 ```
