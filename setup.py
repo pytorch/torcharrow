@@ -136,7 +136,7 @@ setup(
         "arrow",
         "cffi",
         "numpy==1.21.4",
-        "pandas<=1.3.5", # Last version that has Python 3.7 wheel
+        "pandas<=1.3.5",  # Last version that has Python 3.7 wheel
         "typing",
         "tabulate",
         "typing-inspect",
