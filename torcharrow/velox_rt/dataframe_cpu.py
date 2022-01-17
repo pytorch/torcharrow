@@ -141,7 +141,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
     def _fromdata(
         self, field_data: OrderedDict[str, IColumn], mask: Optional[Iterable[bool]]
-    ):
+    ) -> DataFrameCpu:
         dtype = dt.Struct(
             [dt.Field(n, c.dtype) for n, c in field_data.items()],
             nullable=self.dtype.nullable,
@@ -150,6 +150,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         for n, c in field_data.items():
             col.set_child(col.type().get_child_idx(n), c._data)
             col.set_length(len(c._data))
+
         if mask is not None:
             mask_list = list(mask)
             assert len(field_data) == 0 or len(mask_list) == len(col)
@@ -1213,6 +1214,22 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                 for i in range(self._data.children_size())
             },
             self._mask,
+        )
+
+    def log(self) -> DataFrameCpu:
+        return self._fromdata(
+            {
+                self.dtype.fields[i]
+                .name: ColumnFromVelox._from_velox(
+                    self.device,
+                    self.dtype.fields[i].dtype,
+                    self._data.child_at(i),
+                    True,
+                )
+                .log()
+                for i in range(self._data.children_size())
+            },
+            mask=(None if self.null_count == 0 else self._mask),
         )
 
     # isin ---------------------------------------------------------------
