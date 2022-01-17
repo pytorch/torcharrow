@@ -230,6 +230,12 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                 return self.append(
                     [{f.name: v for f, v in zip(self.dtype.fields, value)}]
                 ).append(it)
+
+            else:
+                raise TypeError(
+                    f"Unexpected value type to append to DataFrame: {type(value).__name__}, the value being appended is: {value}"
+                )
+
         except StopIteration:
             return self
 
