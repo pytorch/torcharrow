@@ -29,4 +29,5 @@ class INumericalColumn(IColumn):
             raise AssertionError("unexpected case")
 
     def log(self):
+        """Returns a new column with the natural logarithm of the elements"""
         raise self._not_supported("log")
