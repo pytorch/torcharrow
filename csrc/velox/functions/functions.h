@@ -22,10 +22,13 @@ inline void registerTorchArrowFunctions() {
   velox::registerFunction<udf_torcharrow_isnumeric, bool, velox::Varchar>(
       {"isnumeric"});
 
+  // Natural logarithm
   velox::registerFunction<udf_torcharrow_log, float, float>({"torcharrow_log"});
   velox::registerFunction<udf_torcharrow_log, double, double>(
       {"torcharrow_log"});
   velox::registerFunction<udf_torcharrow_log, float, bool>({"torcharrow_log"});
+  // TODO: support type promotion in TorchArrow-Velox backend so registering less
+  // overloads.
   velox::registerFunction<udf_torcharrow_log, float, int8_t>(
       {"torcharrow_log"});
   velox::registerFunction<udf_torcharrow_log, float, int16_t>(

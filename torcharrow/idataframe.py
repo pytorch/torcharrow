@@ -239,6 +239,9 @@ class IDataFrame(IColumn):
         """
         raise self._not_supported("isin")
 
+    def log(self) -> IDataFrame:
+        raise self._not_supported("log")
+
     # aggregation
 
     @trace
