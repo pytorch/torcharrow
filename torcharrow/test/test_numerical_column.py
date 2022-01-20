@@ -518,11 +518,39 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(col3_float64.dtype, dt.Float64(nullable=True))
         self.assertEqual(list(col3_float64), data2)
 
-    def base_test_column_from_np_array(self):
-        seq = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
-        a = np.array(seq)
-        c = ta.Column(a, device=self.device)
-        self.assertEqual(list(c), seq)
+    def base_test_column_from_numpy_array(self):
+        seq_float = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+        seq_int = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+        array_float32 = np.array(seq_float, dtype=np.float32)
+        column_float32 = ta.Column(array_float32, device=self.device)
+        self.assertEqual(list(column_float32), seq_float)
+
+        array_float64 = np.array(seq_float, dtype=np.float64)
+        column_float64 = ta.Column(array_float64, device=self.device)
+        self.assertEqual(list(column_float64), seq_float)
+
+        array_int32 = np.array(seq_int, dtype=np.int32)
+        column_int32 = ta.Column(array_int32, device=self.device)
+        self.assertEqual(list(column_int32), seq_int)
+
+        array_int64 = np.array(seq_int, dtype=np.int64)
+        column_int64 = ta.Column(array_int64, device=self.device)
+        self.assertEqual(list(column_int64), seq_int)
+
+    def base_test_append_automatic_conversions(self):
+        # ints ARE converted to floats
+        seq_float = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+        column_float = ta.Column(seq_float, device=self.device)
+        column_float = column_float.append([11, 12])
+        self.assertEqual(list(column_float), seq_float + [11.0, 12.0])
+
+        # floats ARE NOT converted to ints
+        seq_int = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        column_int = ta.Column(seq_int, device=self.device)
+        with self.assertRaises(TypeError):
+            # TypeError: append(): incompatible function arguments.
+            column_int.append([11.0, 12.0])
 
     # experimental
     def base_test_batch_collate(self):

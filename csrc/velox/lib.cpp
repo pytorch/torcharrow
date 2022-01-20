@@ -457,8 +457,8 @@ py::class_<SimpleColumn<T>, BaseColumn> declareIntegralType(py::module& m) {
       declareNumericalType<kind>(m)
           .def(
               "append",
-              [](SimpleColumn<T>& self, py::int_ value) {
-                self.append(py::cast<T>(value));
+              [](SimpleColumn<T>& self, T value) {
+                self.append(value);
               })
           .def("invert", &SimpleColumn<T>::invert);
   declareBitwiseOperations(pyClass);
@@ -473,13 +473,8 @@ py::class_<SimpleColumn<T>, BaseColumn> declareFloatingType(py::module& m) {
   return declareNumericalType<kind>(m)
       .def(
           "append",
-          [](SimpleColumn<T>& self, py::float_ value) {
-            self.append(py::cast<T>(value));
-          })
-      .def(
-          "append",
-          [](SimpleColumn<T>& self, py::int_ value) {
-            self.append(py::cast<T>(value));
+          [](SimpleColumn<T>& self, T value) {
+            self.append(value);
           })
       .def("ceil", &SimpleColumn<T>::ceil)
       .def("floor", &SimpleColumn<T>::floor)
