@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import array as ar
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import torcharrow._torcharrow as velox
@@ -224,7 +224,9 @@ class StringMethodsCpu(IStringMethods):
     def length(self):
         return functional.length(self._parent)._with_null(self._parent.dtype.nullable)
 
-    def slice(self, start: int = None, stop: int = None) -> IStringColumn:
+    def slice(
+        self, start: Optional[int] = None, stop: Optional[int] = None
+    ) -> IStringColumn:
         start = start or 0
         if stop is None:
             return functional.substr(self._parent, start + 1)._with_null(
@@ -262,6 +264,11 @@ class StringMethodsCpu(IStringMethods):
 
     def isalnum(self) -> IStringColumn:
         return functional.torcharrow_isalnum(self._parent)._with_null(
+            self._parent.dtype.nullable
+        )
+
+    def isdigit(self) -> IStringColumn:
+        return functional.torcharrow_isdigit(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
@@ -311,6 +318,10 @@ class StringMethodsCpu(IStringMethods):
             == pat
         )
 
+    def count(self, pat: str):
+        # TODO: calculate without materializing all the occurrences
+        return self.findall(pat).list.length()
+
     def find(self, sub):
         return (
             functional.strpos(self._parent, sub)._with_null(self._parent.dtype.nullable)
@@ -340,6 +351,11 @@ class StringMethodsCpu(IStringMethods):
 
     def findall(self, pat: str):
         return functional.regexp_extract_all(self._parent, pat)._with_null(
+            self._parent.dtype.nullable
+        )
+
+    def cat(self, col):
+        return functional.concat(self._parent, col)._with_null(
             self._parent.dtype.nullable
         )
 
