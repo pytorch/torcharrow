@@ -742,17 +742,22 @@ PYBIND11_MODULE(_torcharrow, m) {
   declareIntegralType<velox::TypeKind::SMALLINT>(m);
   declareIntegralType<velox::TypeKind::TINYINT>(m);
 
+  using BIGINTNativeType = velox::TypeTraits<velox::TypeKind::BIGINT>::NativeType;
   auto boolColumnClass = declareSimpleType<velox::TypeKind::BOOLEAN>(
                              m, [](auto val) { return py::cast(val); })
                              .def(
                                  "append",
-                                 [](SimpleColumn<bool>& self, py::bool_ value) {
-                                   self.append(py::cast<bool>(value));
-                                 })
+                                 [](SimpleColumn<bool>& self, bool value) {
+                                   self.append(value);
+                                 },
+                                 // explicitly disallow all conversions to bools; enabling
+                                 // this allows `None` and floats to convert to bools
+                                 py::arg("value").noconvert()
+                                 )
                              .def(
                                  "append",
-                                 [](SimpleColumn<bool>& self, py::int_ value) {
-                                   self.append(py::cast<bool>(value));
+                                 [](SimpleColumn<bool>& self, BIGINTNativeType value) {
+                                   self.append(static_cast<bool>(value));
                                  })
                              .def("invert", &SimpleColumn<bool>::invert);
   declareComparisons(boolColumnClass);
