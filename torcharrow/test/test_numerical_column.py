@@ -521,6 +521,7 @@ class TestNumericalColumn(unittest.TestCase):
     def base_test_column_from_numpy_array(self):
         seq_float = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
         seq_int = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        seq_bool = [True, False, True, False, False, False, True, True, False]
 
         array_float32 = np.array(seq_float, dtype=np.float32)
         column_float32 = ta.Column(array_float32, device=self.device)
@@ -538,6 +539,10 @@ class TestNumericalColumn(unittest.TestCase):
         column_int64 = ta.Column(array_int64, device=self.device)
         self.assertEqual(list(column_int64), seq_int)
 
+        array_bool = np.array(seq_bool, dtype=np.bool)
+        column_bool = ta.Column(array_bool, device=self.device)
+        self.assertEquals(list(column_bool), seq_bool)
+
     def base_test_append_automatic_conversions(self):
         # ints ARE converted to floats
         seq_float = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
@@ -551,6 +556,18 @@ class TestNumericalColumn(unittest.TestCase):
         with self.assertRaises(TypeError):
             # TypeError: append(): incompatible function arguments.
             column_int.append([11.0, 12.0])
+
+        # ints ARE converted to bools
+        seq_bool = [True, False, True, False, False, True, True]
+        column_bool = ta.Column(seq_bool, device=self.device)
+        column_bool = column_bool.append([1, 1, 0, 0])
+        self.assertEqual(list(column_bool), seq_bool + [True, True, False, False])
+
+        # floats ARE NOT converted to bools
+        column_bool = ta.Column(seq_bool, device=self.device)
+        with self.assertRaises(TypeError):
+            # TypeError: append(): incompatible function arguments.
+            column_bool = column_bool.append([1.0, 1.0, 0.0, 0.0])
 
     # experimental
     def base_test_batch_collate(self):
