@@ -33,7 +33,7 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
         )
         if len(data) > 0:
             self.append(data)
-        self._finialized = False
+        self._finalized = False
 
         self.list = ListMethodsCpu(self)
 
@@ -74,13 +74,13 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
             return col._finalize()
 
     def _append_null(self):
-        if self._finialized:
-            raise AttributeError("It is already finialized.")
+        if self._finalized:
+            raise AttributeError("It is already finalized.")
         self._data.append_null()
 
     def _append_value(self, value):
-        if self._finialized:
-            raise AttributeError("It is already finialized.")
+        if self._finalized:
+            raise AttributeError("It is already finalized.")
         elif value is None:
             self._data.append_null()
         else:
@@ -89,7 +89,7 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
             self._data.append(new_element_column._data)
 
     def _finalize(self):
-        self._finialized = True
+        self._finalized = True
         return self
 
     def __len__(self):

@@ -10,18 +10,18 @@ from torcharrow.scope import Scope
 # TODO: Rename this class to IColumnVelox or IColumnCpu
 class ColumnFromVelox:
     _data: velox.BaseColumn
-    _finialized: bool
+    _finalized: bool
 
     @staticmethod
     def _from_velox(
         device: Device,
         dtype: DType,
         data: velox.BaseColumn,
-        finialized: bool,
+        finalized: bool,
     ) -> IColumn:
         col = Scope._Column(dtype=dtype, device=device)
         col._data = data
-        col._finialized = finialized
+        col._finalized = finalized
         return col
 
     # Velox column returned from generic dispatch always assumes returned column is nullable

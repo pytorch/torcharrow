@@ -32,8 +32,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         INumericalColumn.__init__(self, device, dtype)
         self._data = data
 
-        # TODO: Deprecate _finialized since Velox Column doesn't have "Builder" mode
-        self._finialized = False
+        # TODO: Deprecate _finalized since Velox Column doesn't have "Builder" mode
+        self._finalized = False
 
     # Any _empty must be followed by a _finalize; no other ops are allowed during this time
     @staticmethod
@@ -79,17 +79,17 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         )
 
     def _append_null(self):
-        if self._finialized:
-            raise AttributeError("It is already finialized.")
+        if self._finalized:
+            raise AttributeError("It is already finalized.")
         self._data.append_null()
 
     def _append_value(self, value):
-        if self._finialized:
-            raise AttributeError("It is already finialized.")
+        if self._finalized:
+            raise AttributeError("It is already finalized.")
         self._data.append(value)
 
     def _finalize(self):
-        self._finialized = True
+        self._finalized = True
         return self
 
     def _valid_mask(self, ct):
@@ -245,7 +245,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
             result_dtype = result_col.dtype().with_null(self.dtype.nullable)
 
         res = NumericalColumnCpu(self.device, result_dtype, result_col)
-        res._finialized = True
+        res._finalized = True
         return res
 
     def _checked_comparison_op_call(

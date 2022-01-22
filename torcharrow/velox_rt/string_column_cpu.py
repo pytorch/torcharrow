@@ -32,7 +32,7 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
                 self._data.append_null()
             else:
                 self._data.append(d)
-        self._finialized = False
+        self._finalized = False
 
         self.str = StringMethodsCpu(self)
         # REP: self._offsets = offsets
@@ -88,18 +88,18 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
         return StringColumnCpu._fromlist(device, pydata, dtype)
 
     def _append_null(self):
-        if self._finialized:
-            raise AttributeError("It is already finialized.")
+        if self._finalized:
+            raise AttributeError("It is already finalized.")
         self._data.append_null()
 
     def _append_value(self, value):
-        if self._finialized:
-            raise AttributeError("It is already finialized.")
+        if self._finalized:
+            raise AttributeError("It is already finalized.")
         else:
             self._data.append(value)
 
     def _finalize(self):
-        self._finialized = True
+        self._finalized = True
         return self
 
     def __len__(self):
