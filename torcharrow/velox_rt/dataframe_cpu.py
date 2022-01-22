@@ -76,7 +76,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
             idx = self._data.type().get_child_idx(key)
             self._data.set_child(idx, col._data)
             self._data.set_length(len(col))
-        self._finialized = False
+        self._finalized = False
 
     @property
     def _mask(self) -> List[bool]:
@@ -124,19 +124,19 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         return col._finalize()
 
     def _append_null(self):
-        if self._finialized:
-            raise AttributeError("It is already finialized.")
+        if self._finalized:
+            raise AttributeError("It is already finalized.")
         df = self.append([None])
         self._data = df._data
 
     def _append_value(self, value):
-        if self._finialized:
-            raise AttributeError("It is already finialized.")
+        if self._finalized:
+            raise AttributeError("It is already finalized.")
         df = self.append([value])
         self._data = df._data
 
     def _finalize(self):
-        self._finialized = True
+        self._finalized = True
         return self
 
     def _fromdata(
