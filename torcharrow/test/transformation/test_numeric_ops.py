@@ -18,7 +18,10 @@ class _TestNumericOpsBase(unittest.TestCase):
         cls.base_log_df = ta.DataFrame(
             {
                 "int32": ta.Column([1, 0, 4, None], dtype=dt.Int32(nullable=True)),
-                "int64": ta.Column([1, 0, 4, None], dtype=dt.Float32(nullable=True)),
+                "int64": ta.Column([1, 0, 4, None], dtype=dt.Int64(nullable=True)),
+                "float32": ta.Column(
+                    [1.0, 0.0, 4.0, None], dtype=dt.Float32(nullable=True)
+                ),
                 "float64": ta.Column(
                     [1.0, 0.0, 4.0, None], dtype=dt.Float64(nullable=True)
                 ),
@@ -45,14 +48,17 @@ class _TestNumericOpsBase(unittest.TestCase):
     def test_log(self):
         log_int32_col = type(self).log_df["int32"].log()
         log_int64_col = type(self).log_df["int64"].log()
+        log_float32_col = type(self).log_df["float32"].log()
         log_float64_col = type(self).log_df["float64"].log()
         log_whole_df = type(self).log_df.log()
 
         for col in [
             log_int32_col,
             log_int64_col,
+            log_float32_col,
             log_whole_df["int32"],
             log_whole_df["int64"],
+            log_whole_df["float32"],
         ]:
             numpy.testing.assert_almost_equal(
                 list(col)[:-1], [0.0, -float("inf"), math.log(4)]
