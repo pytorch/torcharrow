@@ -366,7 +366,6 @@ class TestDataframeTrace(unittest.TestCase):
         # exec(";".join(stms))
         # self.assertEqual(list(eval(d1_result)), list(eval(d2_result)))
 
-    @unittest.skip("fix https://github.com/facebookresearch/torcharrow/issues/35")
     def test_df_without_input(self):
         d0 = ta.DataFrame(
             dtype=dt.Struct([dt.Field(i, dt.int64) for i in ["a", "b", "c"]])
