@@ -190,6 +190,11 @@ def _arrowtype_to_dtype(t: pa.DataType, nullable: bool) -> dt.DType:
         return dt.Float64(nullable)
     if pa.types.is_string(t) or pa.types.is_large_string(t):
         return dt.String(nullable)
+    if pa.types.is_struct(t):
+        return dt.Struct(
+            [dt.Field(f.name, _arrowtype_to_dtype(f.type, f.nullable)) for f in t],
+            nullable,
+        )
     raise NotImplementedError(f"Unsupported Arrow type: {str(t)}")
 
 

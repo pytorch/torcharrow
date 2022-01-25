@@ -42,7 +42,6 @@ class TestArrowInterop(unittest.TestCase):
         pa.list_(pa.int64()),
         pa.large_list(pa.int64()),
         pa.map_(pa.int64(), pa.int64()),
-        pa.struct([pa.field("f1", pa.int64())]),
         pa.dictionary(pa.int64(), pa.int64()),
         # Union type needs to be tested differently
     )
@@ -213,6 +212,50 @@ class TestArrowInterop(unittest.TestCase):
                 ta_field.dtype, _arrowtype_to_dtype(pa_field.type, pa_field.nullable)
             )
             self.assertEqual(list(df[ta_field.name]), pt[i].to_pylist())
+
+    def base_test_to_arrow_table_with_struct(self):
+        df = ta.DataFrame(
+            [
+                (1, (10, 11)),
+                (2, (20, 21)),
+                (3, (30, None)),
+            ],
+            dtype=dt.Struct(
+                [
+                    dt.Field("labels", dt.int8),
+                    dt.Field(
+                        "dense_features",
+                        dt.Struct(
+                            [
+                                dt.Field("int_1", dt.int32),
+                                dt.Field("int_2", dt.Int32(nullable=True)),
+                            ]
+                        ),
+                    ),
+                ]
+            ),
+            device=self.device,
+        )
+
+        pt = df.to_arrow()
+        self.assertTrue(isinstance(pt, pa.Table))
+        self.assertEqual(len(df), len(pt))
+        for (i, ta_field) in enumerate(df.dtype.fields):
+            pa_field = pt.schema.field(i)
+            self.assertEqual(ta_field.name, pa_field.name)
+            self.assertEqual(
+                ta_field.dtype, _arrowtype_to_dtype(pa_field.type, pa_field.nullable)
+            )
+
+        self.assertEqual(pt[0].to_pylist(), [1, 2, 3])
+        self.assertEqual(
+            pt[1].to_pylist(),
+            [
+                {"int_1": 10, "int_2": 11},
+                {"int_1": 20, "int_2": 21},
+                {"int_1": 30, "int_2": None},
+            ],
+        )
 
     def base_test_array_ownership_transferred(self):
         pydata = [1, 2, 3]
