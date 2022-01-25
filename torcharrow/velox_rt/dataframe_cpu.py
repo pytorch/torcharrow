@@ -1660,27 +1660,39 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
             data[n] = c.to_pandas()
         return pd.DataFrame(data)
 
-    def to_arrow(self):
+    def to_arrow(self, *, _convert_to_struct_array=False):
+        # TODO: use native Velox RowVector -> Arrow StructArray conversion when _convert_to_struct_array is True
+
         # TODO Add type translation
         import pyarrow as pa  # type: ignore
 
-        data = {}
         fields = []
+        arrays = []
+        field_names = []
         for i in range(0, self._data.children_size()):
             name = self.dtype.fields[i].name
+            column_dtype = self.dtype.fields[i].dtype
             column = ColumnFromVelox._from_velox(
                 self.device,
-                self.dtype.fields[i].dtype,
+                column_dtype,
                 self._data.child_at(i),
                 True,
             )
-            arrow_array = column.to_arrow()
-            data[name] = arrow_array
+            if dt.is_struct(column_dtype):
+                arrow_array = column.to_arrow(_convert_to_struct_array=True)
+            else:
+                arrow_array = column.to_arrow()
+
+            arrays.append(arrow_array)
+            field_names.append(name)
             fields.append(
-                pa.field(name, arrow_array.type, nullable=column.dtype.nullable)
+                pa.field(name, arrow_array.type, nullable=column_dtype.nullable)
             )
 
-        return pa.table(data, schema=pa.schema(fields))
+        if _convert_to_struct_array:
+            return pa.StructArray.from_arrays(arrays, fields=fields)
+        else:
+            return pa.table(dict(zip(field_names, arrays)), schema=pa.schema(fields))
 
     def to_tensor(self, conversion=None):
         pytorch.ensure_available()
