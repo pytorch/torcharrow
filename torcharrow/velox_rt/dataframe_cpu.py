@@ -24,6 +24,7 @@ from typing import (
 )
 
 import numpy as np
+import pyarrow as pa
 import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
@@ -122,6 +123,21 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         for i in data:
             col._append(i)
         return col._finalize()
+
+    @staticmethod
+    def _fromarrow(device: str, array: pa.StructArray, dtype: dt.Struct):
+        # TODO: use native Arrow StructArray -> Velow RowVector conversion
+        assert array.type.num_fields == len(dtype.fields)
+
+        if array.null_count:
+            # This means the whole "struct" is null, rather than individual field is null
+            raise NotImplementedError
+
+        data = {}
+        for idx in range(array.type.num_fields):
+            child_array: pa.Array = array.field(idx)
+            data[dtype.fields[idx].name] = ta.from_arrow(child_array, dtype.fields[idx].dtype)
+        return ta.DataFrame(data, dtype, device=device)
 
     def _append_null(self):
         if self._finalized:
@@ -2224,6 +2240,7 @@ class GroupedDataFrame:
 Dispatcher.register((dt.Struct.typecode + "_empty", "cpu"), DataFrameCpu._empty)
 Dispatcher.register((dt.Struct.typecode + "_full", "cpu"), DataFrameCpu._full)
 Dispatcher.register((dt.Struct.typecode + "_fromlist", "cpu"), DataFrameCpu._fromlist)
+Dispatcher.register((dt.Struct.typecode + "_fromarrow", "cpu"), DataFrameCpu._fromarrow)
 
 
 # ------------------------------------------------------------------------------
