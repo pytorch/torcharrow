@@ -117,6 +117,36 @@ class TestArrowInterop(unittest.TestCase):
             )
             self.assertEqual(list(df[ta_field.name]), pt[i].to_pylist())
 
+    def base_test_from_arrow_table_with_struct(self):
+        label = pa.array([1, 0, 2], type=pa.int8())
+        int_1 = pa.array([1, 2, 3])
+        int_2 = pa.array([10, 20, None])
+        dense_features = pa.StructArray.from_arrays(
+            [int_1, int_2],
+            fields=[
+                pa.field("int_1", int_1.type, nullable=False),
+                pa.field("int_2", int_2.type, nullable=True),
+            ],
+        )
+
+        table = pa.Table.from_arrays(
+            [label, dense_features],
+            schema=pa.schema(
+                [
+                    pa.field("label", label.type, nullable=False),
+                    pa.field("dense_features", dense_features.type, nullable=False),
+                ]
+            ),
+        )
+        df = ta.from_arrow(table)
+        self.assertTrue(isinstance(df, IDataFrame))
+        self.assertEqual(df.columns, ["label", "dense_features"])
+        self.assertEqual(df["dense_features"].columns, ["int_1", "int_2"])
+        self.assertEquals(df["dense_features"]["int_1"].dtype, dt.Int64(nullable=False))
+        self.assertEquals(df["dense_features"]["int_2"].dtype, dt.Int64(nullable=True))
+
+        self.assertEqual(list(df), [(1, (1, 10)), (0, (2, 20)), (2, (3, None))])
+
     def base_test_from_arrow_table_with_chunked_arrays(self):
         chunked = pa.chunked_array([[1, 2, 3], [4, 5, 6]])
         pt = pa.table({"f1": chunked})

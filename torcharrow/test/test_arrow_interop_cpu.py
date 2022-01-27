@@ -23,6 +23,9 @@ class TestArrowInteropCpu(TestArrowInterop):
     def test_from_arrow_table(self):
         return self.base_test_from_arrow_table()
 
+    def test_from_arrow_table_with_struct(self):
+        return self.base_test_from_arrow_table_with_struct()
+
     def test_from_arrow_table_with_chunked_arrays(self):
         return self.base_test_from_arrow_table_with_chunked_arrays()
 
