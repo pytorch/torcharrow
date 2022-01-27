@@ -62,7 +62,7 @@ jobs:
       - name: Bulid TorchArrow
         run: |
           CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz
-          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache DEBUG=1 python setup.py develop --user
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache python setup.py develop --user
 
       - name: Install dependencies for test
         run: |
