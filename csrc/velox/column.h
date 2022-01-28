@@ -258,14 +258,9 @@ class BaseColumn {
       velox::VectorPtr veloxVector,
       velox::vector_size_t offset,
       velox::vector_size_t length) {
-    velox::vector_size_t nullCount = 0;
-    VELOX_CHECK(offset + length <= veloxVector->size());
-    for (velox::vector_size_t i = 0; i < length; i++) {
-      if (veloxVector->isNullAt(offset + i)) {
-        nullCount++;
-      }
-    }
-    return nullCount;
+    VELOX_CHECK_LE(offset + length, veloxVector->size());
+    return velox::BaseVector::countNulls(
+        veloxVector->nulls(), offset, offset + length);
   }
 
  public:
