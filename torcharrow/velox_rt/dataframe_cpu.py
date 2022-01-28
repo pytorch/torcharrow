@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import array as ar
 import functools
-from abc import abstractmethod
+import warnings
 from dataclasses import dataclass
 from typing import (
     Any,
@@ -64,19 +64,16 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         IDataFrame.__init__(self, device, dtype)
 
         self._data = velox.Column(get_velox_type(dtype))
-        assert isinstance(data, dict)
-        first = True
-        for key, value in data.items():
-            assert isinstance(value, ColumnFromVelox)
-            assert first or len(value) == len(self._data)
-            first = False
-            # TODO: using a dict for field type lookup
-            (field_dtype,) = (f.dtype for f in self.dtype.fields if f.name == key)
+        assert isinstance(data, Dict)
 
-            col = value
-            idx = self._data.type().get_child_idx(key)
-            self._data.set_child(idx, col._data)
-            self._data.set_length(len(col))
+        if len(data) != 0:
+            length = len(next(iter(data.values())))
+            for idx, (_, col) in enumerate(data.items()):
+                assert isinstance(col, ColumnFromVelox)
+                assert len(col) == length
+                self._data.set_child(idx, col._data)
+            self._data.set_length(length)
+
         self._finalized = False
 
     @property
@@ -118,7 +115,30 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
     @staticmethod
     def _fromlist(device: str, data: List, dtype: dt.Struct):
-        # default (ineffincient) implementation
+        if len(data) == 0:
+            return DataFrameCpu._empty(device, dtype)._finalize()
+
+        if isinstance(data[0], tuple):
+            # Input is list of tuple
+            # Convert to "columnar reprsentation", e.g. each list represents a column
+            col_lists = [[*x] for x in zip(*data)]
+            if len(col_lists) != len(dtype.fields):
+                raise ValueError(
+                    f"Mismatched number of input columns ({len(col_lists)}) vs. number of fields {len(dtype.fields)}"
+                )
+
+            field_data = {
+                dtype.fields[i].name: ta.from_pylist(
+                    col_lists[i], dtype.fields[i].dtype, device
+                )
+                for i in range(len(dtype.fields))
+            }
+            return DataFrameCpu(device, dtype, field_data)
+
+        # append-based (extremenly ineffincient) implementation
+        warnings.warn(
+            f"Construct DataFrame from a list of {type(data[0])} may result in degeneraded performance"
+        )
         col = DataFrameCpu._empty(device, dtype)
         for i in data:
             col._append(i)
@@ -140,7 +160,8 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
             data[dtype.fields[idx].name] = ta.from_arrow(
                 child_array, dtype.fields[idx].dtype
             )
-        return ta.DataFrame(data, dtype, device=device)
+
+        return DataFrameCpu(device, dtype, data)._finalize()
 
     def _append_null(self):
         if self._finalized:
