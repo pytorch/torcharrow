@@ -290,10 +290,7 @@ class Scope:
                 return Scope._EmptyColumn(dtype, device=device)._finalize()
             else:
                 if isinstance(data, ty.Sequence):
-                    res = Scope._EmptyColumn(dtype, device=device)
-                    for i in data:
-                        res._append(i)
-                    return res._finalize()
+                    return Scope._Column(data, dtype, device)
                 elif isinstance(data, ty.Mapping):
                     res = {}
                     dtype_fields = {f.name: f.dtype for f in dtype.fields}
@@ -347,10 +344,8 @@ but data only provides {len(data)} fields: {data.keys()}
                 dtype = dt.Struct(
                     [dt.Field(n, t) for n, t in zip(columns, dtype.fields)]
                 )
-                res = Scope._EmptyColumn(dtype, device=device)
-                for i in data:
-                    res._append(i)
-                return res._finalize()
+
+                return Scope._Column(data, dtype, device)
             elif isinstance(data, ty.Mapping):
                 res = {}
                 for n, c in data.items():
