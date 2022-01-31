@@ -11,6 +11,7 @@ namespace facebook::torcharrow::functions {
 inline void registerTorchArrowFunctions() {
   velox::registerFunction<udf_torcharrow_isalpha, bool, velox::Varchar>();
   velox::registerFunction<udf_torcharrow_isalnum, bool, velox::Varchar>();
+  velox::registerFunction<udf_torcharrow_isdigit, bool, velox::Varchar>();
   velox::registerFunction<udf_torcharrow_isinteger, bool, velox::Varchar>();
   velox::registerFunction<udf_torcharrow_isdecimal, bool, velox::Varchar>(
       {"isdecimal"});

@@ -24,6 +24,11 @@ class Utf8CatUtils {
         category == UTF8PROC_CATEGORY_NO /**< Number, other */;
   }
 
+  static inline bool isDigit(utf8proc_category_t category) {
+    return category == UTF8PROC_CATEGORY_ND /**< Number, decimal digit */ ||
+        category == UTF8PROC_CATEGORY_NO /**< Number, other */;
+  }
+
   static inline bool isDecimal(utf8proc_category_t category) {
     return category == UTF8PROC_CATEGORY_ND /**< Number, decimal digit */;
   }
@@ -112,6 +117,42 @@ bool call(bool& result, const arg_type<velox::Varchar>& input) {
         static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
     if (!(Utf8CatUtils::isAlpha(category) ||
           Utf8CatUtils::isNumber(category))) {
+      result = false;
+      return true;
+    }
+
+    index += codePointSize;
+  }
+  result = true;
+  return true;
+}
+VELOX_UDF_END();
+
+/**
+ * torcharrow_isdigit(string) → bool
+ * Return True if all characters in the string are numeric, False otherwise.
+ **/
+VELOX_UDF_BEGIN(torcharrow_isdigit)
+FOLLY_ALWAYS_INLINE
+bool call(bool& result, const arg_type<velox::Varchar>& input) {
+  using namespace velox::functions;
+  using namespace internal;
+
+  size_t size = input.size();
+  if (size == 0) {
+    result = false;
+    return true;
+  }
+
+  size_t index = 0;
+  while (index < size) {
+    int codePointSize;
+    utf8proc_int32_t codePoint =
+        utf8proc_codepoint(input.data() + index, codePointSize);
+
+    utf8proc_category_t category =
+        static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
+    if (!Utf8CatUtils::isDigit(category)) {
       result = false;
       return true;
     }
