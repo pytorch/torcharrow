@@ -4,8 +4,6 @@ from typing import Dict, Set
 
 from torcharrow.icolumn import IColumn
 
-from .scope import Scope
-
 
 class _Functional(ModuleType):
     def __init__(self):
