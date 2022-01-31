@@ -67,8 +67,7 @@ class TestStringColumn(unittest.TestCase):
             ),
             [False, True, True, True, True, True, False, None],
         )
-        # TODO: fix isdigit so it works.
-        with self.assertRaises(RuntimeError) as ex:
+        self.assertEqual(
             list(
                 ta.Column(
                     ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", "\u00B2", None],
@@ -76,9 +75,7 @@ class TestStringColumn(unittest.TestCase):
                     device=self.device,
                 ).str.isdigit()
             ),
-        self.assertTrue(
-            "Request for unknown Velox UDF: torcharrow_isdigit" in str(ex.exception),
-            f"Exception message is not as expected: {str(ex.exception)}",
+            [False, False, False, True, False, False, False, True, None],
         )
         self.assertEqual(
             list(
