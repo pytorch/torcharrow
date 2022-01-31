@@ -42,7 +42,7 @@ class TestStringColumn(unittest.TestCase):
         self.assertEqual(list(c.str.split(".", 10)), [v.split(".", 10) for v in s])
 
     def base_test_string_categorization_methods(self):
-        # isalpha/isnumeric/isalnum/isdigit/isdecimal/isspace/islower/isupper
+        # isalpha/isnumeric/isalnum/isdigit/isdecimal/isspace/islower/isupper/istitle
         self.assertEqual(
             list(
                 ta.Column(
@@ -54,6 +54,10 @@ class TestStringColumn(unittest.TestCase):
             [False, True, True, False, False, True, False, None],
         )
         self.assertEqual(
+            list(ta.Column(["+3.e12", "abc", "0"], device=self.device).str.isnumeric()),
+            [False, False, True],
+        )
+        self.assertEqual(
             list(
                 ta.Column(
                     ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", None],
@@ -63,7 +67,19 @@ class TestStringColumn(unittest.TestCase):
             ),
             [False, True, True, True, True, True, False, None],
         )
-
+        # TODO: fix isdigit so it works.
+        with self.assertRaises(RuntimeError) as ex:
+            list(
+                ta.Column(
+                    ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", "\u00B2", None],
+                    dt.String(True),
+                    device=self.device,
+                ).str.isdigit()
+            ),
+        self.assertTrue(
+            "Request for unknown Velox UDF: torcharrow_isdigit" in str(ex.exception),
+            f"Exception message is not as expected: {str(ex.exception)}",
+        )
         self.assertEqual(
             list(
                 ta.Column(
@@ -75,21 +91,18 @@ class TestStringColumn(unittest.TestCase):
             [False, False, False, True, False, False, False, False, None],
         )
         self.assertEqual(
-            list(ta.Column([".abc"], device=self.device).str.islower()), [True]
-        )
-        self.assertEqual(
-            list(ta.Column(["+3.e12", "abc", "0"], device=self.device).str.isnumeric()),
-            [False, False, True],
-        )
-        self.assertEqual(
             list(
                 ta.Column(["\n", "\t", " ", "", "a"], device=self.device).str.isspace()
             ),
             [True, True, True, False, False],
         )
         self.assertEqual(
-            list(ta.Column(["A B C", "abc", " "], device=self.device).str.istitle()),
-            [True, False, False],
+            list(
+                ta.Column(
+                    ["UPPER", "lower", ".abc", ".ABC", "123"], device=self.device
+                ).str.islower()
+            ),
+            [False, True, True, False, False],
         )
         self.assertEqual(
             list(
@@ -98,6 +111,14 @@ class TestStringColumn(unittest.TestCase):
                 ).str.isupper()
             ),
             [True, False, False, True, False],
+        )
+        self.assertEqual(
+            list(
+                ta.Column(
+                    ["A B C", "ABc", "Abc", "abc", " ", ""], device=self.device
+                ).str.istitle()
+            ),
+            [True, False, True, False, False, False],
         )
 
     def base_test_concat(self):
