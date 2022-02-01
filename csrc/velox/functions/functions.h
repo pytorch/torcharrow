@@ -1,6 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #pragma once
 
+#include <velox/functions/Registerer.h>
 #include "numeric_functions.h"
 #include "string_functions.h"
 #include "velox/expression/VectorFunction.h"
@@ -38,6 +39,19 @@ inline void registerTorchArrowFunctions() {
       {"torcharrow_log"});
   velox::registerFunction<udf_torcharrow_log, float, int64_t>(
       {"torcharrow_log"});
+
+  // Floor divide
+  velox::registerFunction<udf_torcharrow_floordiv, float, float, float>({"torcharrow_floordiv"});
+  velox::registerFunction<udf_torcharrow_floordiv, double, double, double>(
+      {"torcharrow_floordiv"});
+  velox::registerFunction<udf_torcharrow_floordiv_int, int8_t, int8_t, int8_t>(
+      {"torcharrow_floordiv"});
+  velox::registerFunction<udf_torcharrow_floordiv_int, int16_t, int16_t, int16_t>(
+      {"torcharrow_floordiv"});
+  velox::registerFunction<udf_torcharrow_floordiv_int, int32_t, int32_t, int32_t>(
+      {"torcharrow_floordiv"});
+  velox::registerFunction<udf_torcharrow_floordiv_int, int64_t, int64_t, int64_t>(
+      {"torcharrow_floordiv"});
 
   velox::exec::registerStatefulVectorFunction(
       "match_re",
