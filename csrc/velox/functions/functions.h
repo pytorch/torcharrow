@@ -53,6 +53,19 @@ inline void registerTorchArrowFunctions() {
   velox::registerFunction<udf_torcharrow_floordiv_int, int64_t, int64_t, int64_t>(
       {"torcharrow_floordiv"});
 
+  // Floor mod
+  velox::registerFunction<udf_torcharrow_floormod, float, float, float>({"torcharrow_floormod"});
+  velox::registerFunction<udf_torcharrow_floormod, double, double, double>(
+      {"torcharrow_floormod"});
+  velox::registerFunction<udf_torcharrow_floormod_int, int8_t, int8_t, int8_t>(
+      {"torcharrow_floormod"});
+  velox::registerFunction<udf_torcharrow_floormod_int, int16_t, int16_t, int16_t>(
+      {"torcharrow_floormod"});
+  velox::registerFunction<udf_torcharrow_floormod_int, int32_t, int32_t, int32_t>(
+      {"torcharrow_floormod"});
+  velox::registerFunction<udf_torcharrow_floormod_int, int64_t, int64_t, int64_t>(
+      {"torcharrow_floormod"});
+
   velox::exec::registerStatefulVectorFunction(
       "match_re",
       velox::functions::re2MatchSignatures(),

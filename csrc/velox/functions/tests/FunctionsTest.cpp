@@ -66,11 +66,17 @@ class FunctionsTest : public functions::test::FunctionBaseTest {
   }
 };
 
-TEST_F(FunctionsTest, floor_divide) {
+TEST_F(FunctionsTest, floordiv) {
   assertExpression<int32_t>(
-      "torcharrow_floordiv(c0, c1)", {10, 11, -1, -34}, {2, 2, 2, 10}, {5, 5, -1, -4});
+      "torcharrow_floordiv(c0, c1)",
+      {10, 11, -1, -34},
+      {2, 2, 2, 10},
+      {5, 5, -1, -4});
   assertExpression<int64_t>(
-      "torcharrow_floordiv(c0, c1)", {10, 11, -1, -34}, {2, 2, 2, 10}, {5, 5, -1, -4});
+      "torcharrow_floordiv(c0, c1)",
+      {10, 11, -1, -34},
+      {2, 2, 2, 10},
+      {5, 5, -1, -4});
 
   assertError<int32_t>(
       "torcharrow_floordiv(c0, c1)", {10}, {0}, "division by zero");
@@ -87,6 +93,35 @@ TEST_F(FunctionsTest, floor_divide) {
       {10.5, -3.0, 1.0, 0.0},
       {2, 2, 0, 0},
       {5.0, -2.0, kInf, kNan});
+}
+
+TEST_F(FunctionsTest, floormod) {
+  assertExpression<int32_t>(
+      "torcharrow_floormod(c0, c1)",
+      {13, -13, 13, -13},
+      {3, 3, -3, -3},
+      {1, 2, -2, -1});
+  assertExpression<int64_t>(
+      "torcharrow_floormod(c0, c1)",
+      {13, -13, 13, -13},
+      {3, 3, -3, -3},
+      {1, 2, -2, -1});
+
+  assertError<int32_t>(
+      "torcharrow_floormod(c0, c1)", {10}, {0}, "Cannot divide by 0");
+  assertError<int32_t>(
+      "torcharrow_floormod(c0, c1)", {0}, {0}, "Cannot divide by 0");
+
+  assertExpression<float>(
+      "torcharrow_floormod(c0, c1)",
+      {13.0, -13.0, 13.0, -13.0, 1.0, 0},
+      {3.0, 3.0, -3.0, -3.0, 0, 0},
+      {1.0, 2.0, -2.0, -1.0, kNanF, kNanF});
+  assertExpression<double>(
+      "torcharrow_floormod(c0, c1)",
+      {13.0, -13.0, 13.0, -13.0, 1.0, 0},
+      {3.0, 3.0, -3.0, -3.0, 0, 0},
+      {1.0, 2.0, -2.0, -1.0, kNan, kNan});
 }
 
 } // namespace
