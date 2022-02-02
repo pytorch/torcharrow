@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import statistics
 import unittest
-from math import ceil, floor, log
+from math import ceil, floor, log, isnan
 
 import numpy as np
 import numpy.testing
@@ -318,26 +318,30 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(list(2 * c), [0, 2, 6])
         self.assertEqual(list(c * d), [0, 5, 18])
 
-        self.assertEqual(list(c * 2), [0, 2, 6])
-        self.assertEqual(list(2 * c), [0, 2, 6])
-        self.assertEqual(list(c * d), [0, 5, 18])
-
         self.assertEqual(list(c / 2), [0.0, 0.5, 1.5])
-        self.assertEqual(list(c / 0), [None, None, None])
-
-        self.assertEqual(
-            [round(i, 2) if i is not None else None for i in list(2 / c)],
-            [round(i, 2) if i is not None else None for i in [None, 2.0, 0.66666667]],
-        )
-
-        self.assertEqual(list(c / d), [0.0, 0.2, 0.5])
+        res = list(c / 0)
+        self.assertTrue(isnan(res[0]))
+        self.assertEqual(res[1:], [float("inf"), float("inf")])
+        res = list(-c / 0)
+        self.assertTrue(isnan(res[0]))
+        self.assertEqual(res[1:], [float("-inf"), float("-inf")])
+        self.assertEqual(list(2 / c), [float("inf"), 2.0, 0.6666666865348816])
+        self.assertEqual(list(c / d), [0.0, 0.20000000298023224, 0.5])
 
         self.assertEqual(list(d // 2), [2, 2, 3])
         self.assertEqual(list(2 // d), [0, 0, 0])
         self.assertEqual(list(c // d), [0, 0, 0])
         self.assertEqual(list(e // d), [0.0, 0.0, 1.0])
-
         self.assertEqual(list(d // e), [5.0, 5.0, 0.0])
+        # integer floordiv 0 -> exception
+        with self.assertRaises(ZeroDivisionError):
+            list(c // 0)
+        # float floordiv 0 -> inf
+        e = ta.Column([1.0, -1.0], device=self.device)
+        self.assertTrue(list(e // 0), [float("inf"), float("-inf")])
+        # float 0.0 floordiv 0 -> nan
+        e = ta.Column([0.0], device=self.device)
+        self.assertTrue(isnan(list(e // 0)[0]))
 
         self.assertEqual(list(c ** 2), [0, 1, 9])
         self.assertEqual(list(2 ** c), [1, 2, 8])

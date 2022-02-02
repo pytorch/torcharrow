@@ -284,6 +284,16 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
         return self._checked_binary_op_call(other, op_name)
 
+    def _rethrow_zero_division_error(self, func: Callable) -> INumericalColumn:
+        try:
+            result = func()
+        except RuntimeError as ex:
+            # cast velox error to standard ZeroDivisionError
+            if "division by zero" in str(ex):
+                raise ZeroDivisionError
+            raise ex
+        return result
+
     @trace
     @expression
     def __add__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
@@ -323,105 +333,70 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __floordiv__(self, other):
-        self._prototype_support_warning("__floordiv__")
-
-        if isinstance(other, NumericalColumnCpu):
-            col = velox.Column(get_velox_type(dt.float64))
-            assert len(self) == len(other)
-            for i in range(len(self)):
-                if self._getmask(i) or other._getmask(i):
-                    col.append_null()
-                else:
-                    col.append(self._getdata(i) // other._getdata(i))
-            return ColumnFromVelox._from_velox(self.device, dt.float64, col, True)
-        else:
-            col = velox.Column(get_velox_type(dt.float64))
-            for i in range(len(self)):
-                if self._getmask(i):
-                    col.append_null()
-                else:
-                    col.append(self._getdata(i) // other)
-            return ColumnFromVelox._from_velox(self.device, dt.float64, col, True)
+        """
+        Note: if a is integer type, a // 0 will raise ZeroDivisionError.
+        otherwise a // 0 will return
+            - float("inf") when a > 0
+            - float("-inf") when a < 0
+            - float("nan") when a == 0
+        This behavior is different from __truediv__, but is consistent with Pytorch.
+        """
+        return self._rethrow_zero_division_error(
+            lambda: self._checked_arithmetic_op_call(
+                other, "floordiv", operator.floordiv
+            )
+        )
 
     @trace
     @expression
     def __rfloordiv__(self, other):
-        self._prototype_support_warning("__rfloordiv__")
-
-        if isinstance(other, NumericalColumnCpu):
-            col = velox.Column(get_velox_type(self.dtype))
-            assert len(self) == len(other)
-            for i in range(len(self)):
-                if self._getmask(i) or other._getmask(i):
-                    col.append_null()
-                else:
-                    col.append(other._getdata(i) // self._getdata(i))
-            return ColumnFromVelox._from_velox(self.device, self.dtype, col, True)
-        else:
-            col = velox.Column(get_velox_type(self.dtype))
-            for i in range(len(self)):
-                if self._getmask(i):
-                    col.append_null()
-                else:
-                    col.append(other // self._getdata(i))
-            return ColumnFromVelox._from_velox(self.device, self.dtype, col, True)
+        """
+        Note: if a is integer type, a // 0 will raise ZeroDivisionError.
+        otherwise a // 0 will return
+            - float("inf") when a > 0
+            - float("-inf") when a < 0
+            - float("nan") when a == 0
+        This behavior is different from __rtruediv__, but is consistent with Pytorch.
+        """
+        return self._rethrow_zero_division_error(
+            lambda: self._checked_arithmetic_op_call(
+                other, "rfloordiv", IColumn._swap(operator.floordiv)
+            )
+        )
 
     @trace
     @expression
     def __truediv__(self, other):
-        self._prototype_support_warning("__truediv__")
-
-        if isinstance(other, NumericalColumnCpu):
-            col = velox.Column(get_velox_type(dt.float64))
-            assert len(self) == len(other)
-            for i in range(len(self)):
-                other_data = other._getdata(i)
-                if self._getmask(i) or other._getmask(i):
-                    col.append_null()
-                elif other_data == 0:
-                    col.append_null()
-                else:
-                    col.append(self._getdata(i) / other_data)
-            return ColumnFromVelox._from_velox(self.device, dt.float64, col, True)
-        else:
-            col = velox.Column(get_velox_type(dt.float64))
-            for i in range(len(self)):
-                if self._getmask(i):
-                    col.append_null()
-                elif other == 0:
-                    col.append_null()
-                else:
-                    col.append(self._getdata(i) / other)
-            return ColumnFromVelox._from_velox(self.device, dt.float64, col, True)
+        """
+        Note: divide by zero will return
+            - float("inf") when a > 0
+            - float("-inf") when a < 0
+            - float("nan") when a == 0
+        instead of raising exceptions.
+        """
+        # Result of velox division of integers is integer, to achieve consistent python truediv behavior,
+        # here we multiply self by 1.0 to force convert it to real type.
+        # TODO: use type cast once T110217169 completed, and ensure cast performance is better than current.
+        return (self * 1.0)._checked_arithmetic_op_call(
+            other, "truediv", operator.truediv
+        )
 
     @trace
     @expression
     def __rtruediv__(self, other):
-        self._prototype_support_warning("__rtruediv__")
-
-        if isinstance(other, NumericalColumnCpu):
-            col = velox.Column(get_velox_type(dt.float64))
-            assert len(self) == len(other)
-            for i in range(len(self)):
-                self_data = self._getdata(i)
-                if self._getmask(i) or other._getmask(i):
-                    col.append_null()
-                elif self_data == 0:
-                    col.append_null()
-                else:
-                    col.append(other._getdata(i) / self_data)
-            return ColumnFromVelox._from_velox(self.device, dt.float64, col, True)
-        else:
-            col = velox.Column(get_velox_type(dt.float64))
-            for i in range(len(self)):
-                self_data = self._getdata(i)
-                if self._getmask(i) or self._getdata(i) == 0:
-                    col.append_null()
-                elif self_data == 0:
-                    col.append_null()
-                else:
-                    col.append(other / self_data)
-            return ColumnFromVelox._from_velox(self.device, dt.float64, col, True)
+        """
+        Note: divide by zero will return
+            - float("inf") when a > 0
+            - float("-inf") when a < 0
+            - float("nan") when a == 0
+        instead of raising exceptions.
+        """
+        # Result of velox division of integers is integer, to achieve consistent python truediv behavior,
+        # here we multiply self by 1.0 to force convert it to real type.
+        # TODO: use type cast once T110217169 completed, and ensure cast performance is better than current.
+        return (self * 1.0)._checked_arithmetic_op_call(
+            other, "rtruediv", IColumn._swap(operator.truediv)
+        )
 
     @trace
     @expression

@@ -466,6 +466,12 @@ std::string opCodeToFunctionName(BinaryOpCode opCode) {
     case BinaryOpCode::Multiply: {
       return "multiply";
     } break;
+    case BinaryOpCode::Divide: {
+      return "divide";
+    } break;
+    case BinaryOpCode::Floordiv: {
+      return "torcharrow_floordiv";
+    } break;
     case BinaryOpCode::Modulus: {
       return "torcharrow_floormod";
     } break;

@@ -187,6 +187,8 @@ enum class BinaryOpCode : int16_t {
   Plus = 0,
   Minus,
   Multiply,
+  Divide,
+  Floordiv,
   Modulus,
   Eq,
   Neq,
