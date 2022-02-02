@@ -69,11 +69,11 @@ On Ubuntu (20.04 or later)
 # Install dependencies from APT
 apt install -y g++ cmake ccache ninja-build checkinstall \
     libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
-    libbz2-dev libgflags-dev libgtest-dev libgmock-dev libevent-dev libfmt-dev \
+    libbz2-dev libgflags-dev libgtest-dev libgmock-dev libevent-dev \
     libprotobuf-dev liblz4-dev libzstd-dev libre2-dev libsnappy-dev liblzo2-dev \
     protobuf-compiler
-# Build and install Folly
-scripts/install_ubuntu_folly.sh
+# Build and install folly and fmt
+scripts/setup-ubuntu.sh
 ```
 
 #### Install TorchArrow
