@@ -501,20 +501,12 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(c * d), [(i,) for i in [0, 5, 18]])
 
         self.assertEqual(list(c / 2), [(i,) for i in [0.0, 0.5, 1.5]])
-        # #TODO check numpy devision issue
-        # with self.assertRaises(ZeroDivisionError):
-        #     self.assertEqual(list(2 / c), [(i,) for i in [0.0, 0.5, 1.5]])
-        self.assertEqual(list(c / d), [(i,) for i in [0.0, 0.2, 0.5]])
+        self.assertEqual(list(c / d), [(i,) for i in [0.0, 0.20000000298023224, 0.5]])
 
         self.assertEqual(list(d // 2), [(i,) for i in [2, 2, 3]])
         self.assertEqual(list(2 // d), [(i,) for i in [0, 0, 0]])
         self.assertEqual(list(c // d), [(i,) for i in [0, 0, 0]])
         self.assertEqual(list(e // d), [(i,) for i in [0.0, 0.0, 1.0]])
-        # THIS ASSERTION SHOULD NOT HAPPEN, FIX derive_dtype
-        # TypeError: integer argument expected, got float
-        # TODO check numpy devision issue
-        # with self.assertRaises(TypeError):
-        #     self.assertEqual(list(d // e), [(i,) for i in [0.0, 0.0, 1.0]])
 
         self.assertEqual(list(c ** 2), [(i,) for i in [0, 1, 9]])
         self.assertEqual(list(2 ** c), [(i,) for i in [1, 2, 8]])

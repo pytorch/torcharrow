@@ -424,6 +424,48 @@ py::class_<SimpleColumn<T>, BaseColumn> declareNumericalType(py::module& m) {
                     b, BinaryOpCode::Multiply, OperatorType::Reverse);
               })
           .def(
+              "truediv",
+              [](SimpleColumn<T>& a,
+                 const BaseColumn& b) -> std::unique_ptr<BaseColumn> {
+                return a.callBinaryOp(
+                    b, BinaryOpCode::Divide, OperatorType::Direct);
+              })
+          .def(
+              "truediv",
+              [](SimpleColumn<T>& a,
+                 const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
+                return a.callBinaryOp(
+                    b, BinaryOpCode::Divide, OperatorType::Direct);
+              })
+          .def(
+              "rtruediv",
+              [](SimpleColumn<T>& a,
+                 const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
+                return a.callBinaryOp(
+                    b, BinaryOpCode::Divide, OperatorType::Reverse);
+              })
+          .def(
+              "floordiv",
+              [](SimpleColumn<T>& a,
+                 const BaseColumn& b) -> std::unique_ptr<BaseColumn> {
+                return a.callBinaryOp(
+                    b, BinaryOpCode::Floordiv, OperatorType::Direct);
+              })
+          .def(
+              "floordiv",
+              [](SimpleColumn<T>& a,
+                 const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
+                return a.callBinaryOp(
+                    b, BinaryOpCode::Floordiv, OperatorType::Direct);
+              })
+          .def(
+              "rfloordiv",
+              [](SimpleColumn<T>& a,
+                 const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
+                return a.callBinaryOp(
+                    b, BinaryOpCode::Floordiv, OperatorType::Reverse);
+              })
+          .def(
               "mod",
               [](SimpleColumn<T>& a,
                  const BaseColumn& b) -> std::unique_ptr<BaseColumn> {
