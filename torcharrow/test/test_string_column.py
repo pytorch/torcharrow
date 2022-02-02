@@ -129,7 +129,8 @@ class TestStringColumn(unittest.TestCase):
         concat2 = [x + "_suffix" for x in s1[:-1]] + [None]
         self.assertEqual(list(c1 + "_suffix"), concat2)
 
-        # TODO: also support str + IColumn
+        concat3 = ["prefix_" + x for x in s1[:-1]] + [None]
+        self.assertEqual(list("prefix_" + c1), concat3)
 
     def base_test_comparison(self):
         c = ta.Column(["abc", "de", "", "f", None], device=self.device)
