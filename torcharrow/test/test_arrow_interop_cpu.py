@@ -8,6 +8,9 @@ class TestArrowInteropCpu(TestArrowInterop):
     def setUp(self):
         self.device = "cpu"
 
+    def test_from_arrow_array_no_null_value_but_null_buffer(self):
+        return self.base_test_from_arrow_array_no_null_value_but_null_buffer()
+
     def test_from_arrow_array_boolean(self):
         return self.base_test_from_arrow_array_boolean()
 
