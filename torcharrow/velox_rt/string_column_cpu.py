@@ -147,6 +147,11 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
             assert isinstance(other, str)
             return functional.concat(self, other)._with_null(self.dtype.nullable)
 
+    def __radd__(self, other):
+        """Vectorized b + a."""
+        assert isinstance(other, str)
+        return functional.concat(other, self)._with_null(self.dtype.nullable)
+
     def _checked_binary_op_call(self, other, op_name):
         f = functional.__getattr__(op_name)
         nullable = self.dtype.nullable
