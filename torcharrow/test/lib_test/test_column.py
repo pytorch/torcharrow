@@ -161,18 +161,15 @@ class TestSimpleColumns(BaseTestColumns):
 
         mod_scalar = col1.mod(3)
         self.assertEqual(mod_scalar.type().kind(), ta.TypeKind.BIGINT)
-        # Python's behavior for modulo on negative numbers is different from
-        # Velox/C++. e.g. -2 % 3 = 1 (because integer division in Python is
-        # floor(a/b), as opposed to trunc(a/b))
-        self.assert_Column(mod_scalar, [1, -2, None, 0, -1, None])
+        self.assert_Column(mod_scalar, [1, 1, None, 0, 2, None])
 
         mod_scalar = col1.mod(-3.0)
         self.assertEqual(mod_scalar.type().kind(), ta.TypeKind.REAL)
-        self.assert_Column(mod_scalar, [1.0, -2.0, None, 0.0, -1.0, None])
+        self.assert_Column(mod_scalar, [-2.0, -2.0, None, 0.0, -1.0, None])
 
         mod_scalar = col1.rmod(3)
         self.assertEqual(mod_scalar.type().kind(), ta.TypeKind.BIGINT)
-        self.assert_Column(mod_scalar, [0, 1, None, 0, 3, None])
+        self.assert_Column(mod_scalar, [0, -1, None, 0, -1, None])
 
         mod_scalar = col1.rmod(-3.0)
         self.assertEqual(mod_scalar.type().kind(), ta.TypeKind.REAL)

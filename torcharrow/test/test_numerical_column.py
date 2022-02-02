@@ -346,6 +346,9 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(list(d % 2), [1, 1, 0])
         self.assertEqual(list(2 % d), [2, 2, 2])
         self.assertEqual(list(c % d), [0, 1, 3])
+        e = ta.Column([13, -13, 13, -13], device=self.device)
+        f = ta.Column([3, 3, -3, -3], device=self.device)
+        self.assertEqual(list(e % f), [1, 2, -2, -1])
 
         # TODO: Decide ...null handling.., bring back or ignore
 
