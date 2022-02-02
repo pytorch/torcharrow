@@ -60,6 +60,21 @@ class TestArrowInterop(unittest.TestCase):
             else:
                 self.assertEqual(pa_val, ta_val)
 
+    def base_test_from_arrow_array_no_null_value_but_null_buffer(self):
+        # Construct an arrow array that:
+        #   * Doesn't contain null value
+        #   * But contains null buffer (all marked as not null)
+        data = pa.py_buffer(b"\x01\x02\x03\x04\x05\x06\x07\x08")
+        valid = pa.py_buffer(b"\xff")
+        arrow_array = pa.Array.from_buffers(pa.int8(), 8, [valid, data])
+
+        self.assertEqual(arrow_array.to_pylist(), [1, 2, 3, 4, 5, 6, 7, 8])
+        self.assertEqual(arrow_array.null_count, 0)
+        self.assertIsNotNone(arrow_array.buffers()[0])
+
+        column = ta.from_arrow(arrow_array)
+        self.assertEqual(list(column), [1, 2, 3, 4, 5, 6, 7, 8])
+
     def base_test_from_arrow_array_boolean(self):
         pydata = [True, True, False, None, False]
         for (arrow_type, expected_dtype) in TestArrowInterop.supported_types:
