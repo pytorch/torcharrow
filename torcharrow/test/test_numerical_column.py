@@ -353,6 +353,12 @@ class TestNumericalColumn(unittest.TestCase):
         e = ta.Column([13, -13, 13, -13], device=self.device)
         f = ta.Column([3, 3, -3, -3], device=self.device)
         self.assertEqual(list(e % f), [1, 2, -2, -1])
+        # integer mod 0 -> exception
+        with self.assertRaises(ZeroDivisionError):
+            list(c % 0)
+        # float mod 0 -> nan
+        e = ta.Column([1.0], device=self.device)
+        self.assertTrue(isnan(list(e % 0)[0]))
 
         # TODO: Decide ...null handling.., bring back or ignore
 

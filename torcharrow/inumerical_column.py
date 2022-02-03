@@ -3,8 +3,8 @@ import itertools
 import math
 import operator
 import statistics
-import typing as ty
 from functools import partial
+from typing import List, Optional, Union, Callable
 
 import torcharrow.dtypes as dt
 from torcharrow.dispatcher import Device
@@ -147,8 +147,8 @@ class INumericalColumn(IColumn):
     def describe(
         self,
         percentiles=None,
-        include: ty.Union[ty.List[dt.DType], ty.Optional[ty.List[dt.DType]]] = None,
-        exclude: ty.Union[ty.List[dt.DType], ty.Optional[ty.List[dt.DType]]] = None,
+        include: Union[List[dt.DType], Optional[List[dt.DType]]] = None,
+        exclude: Union[List[dt.DType], Optional[List[dt.DType]]] = None,
     ):
         """
         Generate descriptive statistics.
@@ -410,3 +410,17 @@ class INumericalColumn(IColumn):
                 else:
                     res.append(fun(i, j))
         return Scope._FromPyList(res, res_dtype)
+
+    def _is_zero_division_error(self, ex: Exception) -> bool:
+        ex_str = str(ex)
+        return "division by zero" in ex_str or "Cannot divide by 0" in ex_str
+
+    def _rethrow_zero_division_error(self, func: Callable) -> "INumericalColumn":
+        try:
+            result = func()
+        except Exception as ex:
+            # cast velox error to standard ZeroDivisionError
+            if self._is_zero_division_error(ex):
+                raise ZeroDivisionError
+            raise ex
+        return result
