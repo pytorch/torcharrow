@@ -255,65 +255,6 @@ class TestSimpleColumns(BaseTestColumns):
         self.assertEqual(col.is_null_at(3), False)
         self.assertEqual(col.is_null_at(4), True)
 
-    def test_SimpleColumnString_unary(self):
-        data = ["abc", "ABC", "XYZ123", None, "xYZ", "123", "äöå", ",.!"]
-        col = infer_column(data)
-
-        lcol = col.lower()
-        self.assert_Column(
-            lcol, ["abc", "abc", "xyz123", None, "xyz", "123", "äöå", ",.!"]
-        )
-
-        ucol = col.upper()
-        self.assert_Column(
-            ucol, ["ABC", "ABC", "XYZ123", None, "XYZ", "123", "ÄÖÅ", ",.!"]
-        )
-
-        lcol2 = ucol.lower()
-        self.assert_Column(
-            lcol2, ["abc", "abc", "xyz123", None, "xyz", "123", "äöå", ",.!"]
-        )
-
-        ucol2 = lcol.upper()
-        self.assert_Column(
-            ucol2, ["ABC", "ABC", "XYZ123", None, "XYZ", "123", "ÄÖÅ", ",.!"]
-        )
-
-        alpha = col.isalpha()
-        self.assert_Column(alpha, [True, True, False, None, True, False, True, False])
-
-        alnum = col.isalnum()
-        self.assert_Column(alnum, [True, True, True, None, True, True, True, False])
-
-        integer = col.isinteger()
-        self.assert_Column(
-            integer, [False, False, False, None, False, True, False, False]
-        )
-
-    def test_SimpleColumnString_islower(self):
-        data = {
-            "abc": True,
-            "": False,
-            " ": False,
-            "a  ": True,
-            "123": False,
-            "a123": True,
-            ",.!": False,
-            "a,.!": True,
-            "ABC": False,
-            "abcXyz": False,
-            None: None,
-            "äöå": True,
-            "äöå  123 ,.!": True,
-            "ÄÖÅ": False,
-            "öÄå": False,
-            "♬ ♫ ♯": False,
-            "abc ♬ ♫ ♯": True,
-        }
-        col = infer_column(list(data.keys()))
-        islower = col.islower()
-        self.assert_Column(islower, list(data.values()))
-
     def test_SimpleColumnUTF(self):
         s = ["hello.this", "is.interesting.", "this.is_24", "paradise"]
         col = infer_column(s)
