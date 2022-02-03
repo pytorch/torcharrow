@@ -10,8 +10,8 @@
 
 #include "bindings.h"
 #include "column.h"
-#include "vector.h"
 #include "functions/functions.h" // @manual=//pytorch/torcharrow/csrc/velox/functions:torcharrow_functions
+#include "vector.h"
 #include "velox/buffer/StringViewBufferHolder.h"
 #include "velox/common/base/Exceptions.h"
 #include "velox/functions/prestosql/registration/RegistrationFunctions.h"
@@ -499,9 +499,7 @@ py::class_<SimpleColumn<T>, BaseColumn> declareIntegralType(py::module& m) {
       declareNumericalType<kind>(m)
           .def(
               "append",
-              [](SimpleColumn<T>& self, T value) {
-                self.append(value);
-              })
+              [](SimpleColumn<T>& self, T value) { self.append(value); })
           .def("invert", &SimpleColumn<T>::invert);
   declareBitwiseOperations(pyClass);
 
@@ -513,11 +511,7 @@ template <
     typename T = typename velox::TypeTraits<kind>::NativeType>
 py::class_<SimpleColumn<T>, BaseColumn> declareFloatingType(py::module& m) {
   return declareNumericalType<kind>(m)
-      .def(
-          "append",
-          [](SimpleColumn<T>& self, T value) {
-            self.append(value);
-          })
+      .def("append", [](SimpleColumn<T>& self, T value) { self.append(value); })
       .def("ceil", &SimpleColumn<T>::ceil)
       .def("floor", &SimpleColumn<T>::floor)
       .def("round", &SimpleColumn<T>::round);
@@ -645,7 +639,7 @@ void declareArrayType(py::module& m) {
       .def("slice", &ArrayColumn::slice)
       .def("withElements", &ArrayColumn::withElements);
 
-      using I = typename velox::TypeTraits<velox::TypeKind::ARRAY>::ImplType;
+  using I = typename velox::TypeTraits<velox::TypeKind::ARRAY>::ImplType;
   py::class_<I, velox::Type, std::shared_ptr<I>>(
       m,
       "VeloxArrayType",
@@ -784,24 +778,23 @@ PYBIND11_MODULE(_torcharrow, m) {
   declareIntegralType<velox::TypeKind::SMALLINT>(m);
   declareIntegralType<velox::TypeKind::TINYINT>(m);
 
-  using BIGINTNativeType = velox::TypeTraits<velox::TypeKind::BIGINT>::NativeType;
-  auto boolColumnClass = declareSimpleType<velox::TypeKind::BOOLEAN>(
-                             m, [](auto val) { return py::cast(val); })
-                             .def(
-                                 "append",
-                                 [](SimpleColumn<bool>& self, bool value) {
-                                   self.append(value);
-                                 },
-                                 // explicitly disallow all conversions to bools; enabling
-                                 // this allows `None` and floats to convert to bools
-                                 py::arg("value").noconvert()
-                                 )
-                             .def(
-                                 "append",
-                                 [](SimpleColumn<bool>& self, BIGINTNativeType value) {
-                                   self.append(static_cast<bool>(value));
-                                 })
-                             .def("invert", &SimpleColumn<bool>::invert);
+  using BIGINTNativeType =
+      velox::TypeTraits<velox::TypeKind::BIGINT>::NativeType;
+  auto boolColumnClass =
+      declareSimpleType<velox::TypeKind::BOOLEAN>(
+          m, [](auto val) { return py::cast(val); })
+          .def(
+              "append",
+              [](SimpleColumn<bool>& self, bool value) { self.append(value); },
+              // explicitly disallow all conversions to bools; enabling
+              // this allows `None` and floats to convert to bools
+              py::arg("value").noconvert())
+          .def(
+              "append",
+              [](SimpleColumn<bool>& self, BIGINTNativeType value) {
+                self.append(static_cast<bool>(value));
+              })
+          .def("invert", &SimpleColumn<bool>::invert);
   declareComparisons(boolColumnClass);
   declareBitwiseOperations(boolColumnClass);
 
@@ -818,13 +811,7 @@ PYBIND11_MODULE(_torcharrow, m) {
           "append",
           [](SimpleColumn<velox::StringView>& self, const std::string& value) {
             self.append(velox::StringView(value));
-          })
-      .def("lower", &SimpleColumn<velox::StringView>::lower)
-      .def("upper", &SimpleColumn<velox::StringView>::upper)
-      .def("isalpha", &SimpleColumn<velox::StringView>::isalpha)
-      .def("isalnum", &SimpleColumn<velox::StringView>::isalnum)
-      .def("isinteger", &SimpleColumn<velox::StringView>::isinteger)
-      .def("islower", &SimpleColumn<velox::StringView>::islower);
+          });
 
   declareArrayType(m);
   declareMapType(m);
