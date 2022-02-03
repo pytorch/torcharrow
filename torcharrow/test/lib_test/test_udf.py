@@ -59,6 +59,14 @@ class TestSimpleColumns(unittest.TestCase):
         alpha = ta.generic_udf_dispatch("torcharrow_isalpha", col)
         self.assert_SimpleColumn(alpha, [True, True, False, None, True, False, True])
 
+        alnum = ta.generic_udf_dispatch("torcharrow_isalnum", col)
+        self.assert_SimpleColumn(alnum, [True, True, True, None, True, True, True])
+
+        integer = ta.generic_udf_dispatch("torcharrow_isinteger", col)
+        self.assert_SimpleColumn(
+            integer, [False, False, False, None, False, True, False]
+        )
+
         digit = ta.generic_udf_dispatch("isdecimal", col)
         self.assert_SimpleColumn(digit, [False, False, False, None, False, True, False])
 
