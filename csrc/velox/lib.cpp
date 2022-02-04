@@ -837,7 +837,7 @@ PYBIND11_MODULE(_torcharrow, m) {
 
   // Register Velox UDFs
   // TODO: we may only need to register UDFs that TorchArrow required?
-  velox::functions::prestosql::registerAllFunctions();
+  velox::functions::prestosql::registerAllScalarFunctions();
 
   functions::registerTorchArrowFunctions();
 
