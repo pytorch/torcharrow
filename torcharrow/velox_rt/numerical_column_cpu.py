@@ -284,16 +284,6 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
         return self._checked_binary_op_call(other, op_name)
 
-    def _rethrow_zero_division_error(self, func: Callable) -> INumericalColumn:
-        try:
-            result = func()
-        except RuntimeError as ex:
-            # cast velox error to standard ZeroDivisionError
-            if "division by zero" in str(ex):
-                raise ZeroDivisionError
-            raise ex
-        return result
-
     @trace
     @expression
     def __add__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
@@ -401,13 +391,25 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __mod__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
-        return self._checked_arithmetic_op_call(other, "mod", operator.mod)
+        """
+        Note: if a is integer type, a % 0 will raise ZeroDivisionError.
+              if a is float type, a % 0 will be float('nan')
+        """
+        return self._rethrow_zero_division_error(
+            lambda: self._checked_arithmetic_op_call(other, "mod", operator.mod)
+        )
 
     @trace
     @expression
     def __rmod__(self, other: Union[int, float]) -> INumericalColumn:
-        return self._checked_arithmetic_op_call(
-            other, "rmod", IColumn._swap(operator.mod)
+        """
+        Note: if a is integer type, a % 0 will raise ZeroDivisionError.
+              if a is float type, a % 0 will be float('nan')
+        """
+        return self._rethrow_zero_division_error(
+            lambda: self._checked_arithmetic_op_call(
+                other, "rmod", IColumn._swap(operator.mod)
+            )
         )
 
     @trace
