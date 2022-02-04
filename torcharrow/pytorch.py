@@ -1,13 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 try:
-    import torch
+    import torch  # noqa
 
     available = True
 except ModuleNotFoundError:
     available = False
 
 if available:
-    from ._pytorch import *
+    from ._pytorch.common import *  # noqa
 
 
 def ensure_available():
