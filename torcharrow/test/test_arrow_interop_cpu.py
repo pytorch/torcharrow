@@ -42,14 +42,10 @@ class TestArrowInteropCpu(TestArrowInterop):
         return self.base_test_to_arrow_array_float()
 
     def test_to_arrow_array_string(self):
-        # FIXME
-        pass
-        # return self.base_test_to_arrow_array_string()
+        return self.base_test_to_arrow_array_string()
 
     def test_to_arrow_array_slice(self):
-        # FIXME
-        pass
-        # return self.base_test_to_arrow_array_slice()
+        return self.base_test_to_arrow_array_slice()
 
     def test_to_arrow_table(self):
         return self.base_test_to_arrow_table()
