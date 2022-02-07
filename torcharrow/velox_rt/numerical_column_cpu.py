@@ -366,7 +366,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         """
         # Result of velox division of integers is integer, to achieve consistent python truediv behavior,
         # here we multiply self by 1.0 to force convert it to real type.
-        # TODO: use type cast once T110217169 completed, and ensure cast performance is better than current.
+        # TODO: use type cast once https://github.com/facebookresearch/torcharrow/issues/143 completed,
+        # and ensure cast performance is better than current.
         return (self * 1.0)._checked_arithmetic_op_call(
             other, "truediv", operator.truediv
         )
@@ -383,7 +384,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         """
         # Result of velox division of integers is integer, to achieve consistent python truediv behavior,
         # here we multiply self by 1.0 to force convert it to real type.
-        # TODO: use type cast once T110217169 completed, and ensure cast performance is better than current.
+        # TODO: use type cast once https://github.com/facebookresearch/torcharrow/issues/143 completed,
+        # and ensure cast performance is better than current.
         return (self * 1.0)._checked_arithmetic_op_call(
             other, "rtruediv", IColumn._swap(operator.truediv)
         )
@@ -415,48 +417,14 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __pow__(self, other):
-        self._prototype_support_warning("__pow__")
-
-        if isinstance(other, NumericalColumnCpu):
-            col = velox.Column(get_velox_type(self.dtype))
-            assert len(self) == len(other)
-            for i in range(len(self)):
-                if self._getmask(i) or other._getmask(i):
-                    col.append_null()
-                else:
-                    col.append(self._getdata(i) ** other._getdata(i))
-            return ColumnFromVelox._from_velox(self.device, self.dtype, col, True)
-        else:
-            col = velox.Column(get_velox_type(self.dtype))
-            for i in range(len(self)):
-                if self._getmask(i):
-                    col.append_null()
-                else:
-                    col.append(self._getdata(i) ** other)
-            return ColumnFromVelox._from_velox(self.device, self.dtype, col, True)
+        return self._checked_arithmetic_op_call(other, "pow", operator.pow)
 
     @trace
     @expression
     def __rpow__(self, other):
-        self._prototype_support_warning("__rpow__")
-
-        if isinstance(other, NumericalColumnCpu):
-            col = velox.Column(get_velox_type(self.dtype))
-            assert len(self) == len(other)
-            for i in range(len(self)):
-                if self._getmask(i) or other._getmask(i):
-                    col.append_null()
-                else:
-                    col.append(other._getdata(i) ** self._getdata(i))
-            return ColumnFromVelox._from_velox(self.device, self.dtype, col, True)
-        else:
-            col = velox.Column(get_velox_type(self.dtype))
-            for i in range(len(self)):
-                if self._getmask(i):
-                    col.append_null()
-                else:
-                    col.append(other ** self._getdata(i))
-            return ColumnFromVelox._from_velox(self.device, self.dtype, col, True)
+        return self._checked_arithmetic_op_call(
+            other, "rpow", IColumn._swap(operator.pow)
+        )
 
     @trace
     @expression

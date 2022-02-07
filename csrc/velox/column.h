@@ -190,6 +190,7 @@ enum class BinaryOpCode : int16_t {
   Divide,
   Floordiv,
   Modulus,
+  Pow,
   Eq,
   Neq,
   Lt,

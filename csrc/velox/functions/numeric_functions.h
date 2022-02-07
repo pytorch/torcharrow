@@ -3,6 +3,7 @@
 #pragma once
 
 #include "velox/functions/Udf.h"
+#include <limits>
 
 namespace facebook::torcharrow::functions {
 
@@ -58,6 +59,31 @@ VELOX_UDF_BEGIN(torcharrow_floormod)
 template <typename TOutput, typename TInput = TOutput>
 FOLLY_ALWAYS_INLINE bool call(TOutput& result, const TInput& a, const TInput& b) {
   result = a - std::floor(a / b) * b;
+  return true;
+}
+VELOX_UDF_END();
+
+VELOX_UDF_BEGIN(torcharrow_pow_int)
+template <typename TOutput, typename TInput = TOutput>
+FOLLY_ALWAYS_INLINE bool call(TOutput& result, const TInput& a, const TInput& b) {
+  if (b < 0) {
+    VELOX_UNSUPPORTED("Integers to negative integer powers are not allowed")
+  }
+  auto tmp = std::pow(a, b);
+  if (tmp > std::numeric_limits<int64_t>::max() || tmp < std::numeric_limits<int64_t>::min()) {
+    VELOX_UNSUPPORTED("Inf is outside the range of representable values of type int64")
+  }
+  result = tmp;
+  return true;
+}
+VELOX_UDF_END();
+
+// Velox prestosql pow always returns double, but TorchArrow wants to return float
+// when inputs are float. Ref: https://fburl.com/code/ytzqx8sg
+VELOX_UDF_BEGIN(torcharrow_pow)
+template <typename TOutput, typename TInput = TOutput>
+FOLLY_ALWAYS_INLINE bool call(TOutput& result, const TInput& a, const TInput& b) {
+  result = std::pow(a, b);
   return true;
 }
 VELOX_UDF_END();
