@@ -485,6 +485,27 @@ py::class_<SimpleColumn<T>, BaseColumn> declareNumericalType(py::module& m) {
                  const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
                 return a.callBinaryOp(
                     b, BinaryOpCode::Modulus, OperatorType::Reverse);
+              })
+          .def(
+              "pow",
+              [](SimpleColumn<T>& a,
+                 const BaseColumn& b) -> std::unique_ptr<BaseColumn> {
+                return a.callBinaryOp(
+                    b, BinaryOpCode::Pow, OperatorType::Direct);
+              })
+          .def(
+              "pow",
+              [](SimpleColumn<T>& a,
+                 const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
+                return a.callBinaryOp(
+                    b, BinaryOpCode::Pow, OperatorType::Direct);
+              })
+          .def(
+              "rpow",
+              [](SimpleColumn<T>& a,
+                 const pybind11::handle& b) -> std::unique_ptr<BaseColumn> {
+                return a.callBinaryOp(
+                    b, BinaryOpCode::Pow, OperatorType::Reverse);
               });
   declareComparisons(pyClass);
 
