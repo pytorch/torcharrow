@@ -597,7 +597,7 @@ def infer_dtype_from_value(value):
     raise AssertionError(f"unexpected case {value} of type {type(value)}")
 
 
-def infer_dtype_from_prefix(prefix):
+def infer_dtype_from_prefix(prefix: ty.Sequence) -> ty.Optional[DType]:
     if len(prefix) == 0:
         return Any()
     dtype = infer_dtype_from_value(prefix[0])
@@ -663,7 +663,7 @@ def promote(l, r):
     return None
 
 
-def common_dtype(l, r):
+def common_dtype(l: DType, r: DType) -> ty.Optional[DType]:
     if is_void(l):
         return r.with_null()
     if is_void(r):

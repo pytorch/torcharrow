@@ -1,5 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from typing import Optional, List, Union
+from typing import Optional, Sequence, Union
 
 import torcharrow.dtypes as dt
 
@@ -36,13 +36,13 @@ def from_pandas(data, dtype: Optional[dt.DType] = None, device: str = ""):
     raise NotImplementedError
 
 
-def from_pylist(
-    data: List, dtype: Optional[dt.DType] = None, device: str = ""
+def from_pysequence(
+    data: Sequence, dtype: Optional[dt.DType] = None, device: str = ""
 ) -> IColumn:
     """
-    Convert Python list of scalars or containers to a TorchArrow Column/DataFrame.
+    Convert Python sequence of scalars or containers to a TorchArrow Column/DataFrame.
     """
     # TODO(https://github.com/facebookresearch/torcharrow/issues/80) Infer dtype
     device = device or Scope.default.device
 
-    return Scope.default._FromPyList(data, dtype, device)
+    return Scope.default._FromPySequence(data, dtype, device)

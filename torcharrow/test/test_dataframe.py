@@ -119,7 +119,7 @@ class TestDataFrame(unittest.TestCase):
         with self.assertRaises(TypeError) as ex:
             a = ta.Column(data1, device=self.device)
         self.assertTrue(
-            "Cannot infer type from Python tuple" in str(ex.exception),
+            "Cannot infer type from nested Python tuple" in str(ex.exception),
             f"Exception message is not as expected: {str(ex.exception)}",
         )
         # data + dtype
@@ -166,7 +166,7 @@ class TestDataFrame(unittest.TestCase):
         with self.assertRaises(TypeError) as ex:
             df = ta.DataFrame(data3, device=self.device)
         self.assertTrue(
-            "Cannot infer type from Python tuple" in str(ex.exception),
+            "Cannot infer type from nested Python tuple" in str(ex.exception),
             f"Excpeion message is not as expected: {str(ex.exception)}",
         )
         # data + dtype

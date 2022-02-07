@@ -35,4 +35,4 @@ class ColumnFromVelox:
         concat_list = self.to_pylist()
         for column in columns:
             concat_list += column.to_pylist()
-        return Scope._FromPyList(concat_list, self.dtype)
+        return Scope._FromPySequence(concat_list, self.dtype)

@@ -29,6 +29,11 @@ class TestStringColumn(unittest.TestCase):
         # self.assertEqual(list(c._offsets), [0, 3, 5, 5, 6, 6])
         self.assertEqual(list(c), ["abc", "de", "", "f", None])
 
+    def base_test_string_column_from_tuple(self):
+        data_str = ("one", "two", "three", "four", "five", "six")
+        col_str = ta.Column(data_str, device=self.device)
+        self.assertEqual(tuple(col_str), data_str)
+
     def base_test_string_split_methods(self):
         s = ["a b c", "1,2,3", "d e f g h", "hello.this.is.very.very.very.very.long"]
         c = ta.Column(s, device=self.device)

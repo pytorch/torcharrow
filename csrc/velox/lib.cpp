@@ -32,8 +32,8 @@ namespace facebook::torcharrow {
 //
 
 // Based on VectorMaker::flatVectorNullable in Velox
-template <typename T>
-velox::FlatVectorPtr<T> flatVectorFromPyList(const py::list& data) {
+template <typename T, typename PySequence>
+velox::FlatVectorPtr<T> flatVectorFromPySequence(const PySequence& data) {
   // TODO
   // Consider using the pattern used in arrayVectorFromPyList for creating the
   // underlying FlatVector, which creates an empty vector using
@@ -59,16 +59,16 @@ velox::FlatVectorPtr<T> flatVectorFromPyList(const py::list& data) {
     if (!data[i].is_none()) {
       // Using bitUtils for bool vectors.
       if constexpr (std::is_same<T, bool>::value) {
-        velox::bits::setBit(rawData, i, data[i].cast<bool>());
+        velox::bits::setBit(rawData, i, data[i].template cast<bool>());
       } else if constexpr (std::is_same<T, velox::StringView>::value) {
         // Two memcpy's happen here: pybind11::object casting to std::string and
         // StringViewBufferHolder copying data from the buffer in the
         // std::string onto the buffers it manages. We can teach
         // StringViewBufferHolder how to copy data from
         // pybind11::str/pybind11::object to skip one copy
-        rawData[i] = stringArena.getOwnedValue(data[i].cast<std::string>());
+        rawData[i] = stringArena.getOwnedValue(data[i].template cast<std::string>());
       } else {
-        rawData[i] = data[i].cast<T>();
+        rawData[i] = data[i].template cast<T>();
       }
       velox::bits::setNull(rawNulls, i, false);
     } else {
@@ -137,7 +137,14 @@ py::class_<SimpleColumn<T>, BaseColumn> declareSimpleType(
       "Column",
       [](std::shared_ptr<I> type,
          py::list data) -> std::unique_ptr<SimpleColumn<T>> {
-        return std::make_unique<SimpleColumn<T>>(flatVectorFromPyList<T>(data));
+        return std::make_unique<SimpleColumn<T>>(flatVectorFromPySequence<T>(data));
+      });
+  // Column construction from Python tuple
+  m.def(
+      "Column",
+      [](std::shared_ptr<I> type,
+         py::tuple data) -> std::unique_ptr<SimpleColumn<T>> {
+        return std::make_unique<SimpleColumn<T>>(flatVectorFromPySequence<T>(data));
       });
 
   // Import/Export Arrow data

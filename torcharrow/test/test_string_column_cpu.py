@@ -14,6 +14,9 @@ class TestStringColumnCpu(TestStringColumn):
     def test_append_offsets(self):
         self.base_test_append_offsets()
 
+    def test_string_column_from_tuple(self):
+        self.base_test_string_column_from_tuple()
+
     def test_comparison(self):
         return self.base_test_comparison()
 

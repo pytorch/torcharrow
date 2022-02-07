@@ -81,7 +81,7 @@ class MapColumnCpu(ColumnFromVelox, IMapColumn):
         return MapColumnCpu(device, dtype, key_data, item_data, mask)
 
     @staticmethod
-    def _fromlist(device, data: List, dtype):
+    def _from_pysequence(device, data: List, dtype: dt.List):
         # default implementation
         col = MapColumnCpu._empty(device, dtype)
         for i in data:
@@ -199,7 +199,9 @@ class MapColumnCpu(ColumnFromVelox, IMapColumn):
 # registering the factory
 Dispatcher.register((dt.Map.typecode + "_empty", "cpu"), MapColumnCpu._empty)
 Dispatcher.register((dt.Map.typecode + "_full", "cpu"), MapColumnCpu._full)
-Dispatcher.register((dt.Map.typecode + "_fromlist", "cpu"), MapColumnCpu._fromlist)
+Dispatcher.register(
+    (dt.Map.typecode + "_from_pysequence", "cpu"), MapColumnCpu._from_pysequence
+)
 # -----------------------------------------------------------------------------
 # MapMethods
 
