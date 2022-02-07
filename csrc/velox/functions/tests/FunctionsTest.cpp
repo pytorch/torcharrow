@@ -124,5 +124,51 @@ TEST_F(FunctionsTest, floormod) {
       {1.0, 2.0, -2.0, -1.0, kNan, kNan});
 }
 
+TEST_F(FunctionsTest, pow) {
+  std::vector<float> baseFloat = {
+      0, 0, 0, -1, -1, -1, -9, 9.1, 10.1, 11.1, -11.1, 0, kInf, kInf};
+  std::vector<float> exponentFloat = {
+      0, 1, -1, 0, 1, -1, -3.3, 123456.432, -99.9, 0, 100000, kInf, 0, kInf};
+  std::vector<float> expectedFloat;
+  for (size_t i = 0; i < baseFloat.size(); i++) {
+    expectedFloat.emplace_back(pow(baseFloat[i], exponentFloat[i]));
+  }
+  assertExpression<float>(
+      "torcharrow_pow(c0, c1)", baseFloat, exponentFloat, expectedFloat);
+
+  std::vector<double> baseDouble = {
+      0, 0, 0, -1, -1, -1, -9, 9.1, 10.1, 11.1, -11.1, 0, kInf, kInf};
+  std::vector<double> exponentDouble = {
+      0, 1, -1, 0, 1, -1, -3.3, 123456.432, -99.9, 0, 100000, kInf, 0, kInf};
+  std::vector<double> expectedDouble;
+  expectedDouble.reserve(baseDouble.size());
+  for (size_t i = 0; i < baseDouble.size(); i++) {
+    expectedDouble.emplace_back(pow(baseDouble[i], exponentDouble[i]));
+  }
+  assertExpression<double>(
+      "torcharrow_pow(c0, c1)", baseDouble, exponentDouble, expectedDouble);
+
+  std::vector<int64_t> baseInt = {9, -9, 9, -9, 0};
+  std::vector<int64_t> exponentInt = {3, 3, 0, 0, 0};
+  std::vector<int64_t> expectedInt;
+  expectedInt.reserve(baseInt.size());
+  for (size_t i = 0; i < baseInt.size(); i++) {
+    expectedInt.emplace_back(pow(baseInt[i], exponentInt[i]));
+  }
+  assertExpression<int64_t>(
+      "torcharrow_pow(c0, c1)", baseInt, exponentInt, expectedInt);
+
+  assertError<int32_t>(
+      "torcharrow_pow(c0, c1)",
+      {2},
+      {-2},
+      "Integers to negative integer powers are not allowed");
+  assertError<int64_t>(
+      "torcharrow_pow(c0, c1)",
+      {9},
+      {123456},
+      "Inf is outside the range of representable values of type int64");
+}
+
 } // namespace
 } // namespace facebook::velox
