@@ -6,9 +6,11 @@ from typing import TypeVar, Generic, Union, List, Optional, Tuple
 
 import torch  # type: ignore
 import torcharrow as ta
+import torcharrow.dtypes as dt
 from torcharrow import dtypes
 from torcharrow.dtypes import DType, is_struct, is_list, is_map
 from torcharrow.scope import Scope
+
 
 T = TypeVar("T")
 KT = TypeVar("KT")
@@ -226,6 +228,7 @@ def from_tensor(
     raise ValueError(f"Unexpected data in `from_tensor`: {type(data)}")
 
 
+# TODO: Rename this class to TorchConversion
 class ITorchConversion(abc.ABC):
     """
     PyTorch Conversion class.
@@ -278,3 +281,13 @@ class PadSequence(ITorchConversion):
 
     def from_tensor(self, data: torch.Tensor, dtype=None, device=None):
         self._not_supported("from_tensor")
+
+
+def _dtype_to_pytorch_dtype(dtype: dt.DType) -> torch.dtype:
+    # our names of types conveniently almost match
+    torch_dtype_name = "bool" if dtype.name == "boolean" else dtype.name
+    if not hasattr(torch, torch_dtype_name):
+        raise ValueError(f"Can't convert {dtype} to PyTorch")
+    torch_dtype = getattr(torch, torch_dtype_name)
+
+    return torch_dtype

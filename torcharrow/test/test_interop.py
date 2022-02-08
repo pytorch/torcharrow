@@ -168,6 +168,107 @@ class TestInterop(unittest.TestCase):
             ],
         )
 
+    def base_test_dense_features_no_mask(self):
+        import torch
+
+        df = ta.DataFrame(
+            {
+                "dense_int8": ta.DataFrame(
+                    [(-1, -1), (1, 42), (2, 43), (3, 44), (-1, -1)],
+                    dtype=dt.Struct([dt.Field("f1", dt.int8), dt.Field("f2", dt.int8)]),
+                ),
+                "dense_int16": ta.DataFrame(
+                    [(-1, -1), (1, 42), (2, 43), (3, 44), (-1, -1)],
+                    dtype=dt.Struct(
+                        [dt.Field("f1", dt.int16), dt.Field("f2", dt.int16)]
+                    ),
+                ),
+                "dense_int32": ta.DataFrame(
+                    [(-1, -1), (1, 42), (2, 43), (3, 44), (-1, -1)],
+                    dtype=dt.Struct(
+                        [dt.Field("f1", dt.int32), dt.Field("f2", dt.int32)]
+                    ),
+                ),
+                "dense_int64": ta.DataFrame(
+                    [(-1, -1), (1, 42), (2, 43), (3, 44), (-1, -1)],
+                    dtype=dt.Struct(
+                        [dt.Field("f1", dt.int64), dt.Field("f2", dt.int64)]
+                    ),
+                ),
+                "dense_float32": ta.DataFrame(
+                    [(-1.5, -1.5), (1.5, 42.5), (2.5, 43.5), (3.5, 44.5), (-1.5, -1.5)],
+                    dtype=dt.Struct(
+                        [dt.Field("f1", dt.float32), dt.Field("f2", dt.float32)]
+                    ),
+                ),
+                "dense_float64": ta.DataFrame(
+                    [(-1.5, -1.5), (1.5, 42.5), (2.5, 43.5), (3.5, 44.5), (-1.5, -1.5)],
+                    dtype=dt.Struct(
+                        [dt.Field("f1", dt.float64), dt.Field("f2", dt.float64)]
+                    ),
+                ),
+            },
+            device=self.device,
+        )
+
+        # Test row major
+        tensors = df[1:4].to_tensor(
+            {
+                "dense_int8": tap.rec.Dense(batch_first=True),
+                "dense_int16": tap.rec.Dense(batch_first=True),
+                "dense_int32": tap.rec.Dense(batch_first=True),
+                "dense_int64": tap.rec.Dense(batch_first=True),
+                "dense_float32": tap.rec.Dense(batch_first=True),
+                "dense_float64": tap.rec.Dense(batch_first=True),
+            }
+        )
+
+        expected_int_tensor = torch.Tensor([[1, 42], [2, 43], [3, 44]])
+        self.assertEqual(tensors.dense_int8.dtype, torch.int8)
+        self.assertEqual(tensors.dense_int16.dtype, torch.int16)
+        self.assertEqual(tensors.dense_int32.dtype, torch.int32)
+        self.assertEqual(tensors.dense_int64.dtype, torch.int64)
+        self.assertTrue(torch.all(tensors.dense_int8 == expected_int_tensor))
+        self.assertTrue(torch.all(tensors.dense_int16 == expected_int_tensor))
+        self.assertTrue(torch.all(tensors.dense_int32 == expected_int_tensor))
+        self.assertTrue(torch.all(tensors.dense_int64 == expected_int_tensor))
+
+        expected_float_tensor = torch.Tensor([[1.5, 42.5], [2.5, 43.5], [3.5, 44.5]])
+        self.assertEqual(tensors.dense_float32.dtype, torch.float32)
+        self.assertEqual(tensors.dense_float64.dtype, torch.float64)
+        self.assertTrue(torch.all(tensors.dense_float32 == expected_float_tensor))
+        self.assertTrue(torch.all(tensors.dense_float64 == expected_float_tensor))
+
+        # Test not batch first
+        tensors = df[1:4].to_tensor(
+            {
+                "dense_int8": tap.rec.Dense(),
+                "dense_int16": tap.rec.Dense(),
+                "dense_int32": tap.rec.Dense(),
+                "dense_int64": tap.rec.Dense(),
+                "dense_float32": tap.rec.Dense(),
+                "dense_float64": tap.rec.Dense(),
+            }
+        )
+
+        expected_int_tensor = torch.Tensor([[1, 42], [2, 43], [3, 44]]).transpose(0, 1)
+        self.assertEqual(tensors.dense_int8.dtype, torch.int8)
+        self.assertEqual(tensors.dense_int16.dtype, torch.int16)
+        self.assertEqual(tensors.dense_int32.dtype, torch.int32)
+        self.assertEqual(tensors.dense_int64.dtype, torch.int64)
+        self.assertTrue(torch.all(tensors.dense_int8 == expected_int_tensor))
+        self.assertTrue(torch.all(tensors.dense_int16 == expected_int_tensor))
+        self.assertTrue(torch.all(tensors.dense_int32 == expected_int_tensor))
+        self.assertTrue(torch.all(tensors.dense_int64 == expected_int_tensor))
+
+        expected_float_tensor = torch.Tensor(
+            [[1.5, 42.5], [2.5, 43.5], [3.5, 44.5]]
+        ).transpose(0, 1)
+        self.assertEqual(tensors.dense_float32.dtype, torch.float32)
+        self.assertEqual(tensors.dense_float64.dtype, torch.float64)
+        self.assertTrue(torch.all(tensors.dense_float32 == expected_float_tensor))
+        self.assertTrue(torch.all(tensors.dense_float64 == expected_float_tensor))
+
     def base_test_pytorch_transform(self):
         import torch
 

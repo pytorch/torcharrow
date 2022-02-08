@@ -18,6 +18,7 @@
 #include "velox/type/Type.h"
 #include "velox/vector/TypeAliases.h"
 #include "velox/vector/arrow/Bridge.h"
+#include "tensor_conversion.h"
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -853,6 +854,17 @@ PYBIND11_MODULE(_torcharrow, m) {
 
   // factory UDF dispatch
   m.def("factory_udf_dispatch", &BaseColumn::factoryNullaryUDF);
+
+  // Tensor conversion related binding
+  m.def(
+      "_populate_dense_features_nopresence",
+      [](const RowColumn& column, uintptr_t dataTensorPtr) {
+        populateDenseFeaturesNoPresence(
+            std::dynamic_pointer_cast<velox::RowVector>(column.getUnderlyingVeloxVector()),
+            column.getOffset(),
+            column.getLength(),
+            dataTensorPtr);
+      });
 
   py::register_exception<NotAppendableException>(m, "NotAppendableException");
 
