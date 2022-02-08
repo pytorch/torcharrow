@@ -2,6 +2,7 @@
 
 from . import pytorch  # noqa
 from . import velox_rt  # noqa
+from ._functional import functional
 from .icolumn import IColumn, Column, concat, if_else  # noqa
 from .idataframe import IDataFrame, DataFrame, me  # noqa
 from .ilist_column import IListColumn  # noqa
@@ -22,6 +23,7 @@ __all__ = [
     "if_else",
     "from_pylist",
     "me",
+    "functional",
     "IDataFrame",
     "IColumn",
     "INumericalColumn",

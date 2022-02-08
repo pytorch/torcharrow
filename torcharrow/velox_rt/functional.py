@@ -2,9 +2,7 @@
 import types
 
 import torcharrow._torcharrow as ta
-from torcharrow.functional import _Functional
-from torcharrow.functional import functional as functional_registry
-from torcharrow.scope import Scope
+from torcharrow._functional import functional as global_functional
 
 from .column import ColumnFromVelox
 
@@ -59,7 +57,7 @@ class VeloxFunctional(types.ModuleType):
 
             return ColumnFromVelox._from_velox(device, result_dtype, result_col, True)
 
-        if op_name in functional_registry._factory_methods:
+        if op_name in global_functional._factory_methods:
             return factory_dispatch
         else:
             return dispatch
@@ -76,5 +74,5 @@ class VeloxFunctional(types.ModuleType):
 
 
 velox_functional = VeloxFunctional()
-functional_registry.register_dispatch_impl("velox", velox_functional)
-functional_registry.register_factory_methods(["rand"])
+global_functional.register_dispatch_impl("velox", velox_functional)
+global_functional.register_factory_methods(["rand"])

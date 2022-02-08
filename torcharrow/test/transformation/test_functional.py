@@ -2,7 +2,7 @@
 import unittest
 
 import torcharrow as ta
-from torcharrow.functional import functional
+from torcharrow import functional
 
 
 class _TestFunctionalBase(unittest.TestCase):
