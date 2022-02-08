@@ -602,7 +602,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                     res.append(None)
 
         dtype = dtype or self._dtype
-        return Scope._FromPyList(res, dtype)
+        return Scope._FromPySequence(res, dtype)
 
     @trace
     @expression
@@ -1255,7 +1255,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 res.append(None)
             else:
                 res.append(pred(i, j))
-        return Scope._FromPyList(res, res_dtype)
+        return Scope._FromPySequence(res, res_dtype)
 
     def _compare(self, op, initial):
         assert initial in [True, False]

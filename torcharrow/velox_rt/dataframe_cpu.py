@@ -11,16 +11,15 @@ from typing import (
     Callable,
     Dict,
     Iterable,
+    Iterator,
     List,
     Mapping,
     Optional,
+    OrderedDict,
     Sequence,
     Tuple,
     Union,
     cast,
-    Iterable,
-    Iterator,
-    OrderedDict,
 )
 
 import numpy as np
@@ -114,7 +113,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         return DataFrameCpu(device, dtype, field_data)
 
     @staticmethod
-    def _fromlist(device: str, data: List, dtype: dt.Struct):
+    def _from_pysequence(device: str, data: Sequence, dtype: dt.Struct):
         if len(data) == 0:
             return DataFrameCpu._empty(device, dtype)._finalize()
 
@@ -128,7 +127,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                 )
 
             field_data = {
-                dtype.fields[i].name: ta.from_pylist(
+                dtype.fields[i].name: ta.from_pysequence(
                     col_lists[i], dtype.fields[i].dtype, device
                 )
                 for i in range(len(dtype.fields))
@@ -139,13 +138,14 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         warnings.warn(
             f"Construct DataFrame from a list of {type(data[0])} may result in degeneraded performance"
         )
+        # default (ineffincient) implementation
         col = DataFrameCpu._empty(device, dtype)
         for i in data:
             col._append(i)
         return col._finalize()
 
     @staticmethod
-    def _fromarrow(device: str, array: pa.StructArray, dtype: dt.Struct):
+    def _from_arrow(device: str, array: pa.StructArray, dtype: dt.Struct):
         # TODO: use native Arrow StructArray -> Velox RowVector conversion
         assert array.type.num_fields == len(dtype.fields)
 
@@ -434,7 +434,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                 res = [arg(a[i], b[i], c[i]) for i in range(len(a))]
             else:
                 res = [arg(*[dcol[i] for dcol in dcols]) for i in range(len(dcols[0]))]
-            return Scope._FromPyList(res, dtype)
+            return Scope._FromPySequence(res, dtype)
 
         # Slow path for very slow path
         def func(*x):
@@ -448,7 +448,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                 res.append(None)
             else:
                 raise TypeError(f"na_action has unsupported value {na_action}")
-        return Scope._FromPyList(res, dtype)
+        return Scope._FromPySequence(res, dtype)
 
     @trace
     @expression
@@ -2263,8 +2263,12 @@ class GroupedDataFrame:
 
 Dispatcher.register((dt.Struct.typecode + "_empty", "cpu"), DataFrameCpu._empty)
 Dispatcher.register((dt.Struct.typecode + "_full", "cpu"), DataFrameCpu._full)
-Dispatcher.register((dt.Struct.typecode + "_fromlist", "cpu"), DataFrameCpu._fromlist)
-Dispatcher.register((dt.Struct.typecode + "_fromarrow", "cpu"), DataFrameCpu._fromarrow)
+Dispatcher.register(
+    (dt.Struct.typecode + "_from_pysequence", "cpu"), DataFrameCpu._from_pysequence
+)
+Dispatcher.register(
+    (dt.Struct.typecode + "_from_arrow", "cpu"), DataFrameCpu._from_arrow
+)
 
 
 # ------------------------------------------------------------------------------

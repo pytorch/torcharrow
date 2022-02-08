@@ -48,7 +48,7 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
         )
 
     @staticmethod
-    def _fromlist(device: str, data: List[List], dtype: dt.List):
+    def _from_pysequence(device: str, data: List[List], dtype: dt.List):
         if dt.is_primitive(dtype.item_dtype):
             velox_column = velox.Column(get_velox_type(dtype), data)
             return ColumnFromVelox._from_velox(
@@ -60,11 +60,11 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
         else:
             warnings.warn(
                 "Complex types are not supported (properly) for "
-                "ListColumnCpu._fromlist yet. Falling back to the default "
+                "ListColumnCpu._from_pysequence yet. Falling back to the default "
                 "(inefficient) implementation"
             )
             assert len(data) <= 100000, (
-                "The default _fromlist implementation "
+                "The default _from_pysequence implementation "
                 f"will be too slow for {len(data)} elements"
             )
             col = ListColumnCpu._empty(device, dtype)
@@ -235,4 +235,6 @@ class ListMethodsCpu(IListMethods):
 # ------------------------------------------------------------------------------
 # registering the factory
 Dispatcher.register((dt.List.typecode + "_empty", "cpu"), ListColumnCpu._empty)
-Dispatcher.register((dt.List.typecode + "_fromlist", "cpu"), ListColumnCpu._fromlist)
+Dispatcher.register(
+    (dt.List.typecode + "_from_pysequence", "cpu"), ListColumnCpu._from_pysequence
+)

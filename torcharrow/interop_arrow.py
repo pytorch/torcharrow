@@ -39,7 +39,7 @@ def _from_arrow_array(
 
     device = device or Scope.default.device
 
-    call = Dispatcher.lookup((dtype.typecode + "_fromarrow", device))
+    call = Dispatcher.lookup((dtype.typecode + "_from_arrow", device))
 
     return call(device, array, dtype)
 

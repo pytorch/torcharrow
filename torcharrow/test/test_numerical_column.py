@@ -546,6 +546,15 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(col3_float64.dtype, dt.Float64(nullable=True))
         self.assertEqual(list(col3_float64), data2)
 
+    def base_test_column_from_tuple(self):
+        data_int = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        col_int = ta.Column(data_int, device=self.device)
+        self.assertEqual(tuple(col_int), data_int)
+
+        data_float = (1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0)
+        col_float = ta.Column(data_float, device=self.device)
+        self.assertEqual(tuple(col_float), data_float)
+
     def base_test_column_from_numpy_array(self):
         seq_float = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
         seq_int = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
