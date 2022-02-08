@@ -8,6 +8,8 @@ except ModuleNotFoundError:
 
 if available:
     from ._pytorch.common import *  # noqa
+    from ._pytorch import rec  # noqa
+    from ._pytorch.common import _dtype_to_pytorch_dtype  # noqa
 
 
 def ensure_available():

@@ -22,6 +22,10 @@ class TestInteropCpu(TestInterop):
     def test_pytorch_transform(self):
         return self.base_test_pytorch_transform()
 
+    @unittest.skipUnless(tap.available, "Requires PyTorch")
+    def test_dense_features_no_mask(self):
+        return self.base_test_dense_features_no_mask()
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -52,7 +52,10 @@ pybind11_add_module(
   vector.h
   vector.cpp
   column.h
-  column.cpp)
+  column.cpp
+  tensor_conversion.h
+  tensor_conversion.cpp
+)
 
 # TODO(linb): Need this to match with velox, however pybind11 requires "hidden" visibility
 # set_target_properties(_torcharrow PROPERTIES CXX_VISIBILITY_PRESET default)
@@ -69,7 +72,8 @@ target_link_libraries(_torcharrow PRIVATE
   velox_functions_prestosql
   velox_function_registry
   velox_arrow_bridge
-  torcharrow_udfs)
+  torcharrow_udfs
+)
 
 #target_compile_definitions(_torcharrow PRIVATE)
 
