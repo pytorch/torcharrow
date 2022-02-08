@@ -3,7 +3,6 @@ import array as ar
 import warnings
 from typing import List, Callable
 
-import numpy as np
 import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt

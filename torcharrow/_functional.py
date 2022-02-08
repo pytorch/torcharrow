@@ -6,6 +6,8 @@ from torcharrow.icolumn import IColumn
 
 
 class _Functional(ModuleType):
+    __file__ = "_functional.py"
+
     # In the future, TorchArrow is going to support more device/dispatch_key, such as gpu/libcudf
     _device_to_dispatch_key = {"cpu": "velox"}
     _column_class_to_dispatch_key = {}
@@ -15,6 +17,7 @@ class _Functional(ModuleType):
         self._backend_functional: Dict[str, ModuleType] = {}
         self._factory_methods: Set[str] = set()
 
+    # TODO: prefix all methods with "_"
     def get_backend_functional(self, dispatch_key):
         backend_functional = self._backend_functional.get(dispatch_key)
         if backend_functional is None:
@@ -45,6 +48,7 @@ class _Functional(ModuleType):
             op = self.get_backend_functional(dispatch_key).__getattr__(op_name)
             return op(*args)
 
+        # TODO: factory dispatch mechanism needs revamp and conslidate with the general constant literal handling
         def factory_dispatch(*args, size=None, device="cpu"):
             if size is None:
                 raise AssertionError(
@@ -82,8 +86,7 @@ class _Functional(ModuleType):
             )
         cls._column_class_to_dispatch_key[column_class] = dispatch_key
 
-    # TODO: Perhaps this should be part of dispatch backend registration
-    # (i.e. registered with register_dispatch_impl)
+    # TODO: factory dispatch mechanism needs revamp and conslidate with the general constant literal handling
     def register_factory_methods(self, methods):
         self._factory_methods.update(methods)
 

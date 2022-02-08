@@ -1,8 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import array as ar
 import math
 import operator
-import statistics
 from typing import Dict, List, Optional, Union, Callable
 
 import numpy as np
@@ -10,9 +8,9 @@ import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
+from torcharrow._functional import functional
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
-from torcharrow.functional import functional
 from torcharrow.icolumn import IColumn
 from torcharrow.inumerical_column import INumericalColumn
 from torcharrow.trace import trace, traceproperty

@@ -6,9 +6,9 @@ import numpy as np
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 from tabulate import tabulate
+from torcharrow._functional import functional
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
-from torcharrow.functional import functional
 from torcharrow.istring_column import IStringColumn, IStringMethods
 from torcharrow.trace import trace
 
