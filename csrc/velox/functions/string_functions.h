@@ -58,197 +58,213 @@ class Utf8CatUtils {
  * A string is alphabetic if all characters in the string are alphabetic
  * and there is at least one character in the string.
  **/
-VELOX_UDF_BEGIN(torcharrow_isalpha)
-FOLLY_ALWAYS_INLINE
-bool call(bool& result, const arg_type<velox::Varchar>& input) {
-  using namespace velox::functions;
-  using namespace internal;
+template <typename T>
+struct torcharrow_isalpha {
+  VELOX_DEFINE_FUNCTION_TYPES(T);
 
-  size_t size = input.size();
-  if (size == 0) {
-    result = false;
-    return true;
-  }
+  FOLLY_ALWAYS_INLINE
+  bool call(bool& result, const arg_type<velox::Varchar>& input) {
+    using namespace velox::functions;
+    using namespace internal;
 
-  size_t index = 0;
-  while (index < size) {
-    int codePointSize;
-    utf8proc_int32_t codePoint =
-        utf8proc_codepoint(input.data() + index, codePointSize);
-
-    utf8proc_category_t category =
-        static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
-    if (!Utf8CatUtils::isAlpha(category)) {
+    size_t size = input.size();
+    if (size == 0) {
       result = false;
       return true;
     }
 
-    index += codePointSize;
+    size_t index = 0;
+    while (index < size) {
+      int codePointSize;
+      utf8proc_int32_t codePoint =
+          utf8proc_codepoint(input.data() + index, codePointSize);
+
+      utf8proc_category_t category =
+          static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
+      if (!Utf8CatUtils::isAlpha(category)) {
+        result = false;
+        return true;
+      }
+
+      index += codePointSize;
+    }
+    result = true;
+    return true;
   }
-  result = true;
-  return true;
-}
-VELOX_UDF_END();
+};
 
 /**
  * torcharrow_isalnum(string) → bool
  * Return True if all characters in the string are alphanumeric (either
  *alphabets or numbers), False otherwise.
  **/
-VELOX_UDF_BEGIN(torcharrow_isalnum)
-FOLLY_ALWAYS_INLINE
-bool call(bool& result, const arg_type<velox::Varchar>& input) {
-  using namespace velox::functions;
-  using namespace internal;
+template <typename T>
+struct torcharrow_isalnum {
+  VELOX_DEFINE_FUNCTION_TYPES(T);
 
-  size_t size = input.size();
-  if (size == 0) {
-    result = false;
-    return true;
-  }
+  FOLLY_ALWAYS_INLINE
+  bool call(bool& result, const arg_type<velox::Varchar>& input) {
+    using namespace velox::functions;
+    using namespace internal;
 
-  size_t index = 0;
-  while (index < size) {
-    int codePointSize;
-    utf8proc_int32_t codePoint =
-        utf8proc_codepoint(input.data() + index, codePointSize);
-
-    utf8proc_category_t category =
-        static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
-    if (!(Utf8CatUtils::isAlpha(category) ||
-          Utf8CatUtils::isNumber(category))) {
+    size_t size = input.size();
+    if (size == 0) {
       result = false;
       return true;
     }
 
-    index += codePointSize;
+    size_t index = 0;
+    while (index < size) {
+      int codePointSize;
+      utf8proc_int32_t codePoint =
+          utf8proc_codepoint(input.data() + index, codePointSize);
+
+      utf8proc_category_t category =
+          static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
+      if (!(Utf8CatUtils::isAlpha(category) ||
+            Utf8CatUtils::isNumber(category))) {
+        result = false;
+        return true;
+      }
+
+      index += codePointSize;
+    }
+    result = true;
+    return true;
   }
-  result = true;
-  return true;
-}
-VELOX_UDF_END();
+};
 
 /**
  * torcharrow_isdigit(string) → bool
  * Return True if all characters in the string are numeric, False otherwise.
  **/
-VELOX_UDF_BEGIN(torcharrow_isdigit)
-FOLLY_ALWAYS_INLINE
-bool call(bool& result, const arg_type<velox::Varchar>& input) {
-  using namespace velox::functions;
-  using namespace internal;
+template <typename T>
+struct torcharrow_isdigit {
+  VELOX_DEFINE_FUNCTION_TYPES(T);
 
-  size_t size = input.size();
-  if (size == 0) {
-    result = false;
-    return true;
-  }
+  FOLLY_ALWAYS_INLINE
+  bool call(bool& result, const arg_type<velox::Varchar>& input) {
+    using namespace velox::functions;
+    using namespace internal;
 
-  size_t index = 0;
-  while (index < size) {
-    int codePointSize;
-    utf8proc_int32_t codePoint =
-        utf8proc_codepoint(input.data() + index, codePointSize);
-
-    utf8proc_category_t category =
-        static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
-    if (!Utf8CatUtils::isDigit(category)) {
+    size_t size = input.size();
+    if (size == 0) {
       result = false;
       return true;
     }
 
-    index += codePointSize;
+    size_t index = 0;
+    while (index < size) {
+      int codePointSize;
+      utf8proc_int32_t codePoint =
+          utf8proc_codepoint(input.data() + index, codePointSize);
+
+      utf8proc_category_t category =
+          static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
+      if (!Utf8CatUtils::isDigit(category)) {
+        result = false;
+        return true;
+      }
+
+      index += codePointSize;
+    }
+    result = true;
+    return true;
   }
-  result = true;
-  return true;
-}
-VELOX_UDF_END();
+};
 
 /**
  * torcharrow_isinteger(string) → bool
  * Return True if first character is -/+ or a number,
  * followed by all numbers, False otherwise.
  **/
-VELOX_UDF_BEGIN(torcharrow_isinteger)
-FOLLY_ALWAYS_INLINE
-bool call(bool& result, const arg_type<velox::Varchar>& input) {
-  using namespace velox::functions;
-  using namespace internal;
+template <typename T>
+struct torcharrow_isinteger {
+  VELOX_DEFINE_FUNCTION_TYPES(T);
 
-  size_t size = input.size();
-  if (size == 0) {
-    result = false;
-    return true;
-  }
+  FOLLY_ALWAYS_INLINE
+  bool call(bool& result, const arg_type<velox::Varchar>& input) {
+    using namespace velox::functions;
+    using namespace internal;
 
-  bool has_digit = false; //this is needed for the case where the string is "+" or "-"
-  size_t index = 0;
-  while (index < size) {
-    int codePointSize;
-    utf8proc_int32_t codePoint =
-        utf8proc_codepoint(input.data() + index, codePointSize);
-
-    if (index == 0 && (codePoint == '+' || codePoint == '-')) {
-        index += codePointSize;
-        continue;
-    }
-
-    utf8proc_category_t category =
-        static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
-
-    if (Utf8CatUtils::isNumber(category)) {
-         has_digit = true;
-    }
-    else {
-         result = false;
-         return true;
-    }
-
-    index += codePointSize;
-  }
-  result = has_digit;
-  return true;
-}
-VELOX_UDF_END();
-
-/**
- * torcharrow_isdecimal(string) → bool
- * Return True if the string contains only decimal digit (from 0 to 9), False otherwise.
- *
- * A string is decimal if all characters in the string are decimal digits
- * and there is at least one character in the string.
- **/
-VELOX_UDF_BEGIN(torcharrow_isdecimal)
-FOLLY_ALWAYS_INLINE
-bool call(bool& result, const arg_type<velox::Varchar>& input) {
-  using namespace velox::functions;
-  using namespace internal;
-
-  size_t size = input.size();
-  if (size == 0) {
-    result = false;
-    return true;
-  }
-
-  size_t index = 0;
-  while (index < size) {
-    int codePointSize;
-    utf8proc_int32_t codePoint =
-        utf8proc_codepoint(input.data() + index, codePointSize);
-
-    utf8proc_category_t category =
-        static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
-    if (!Utf8CatUtils::isDecimal(category)) {
+    size_t size = input.size();
+    if (size == 0) {
       result = false;
       return true;
     }
 
-    index += codePointSize;
+    bool has_digit =
+        false; // this is needed for the case where the string is "+" or "-"
+    size_t index = 0;
+    while (index < size) {
+      int codePointSize;
+      utf8proc_int32_t codePoint =
+          utf8proc_codepoint(input.data() + index, codePointSize);
+
+      if (index == 0 && (codePoint == '+' || codePoint == '-')) {
+        index += codePointSize;
+        continue;
+      }
+
+      utf8proc_category_t category =
+          static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
+
+      if (Utf8CatUtils::isNumber(category)) {
+        has_digit = true;
+      } else {
+        result = false;
+        return true;
+      }
+
+      index += codePointSize;
+    }
+    result = has_digit;
+    return true;
   }
-  result = true;
-  return true;
-}
-VELOX_UDF_END();
+};
+
+/**
+ * torcharrow_isdecimal(string) → bool
+ * Return True if the string contains only decimal digit (from 0 to 9), False
+ *otherwise.
+ *
+ * A string is decimal if all characters in the string are decimal digits
+ * and there is at least one character in the string.
+ **/
+template <typename T>
+struct torcharrow_isdecimal {
+  VELOX_DEFINE_FUNCTION_TYPES(T);
+
+  FOLLY_ALWAYS_INLINE
+  bool call(bool& result, const arg_type<velox::Varchar>& input) {
+    using namespace velox::functions;
+    using namespace internal;
+
+    size_t size = input.size();
+    if (size == 0) {
+      result = false;
+      return true;
+    }
+
+    size_t index = 0;
+    while (index < size) {
+      int codePointSize;
+      utf8proc_int32_t codePoint =
+          utf8proc_codepoint(input.data() + index, codePointSize);
+
+      utf8proc_category_t category =
+          static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
+      if (!Utf8CatUtils::isDecimal(category)) {
+        result = false;
+        return true;
+      }
+
+      index += codePointSize;
+    }
+    result = true;
+    return true;
+  }
+};
 
 /**
  * torcharrow_islower(string) → bool
@@ -257,43 +273,46 @@ VELOX_UDF_END();
  * A string is in lower case if all the alphabetic characters in the string are
  * in lower case and there is at least one alphabetic character in the string.
  **/
-VELOX_UDF_BEGIN(torcharrow_islower)
-FOLLY_ALWAYS_INLINE
-bool call(bool& result, const arg_type<velox::Varchar>& input) {
-  using namespace velox::functions;
-  using namespace internal;
+template <typename T>
+struct torcharrow_islower {
+  VELOX_DEFINE_FUNCTION_TYPES(T);
 
-  size_t size = input.size();
-  if (size == 0) {
-    result = false;
-    return true;
-  }
+  FOLLY_ALWAYS_INLINE
+  bool call(bool& result, const arg_type<velox::Varchar>& input) {
+    using namespace velox::functions;
+    using namespace internal;
 
-  size_t index = 0;
-  bool has_alph_lower = false;
-  while (index < size) {
-    int codePointSize;
-    utf8proc_int32_t codePoint =
-        utf8proc_codepoint(input.data() + index, codePointSize);
-
-    utf8proc_category_t category =
-        static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
-    if (Utf8CatUtils::isUpper(category)) {
+    size_t size = input.size();
+    if (size == 0) {
       result = false;
       return true;
-    } else if (Utf8CatUtils::isLower(category)) {
-      has_alph_lower = true;
-    } else {
-      // Ignore non-alphbetic letters. This behavior is consistent with
-      // python str.islower() behavior.
     }
 
-    index += codePointSize;
+    size_t index = 0;
+    bool has_alph_lower = false;
+    while (index < size) {
+      int codePointSize;
+      utf8proc_int32_t codePoint =
+          utf8proc_codepoint(input.data() + index, codePointSize);
+
+      utf8proc_category_t category =
+          static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
+      if (Utf8CatUtils::isUpper(category)) {
+        result = false;
+        return true;
+      } else if (Utf8CatUtils::isLower(category)) {
+        has_alph_lower = true;
+      } else {
+        // Ignore non-alphbetic letters. This behavior is consistent with
+        // python str.islower() behavior.
+      }
+
+      index += codePointSize;
+    }
+    result = has_alph_lower;
+    return true;
   }
-  result = has_alph_lower;
-  return true;
-}
-VELOX_UDF_END();
+};
 
 /**
  * torcharrow_isupper(string) → bool
@@ -302,90 +321,96 @@ VELOX_UDF_END();
  * A string is in upper case if all the alphabetic characters in the string are
  * in upper case and there is at least one alphabetic character in the string.
  **/
-VELOX_UDF_BEGIN(torcharrow_isupper)
-FOLLY_ALWAYS_INLINE
-bool call(bool& result, const arg_type<velox::Varchar>& input) {
-  using namespace velox::functions;
-  using namespace internal;
+template <typename T>
+struct torcharrow_isupper {
+  VELOX_DEFINE_FUNCTION_TYPES(T);
 
-  size_t size = input.size();
-  if (size == 0) {
-    result = false;
-    return true;
-  }
+  FOLLY_ALWAYS_INLINE
+  bool call(bool& result, const arg_type<velox::Varchar>& input) {
+    using namespace velox::functions;
+    using namespace internal;
 
-  size_t index = 0;
-  bool has_alph_upper = false;
-  while (index < size) {
-    int codePointSize;
-    utf8proc_int32_t codePoint =
-        utf8proc_codepoint(input.data() + index, codePointSize);
-
-    utf8proc_category_t category =
-        static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
-    if (Utf8CatUtils::isLower(category)) {
+    size_t size = input.size();
+    if (size == 0) {
       result = false;
       return true;
-    } else if (Utf8CatUtils::isUpper(category)) {
-      has_alph_upper = true;
-    } else {
-      // Ignore non-alphbetic letters. This behavior is consistent with
-      // python str.isupper() behavior.
     }
 
-    index += codePointSize;
+    size_t index = 0;
+    bool has_alph_upper = false;
+    while (index < size) {
+      int codePointSize;
+      utf8proc_int32_t codePoint =
+          utf8proc_codepoint(input.data() + index, codePointSize);
+
+      utf8proc_category_t category =
+          static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
+      if (Utf8CatUtils::isLower(category)) {
+        result = false;
+        return true;
+      } else if (Utf8CatUtils::isUpper(category)) {
+        has_alph_upper = true;
+      } else {
+        // Ignore non-alphbetic letters. This behavior is consistent with
+        // python str.isupper() behavior.
+      }
+
+      index += codePointSize;
+    }
+    result = has_alph_upper;
+    return true;
   }
-  result = has_alph_upper;
-  return true;
-}
-VELOX_UDF_END();
+};
 
 /**
  * torcharrow_isspace(string) → bool
  * Return True all characters in the string are whitespace
  * , False otherwise.
  **/
-VELOX_UDF_BEGIN(torcharrow_isspace)
-FOLLY_ALWAYS_INLINE
-bool call(bool& result, const arg_type<velox::Varchar>& input) {
-  using namespace velox::functions;
-  using namespace internal;
+template <typename T>
+struct torcharrow_isspace {
+  VELOX_DEFINE_FUNCTION_TYPES(T);
 
-  size_t size = input.size();
-  if (size == 0) {
-    result = false;
-    return true;
-  }
+  FOLLY_ALWAYS_INLINE
+  bool call(bool& result, const arg_type<velox::Varchar>& input) {
+    using namespace velox::functions;
+    using namespace internal;
 
-  // Indicating that NLF-sequences (LF, CRLF, CR, NEL) including
-  // HorizontalTab (HT) and FormFeed (FF) are representing a line break,
-  // and should be converted to the codepoint for line separation (LS)
-  utf8proc_option_t options =
-      static_cast<utf8proc_option_t>(UTF8PROC_STRIPCC | UTF8PROC_NLF2LS);
-
-  size_t index = 0;
-  while (index < size) {
-    int codePointSize;
-    utf8proc_int32_t codePoint =
-        utf8proc_codepoint(input.data() + index, codePointSize);
-
-    // Convert all NLF-sequences in codepoint to line separation (LS)
-    // Reason: No explicit category for characters like \n or \t in utfproc
-    utf8proc_normalize_utf32(&codePoint, codePointSize, options);
-
-    utf8proc_category_t category =
-        static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
-    if (!(Utf8CatUtils::isSpace(category))) {
+    size_t size = input.size();
+    if (size == 0) {
       result = false;
       return true;
     }
 
-    index += codePointSize;
+    // Indicating that NLF-sequences (LF, CRLF, CR, NEL) including
+    // HorizontalTab (HT) and FormFeed (FF) are representing a line break,
+    // and should be converted to the codepoint for line separation (LS)
+    utf8proc_option_t options =
+        static_cast<utf8proc_option_t>(UTF8PROC_STRIPCC | UTF8PROC_NLF2LS);
+
+    size_t index = 0;
+    while (index < size) {
+      int codePointSize;
+      utf8proc_int32_t codePoint =
+          utf8proc_codepoint(input.data() + index, codePointSize);
+
+      // Convert all NLF-sequences in codepoint to line separation (LS)
+      // Reason: No explicit category for characters like \n or \t in utfproc
+      utf8proc_normalize_utf32(&codePoint, codePointSize, options);
+
+      utf8proc_category_t category =
+          static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
+      if (!(Utf8CatUtils::isSpace(category))) {
+        result = false;
+        return true;
+      }
+
+      index += codePointSize;
+    }
+    result = true;
+    return true;
   }
-  result = true;
-  return true;
-}
-VELOX_UDF_END();
+};
 
 /**
  * torcharrow_istitle(string) → bool
@@ -395,55 +420,58 @@ VELOX_UDF_END();
  * A string is a title if each word of the string starts with an upper or title
  * case letter and there is at least one alphabetic character in the string.
  **/
-VELOX_UDF_BEGIN(torcharrow_istitle)
-FOLLY_ALWAYS_INLINE
-bool call(bool& result, const arg_type<velox::Varchar>& input) {
-  using namespace velox::functions;
-  using namespace internal;
+template <typename T>
+struct torcharrow_istitle {
+  VELOX_DEFINE_FUNCTION_TYPES(T);
 
-  size_t size = input.size();
-  if (size == 0) {
-    result = false;
-    return true;
-  }
+  FOLLY_ALWAYS_INLINE
+  bool call(bool& result, const arg_type<velox::Varchar>& input) {
+    using namespace velox::functions;
+    using namespace internal;
 
-  size_t index = 0;
-  bool has_alph = false;
-  bool has_alph_upper = false;
-  while (index < size) {
-    int codePointSize;
-    utf8proc_int32_t codePoint =
-        utf8proc_codepoint(input.data() + index, codePointSize);
-    utf8proc_category_t category =
-        static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
-
-    if (Utf8CatUtils::isAlpha(category)) {
-      has_alph = true;
-      if (Utf8CatUtils::isUpper(category)) {
-        // False if it has more than 1 upper or title case
-        if (has_alph_upper) {
-          result = false;
-          return true;
-        } else {
-          has_alph_upper = true;
-        }
-      } else { // isLower
-        if (!has_alph_upper) {
-          // False if it only has lower case
-          result = false;
-          return true;
-        }
-      }
-    } else {
-      has_alph_upper = false;
+    size_t size = input.size();
+    if (size == 0) {
+      result = false;
+      return true;
     }
 
-    index += codePointSize;
+    size_t index = 0;
+    bool has_alph = false;
+    bool has_alph_upper = false;
+    while (index < size) {
+      int codePointSize;
+      utf8proc_int32_t codePoint =
+          utf8proc_codepoint(input.data() + index, codePointSize);
+      utf8proc_category_t category =
+          static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
+
+      if (Utf8CatUtils::isAlpha(category)) {
+        has_alph = true;
+        if (Utf8CatUtils::isUpper(category)) {
+          // False if it has more than 1 upper or title case
+          if (has_alph_upper) {
+            result = false;
+            return true;
+          } else {
+            has_alph_upper = true;
+          }
+        } else { // isLower
+          if (!has_alph_upper) {
+            // False if it only has lower case
+            result = false;
+            return true;
+          }
+        }
+      } else {
+        has_alph_upper = false;
+      }
+
+      index += codePointSize;
+    }
+    result = has_alph;
+    return true;
   }
-  result = has_alph;
-  return true;
-}
-VELOX_UDF_END();
+};
 
 /**
  * torcharrow_isnumeric(string) → bool
@@ -451,35 +479,38 @@ VELOX_UDF_END();
  *
  * A string is a numeric if each character of the string is numeric
  **/
-VELOX_UDF_BEGIN(torcharrow_isnumeric)
-FOLLY_ALWAYS_INLINE
-bool call(bool& result, const arg_type<velox::Varchar>& input) {
-  using namespace velox::functions;
-  using namespace internal;
+template <typename T>
+struct torcharrow_isnumeric {
+  VELOX_DEFINE_FUNCTION_TYPES(T);
 
-  size_t size = input.size();
-  if (size == 0) {
-    result = false;
-    return true;
-  }
+  FOLLY_ALWAYS_INLINE
+  bool call(bool& result, const arg_type<velox::Varchar>& input) {
+    using namespace velox::functions;
+    using namespace internal;
 
-  size_t index = 0;
-  while (index < size) {
-    int codePointSize;
-    utf8proc_int32_t codePoint =
-        utf8proc_codepoint(input.data() + index, codePointSize);
-    utf8proc_category_t category =
-        static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
-
-    if (!Utf8CatUtils::isNumber(category)) {
+    size_t size = input.size();
+    if (size == 0) {
       result = false;
       return true;
     }
 
-    index += codePointSize;
+    size_t index = 0;
+    while (index < size) {
+      int codePointSize;
+      utf8proc_int32_t codePoint =
+          utf8proc_codepoint(input.data() + index, codePointSize);
+      utf8proc_category_t category =
+          static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
+
+      if (!Utf8CatUtils::isNumber(category)) {
+        result = false;
+        return true;
+      }
+
+      index += codePointSize;
+    }
+    result = true;
+    return true;
   }
-  result = true;
-  return true;
-}
-VELOX_UDF_END();
+};
 } // namespace facebook::torcharrow::functions
