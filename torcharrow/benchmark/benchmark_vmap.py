@@ -13,7 +13,7 @@ def prepare_list_int_col():
             element.append(i * j)
         elements.append(element)
 
-    return ta.from_pylist(elements, dtype=dt.List(dt.int64), device="cpu")
+    return ta.from_pysequence(elements, dtype=dt.List(dt.int64), device="cpu")
 
 
 def list_map_int(col: ta.IColumn):
@@ -32,7 +32,7 @@ def prepare_list_str_col():
             element.append(f"str{i}_{j}")
         elements.append(element)
 
-    return ta.from_pylist(elements, dtype=dt.List(dt.string), device="cpu")
+    return ta.from_pysequence(elements, dtype=dt.List(dt.string), device="cpu")
 
 
 def list_map_str(col: ta.IColumn):

@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import math
 import operator
-from typing import Dict, List, Optional, Union, Callable
+from typing import Callable, Dict, List, Optional, Sequence, Union
 
 import numpy as np
 import torcharrow as ta
@@ -39,7 +39,9 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         return NumericalColumnCpu(device, dtype, velox.Column(get_velox_type(dtype)))
 
     @staticmethod
-    def _fromlist(device: str, data: List[Union[int, float, bool]], dtype: dt.DType):
+    def _from_pysequence(
+        device: str, data: Sequence[Union[int, float, bool]], dtype: dt.DType
+    ):
         velox_column = velox.Column(get_velox_type(dtype), data)
         return ColumnFromVelox._from_velox(
             device,
@@ -49,7 +51,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         )
 
     @staticmethod
-    def _fromarrow(device: str, array, dtype: dt.DType):
+    def _from_arrow(device: str, array, dtype: dt.DType):
         import pyarrow as pa
         from pyarrow.cffi import ffi
 
@@ -831,7 +833,9 @@ _primitive_types: List[dt.DType] = [
 ]
 for t in _primitive_types:
     Dispatcher.register((t.typecode + "_empty", "cpu"), NumericalColumnCpu._empty)
-    Dispatcher.register((t.typecode + "_fromlist", "cpu"), NumericalColumnCpu._fromlist)
     Dispatcher.register(
-        (t.typecode + "_fromarrow", "cpu"), NumericalColumnCpu._fromarrow
+        (t.typecode + "_from_pysequence", "cpu"), NumericalColumnCpu._from_pysequence
+    )
+    Dispatcher.register(
+        (t.typecode + "_from_arrow", "cpu"), NumericalColumnCpu._from_arrow
     )

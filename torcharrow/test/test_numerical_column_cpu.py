@@ -60,6 +60,9 @@ class TestNumericalColumnCpu(TestNumericalColumn):
     def test_describe(self):
         return self.base_test_describe()
 
+    def test_column_from_tuple(self):
+        return self.base_test_column_from_tuple()
+
     def test_column_from_numpy_array(self):
         return self.base_test_column_from_numpy_array()
 

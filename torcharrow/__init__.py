@@ -7,7 +7,7 @@ from .icolumn import IColumn, Column, concat, if_else  # noqa
 from .idataframe import IDataFrame, DataFrame, me  # noqa
 from .ilist_column import IListColumn  # noqa
 from .imap_column import IMapColumn  # noqa
-from .interop import from_pylist, from_arrow  # noqa
+from .interop import from_pysequence, from_arrow  # noqa
 from .inumerical_column import INumericalColumn  # noqa
 from .istring_column import IStringColumn  # noqa
 
@@ -21,7 +21,7 @@ __all__ = [
     "Column",
     "concat",
     "if_else",
-    "from_pylist",
+    "from_pysequence",
     "me",
     "functional",
     "IDataFrame",

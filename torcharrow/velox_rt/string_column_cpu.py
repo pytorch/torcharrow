@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import array as ar
-from typing import List, Optional
+from typing import Optional, Sequence
 
 import numpy as np
 import torcharrow._torcharrow as velox
@@ -68,7 +68,7 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
         return StringColumnCpu(device, dtype, data, mask)
 
     @staticmethod
-    def _fromlist(device: str, data: List[str], dtype: dt.DType):
+    def _from_pysequence(device: str, data: Sequence[str], dtype: dt.DType):
         velox_column = velox.Column(get_velox_type(dtype), data)
         return ColumnFromVelox._from_velox(
             device,
@@ -79,13 +79,13 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
 
     # TODO Add native kernel support
     @staticmethod
-    def _fromarrow(device: str, array, dtype: dt.DType):
+    def _from_arrow(device: str, array, dtype: dt.DType):
         import pyarrow as pa
 
         assert isinstance(array, pa.Array)
 
         pydata = [i.as_py() for i in array]
-        return StringColumnCpu._fromlist(device, pydata, dtype)
+        return StringColumnCpu._from_pysequence(device, pydata, dtype)
 
     def _append_null(self):
         if self._finalized:
@@ -370,10 +370,10 @@ class StringMethodsCpu(IStringMethods):
 Dispatcher.register((dt.String.typecode + "_empty", "cpu"), StringColumnCpu._empty)
 Dispatcher.register((dt.String.typecode + "_full", "cpu"), StringColumnCpu._full)
 Dispatcher.register(
-    (dt.String.typecode + "_fromlist", "cpu"), StringColumnCpu._fromlist
+    (dt.String.typecode + "_from_pysequence", "cpu"), StringColumnCpu._from_pysequence
 )
 Dispatcher.register(
-    (dt.String.typecode + "_fromarrow", "cpu"), StringColumnCpu._fromarrow
+    (dt.String.typecode + "_from_arrow", "cpu"), StringColumnCpu._from_arrow
 )
 
 

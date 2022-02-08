@@ -409,7 +409,7 @@ class INumericalColumn(IColumn):
                     res.append(None)
                 else:
                     res.append(fun(i, j))
-        return Scope._FromPyList(res, res_dtype)
+        return Scope._FromPySequence(res, res_dtype)
 
     def _is_zero_division_error(self, ex: Exception) -> bool:
         ex_str = str(ex)

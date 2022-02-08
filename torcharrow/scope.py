@@ -129,17 +129,25 @@ class Scope:
         return call(device, data, dtype, mask)
 
     @staticmethod
-    def _FromPyList(data: ty.List, dtype: dt.DType, device=""):
+    def _FromPySequence(data: ty.Sequence, dtype: dt.DType, device=""):
         """
-        Convert from plain Python container (list of scalars or containers).
+        Convert from plain Python sequence (sequence of scalars or containers).
         """
         Scope._require_column_constructors_to_be_registered()
 
         device = device or Scope.default.device
-        # TODO: rename the dispatch key to be "_from_pylist"
-        call = Dispatcher.lookup((dtype.typecode + "_fromlist", device))
+        call = Dispatcher.lookup((dtype.typecode + "_from_pysequence", device))
 
         return call(device, data, dtype)
+
+    @staticmethod
+    def null_check_from_pysequence(data: ty.Sequence, dtype: dt.DType, device=""):
+        result = Scope._FromPySequence(data, dtype, device)
+
+        # since dtype is known, check the nullability
+        if not dtype.nullable and result.null_count != 0:
+            raise ValueError(f"None found in the list for non-nullable type: {dtype}")
+        return result
 
     @staticmethod
     @trace
@@ -165,22 +173,16 @@ class Scope:
         if isinstance(data, dt.DType):
             (data, dtype) = (dtype, data)
 
-        # data is Python list
-        if isinstance(data, ty.List):
+        # data is a list or a tuple; we only allow type inference from flat tuples
+        if isinstance(data, ty.List) or isinstance(data, ty.Tuple):
             # TODO: infer the type from the whole list
             dtype = dtype or dt.infer_dtype_from_prefix(data[:7])
             if dtype is None or dt.is_any(dtype):
                 raise ValueError("Column cannot infer type from data")
             if dt.contains_tuple(dtype):
-                raise TypeError("Cannot infer type from Python tuple")
+                raise TypeError("Cannot infer type from nested Python tuple")
 
-            result = Scope._FromPyList(data, dtype, device)
-            # since dtype is known, check the nullability
-            if not dtype.nullable and result.null_count != 0:
-                raise ValueError(
-                    f"None found in the list for non-nullable type: {dtype}"
-                )
-            return result
+            return Scope.null_check_from_pysequence(data, dtype, device)
 
         if Scope._is_column(data):
             dtype = dtype or data.dtype
@@ -188,7 +190,7 @@ class Scope:
                 return data
             else:
                 # TODO: More efficient interop, such as leveraging arrow
-                return ta.from_pylist(data.to_pylist(), dtype=dtype, device=device)
+                return ta.from_pysequence(data.to_pylist(), dtype=dtype, device=device)
 
         if data is not None:
             warnings.warn(

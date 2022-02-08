@@ -46,7 +46,7 @@ class BenchmarkListConstruction:
             self.test_strings = test_strings
 
         def run(self):
-            col = Scope.default._FromPyList(self.test_strings, dtype=dt.string)
+            col = Scope.default._FromPySequence(self.test_strings, dtype=dt.string)
 
     def runListConstruction(
         self, runner: ListConstructionRunner, test_strings: Optional[List[str]] = None
