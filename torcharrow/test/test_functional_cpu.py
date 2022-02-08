@@ -4,7 +4,7 @@ import unittest
 import torcharrow as ta
 import torcharrow._torcharrow
 import torcharrow.dtypes as dt
-from torcharrow.functional import functional
+from torcharrow import functional
 from torcharrow.velox_rt.functional import velox_functional
 
 
