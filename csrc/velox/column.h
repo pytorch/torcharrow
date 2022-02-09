@@ -319,13 +319,17 @@ class BaseColumn {
     return _delegate;
   }
 
-  // TODO: deprecate this method and migrate to OperatorHandle::fromGenericUDF
+  // TODO: deprecate this method and method below and migrate to OperatorHandle::fromGenericUDF
   static std::shared_ptr<velox::exec::ExprSet> genUnaryExprSet(
       // input row type is required even for unary op since the input vector
       // needs to be wrapped into a velox::RowVector before evaluation.
       std::shared_ptr<const velox::RowType> inputRowType,
       velox::TypePtr outputType,
       const std::string& functionName);
+
+  static std::shared_ptr<velox::exec::ExprSet> genCastExprSet(
+      std::shared_ptr<const velox::RowType> inputRowType,
+      velox::TypePtr outputType);
 
   std::unique_ptr<BaseColumn> applyUnaryExprSet(
       // input row type is required even for unary op since the input vector
@@ -483,6 +487,18 @@ class SimpleColumn : public BaseColumn {
         velox::ROW({"c0"}, {velox::CppToType<T>::create()});
     const static auto exprSet = BaseColumn::genUnaryExprSet(
         inputRowType, velox::CppToType<T>::create(), "round");
+    return this->applyUnaryExprSet(inputRowType, exprSet);
+  }
+
+  //
+  // unary cast
+  //
+  template <typename ReturnType>
+  std::unique_ptr<BaseColumn> cast() {
+    const static auto inputRowType =
+        velox::ROW({"c0"}, {velox::CppToType<T>::create()});
+    const static auto exprSet = BaseColumn::genCastExprSet(
+        inputRowType, velox::CppToType<ReturnType>::create());
     return this->applyUnaryExprSet(inputRowType, exprSet);
   }
 

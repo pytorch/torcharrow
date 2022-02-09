@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import statistics
+import typing as ty
 import unittest
 from math import ceil, floor, log, isnan
 
@@ -533,18 +534,118 @@ class TestNumericalColumn(unittest.TestCase):
             ],
         )
 
-    def base_test_cast(self):
-        data = [1, 2, 3]
-        col_int64 = ta.Column(data, device="cpu")
-        col2_int32 = col_int64.cast(dt.int32)
-        self.assertEqual(list(col2_int32), data)
-        self.assertEqual(col2_int32.dtype, dt.int32)
+    def helper_test_cast(
+        self,
+        from_type: dt.DType,
+        to_type: dt.DType,
+        data: ty.Iterable[ty.Union[int, float]],
+        validation: ty.Callable = lambda x: x,
+    ):
+        col_from = ta.Column(data, device=self.device, dtype=from_type)
+        col_casted = col_from.cast(to_type)
+        self.assertEqual(list(col_casted), [validation(d) for d in data])
+        self.assertEqual(col_casted.dtype, to_type)
 
-        data2 = [1, 2, None]
-        col3 = ta.Column(data2, device="cpu", dtype=dt.Int32(nullable=True))
-        col3_float64 = col3.cast(dt.Float64(nullable=True))
-        self.assertEqual(col3_float64.dtype, dt.Float64(nullable=True))
-        self.assertEqual(list(col3_float64), data2)
+    def base_test_cast(self):
+        data_bool = [True, False, True, False, False, False, True, True]
+        data_int8 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100]
+        data_int8_nulls = [0, 1, 2, None, 4, 5, None, None, 8, None, 10]
+        data_int16 = data_int8 + [200, 300, 20000]
+        data_int16_nulls = [None, None] + data_int16
+        data_int32 = data_int16 + [33000, 5000000]
+
+        # note: Velox and Python do not agree on how to round a floating point
+        #       number that is halfway between two integers. That is, given 4.5,
+        #       Velox will convert that to the integer 5 during a cast. Python,
+        #       using the round() function, will round that to 4. We need to be
+        #       careful to not use such values in correctness tests.
+        data_float = [0.0, 1.2, 2.3, 3.4, 4.51, 5.6, 6.7, 8.9, 9.0, 10.1]
+
+        self.helper_test_cast(from_type=dt.boolean, to_type=dt.int8, data=data_bool)
+        self.helper_test_cast(from_type=dt.boolean, to_type=dt.float64, data=data_bool)
+        self.helper_test_cast(from_type=dt.int64, to_type=dt.int8, data=data_int8)
+        self.helper_test_cast(from_type=dt.int64, to_type=dt.int16, data=data_int16)
+        self.helper_test_cast(from_type=dt.int64, to_type=dt.int64, data=data_int32)
+        self.helper_test_cast(from_type=dt.int64, to_type=dt.int32, data=data_int32)
+        self.helper_test_cast(from_type=dt.int32, to_type=dt.int64, data=data_int32)
+        self.helper_test_cast(from_type=dt.int8, to_type=dt.int64, data=data_int8)
+        self.helper_test_cast(from_type=dt.int8, to_type=dt.int8, data=data_int8)
+        self.helper_test_cast(
+            from_type=dt.int64, to_type=dt.float64, data=data_int32, validation=float
+        )
+        self.helper_test_cast(
+            from_type=dt.int32, to_type=dt.float32, data=data_int32, validation=float
+        )
+
+        # FIXME: why does this test fail in Velox? all casts TO booleans seem to fail,
+        #        even when the original integer values are just 0 and 1.
+        # self.helper_test_cast(from_type=dt.boolean, to_type=dt.boolean, data=data_bool)
+
+        # note: round() instead of int(); simple conversion to ints does a floor
+        self.helper_test_cast(
+            from_type=dt.float32, to_type=dt.int32, data=data_float, validation=round
+        )
+
+        # non-nullable version of a type should be able to covert to a nullable version of the same type
+        self.helper_test_cast(
+            from_type=dt.int8, to_type=dt.Int8(nullable=True), data=data_int8
+        )
+        self.helper_test_cast(
+            from_type=dt.int16, to_type=dt.Int16(nullable=True), data=data_int16
+        )
+        self.helper_test_cast(
+            from_type=dt.int32, to_type=dt.Int32(nullable=True), data=data_int32
+        )
+        self.helper_test_cast(
+            from_type=dt.int64, to_type=dt.Int64(nullable=True), data=data_int32
+        )
+        self.helper_test_cast(
+            from_type=dt.float32, to_type=dt.Float32(nullable=True), data=data_int32
+        )
+        self.helper_test_cast(
+            from_type=dt.float64, to_type=dt.Float64(nullable=True), data=data_int32
+        )
+
+        # int32 with nulls -> float64 with nulls
+        def int_to_float_optional(x: ty.Optional[int]) -> ty.Optional[float]:
+            if x is None:
+                return None
+            return float(x)
+
+        self.helper_test_cast(
+            from_type=dt.Int64(nullable=True),
+            to_type=dt.Float64(nullable=True),
+            data=data_int8_nulls,
+            validation=int_to_float_optional,
+        )
+
+        with self.assertRaises(ValueError):
+            # ValueError: Cannot cast a column with nulls to a non-nullable type
+            self.helper_test_cast(
+                from_type=dt.Int8(nullable=True), to_type=dt.int32, data=data_int8_nulls
+            )
+
+        with self.assertRaises(ValueError):
+            # ValueError: Cannot cast a column with nulls to a non-nullable type
+            self.helper_test_cast(
+                from_type=dt.Int8(nullable=True), to_type=dt.int64, data=data_int8_nulls
+            )
+
+        with self.assertRaises(ValueError):
+            # ValueError: Cannot cast a column with nulls to a non-nullable type
+            self.helper_test_cast(
+                from_type=dt.Int16(nullable=True),
+                to_type=dt.int32,
+                data=data_int16_nulls,
+            )
+
+        with self.assertRaises(ValueError):
+            # ValueError: Cannot cast a column with nulls to a non-nullable type
+            self.helper_test_cast(
+                from_type=dt.Int16(nullable=True),
+                to_type=dt.int64,
+                data=data_int16_nulls,
+            )
 
     def base_test_column_from_tuple(self):
         data_int = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)

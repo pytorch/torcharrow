@@ -547,6 +547,16 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     @trace
     @expression
+    def cast(self, dtype: dt.DType):
+        if self.null_count != 0 and not dtype.nullable:
+            raise ValueError("Cannot cast a column with nulls to a non-nullable type")
+
+        return ColumnFromVelox._from_velox(
+            self.device, dtype, self._data.cast(get_velox_type(dtype).kind()), True
+        )
+
+    @trace
+    @expression
     def ceil(self):
         return ColumnFromVelox._from_velox(
             self.device, self.dtype, self._data.ceil(), True
