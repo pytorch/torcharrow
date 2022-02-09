@@ -234,6 +234,23 @@ std::shared_ptr<velox::exec::ExprSet> BaseColumn::genUnaryExprSet(
       std::move(callTypedExprs), &TorchArrowGlobalStatic::execContext());
 }
 
+std::shared_ptr<velox::exec::ExprSet> BaseColumn::genCastExprSet(
+    std::shared_ptr<const velox::RowType> inputRowType,
+    velox::TypePtr outputType) {
+  using InputExprList =
+      std::vector<std::shared_ptr<const velox::core::ITypedExpr>>;
+  InputExprList fieldAccessTypedExprs{
+      std::make_shared<velox::core::FieldAccessTypedExpr>(
+          inputRowType->childAt(0),
+          inputRowType->nameOf(0))};
+
+  InputExprList castTypedExprs{std::make_shared<velox::core::CastTypedExpr>(
+      outputType, std::move(fieldAccessTypedExprs), false /* nullOnFailure */)};
+
+  return std::make_shared<velox::exec::ExprSet>(
+      std::move(castTypedExprs), &TorchArrowGlobalStatic::execContext());
+}
+
 std::unique_ptr<BaseColumn> BaseColumn::applyUnaryExprSet(
     std::shared_ptr<const velox::RowType> inputRowType,
     std::shared_ptr<velox::exec::ExprSet> exprSet) {
