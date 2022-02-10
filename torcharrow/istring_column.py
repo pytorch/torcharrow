@@ -89,38 +89,76 @@ class IStringMethods(ABC):
 
     @abstractmethod
     def isalpha(self):
+        """
+        Return True if the string is an alphabetic string, False otherwise.
+
+        A string is alphabetic if all characters in the string are alphabetic
+        and there is at least one character in the string.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def isnumeric(self):
+        """
+        Returns True if all the characters are numeric, otherwise False.
+
+        A string is a numeric if each character of the string is numeric.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def isalnum(self):
+        """
+        Return True if all characters in the string are alphanumeric (either
+        alphabets or numbers), False otherwise.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def isdigit(self):
+        """
+        Return True if all characters in the string are numeric, False otherwise.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def isdecimal(self):
+        """
+        Return True if the string contains only decimal digit (from 0 to 9), False
+        otherwise.
+
+        A string is decimal if all characters in the string are decimal digits
+        and there is at least one character in the string.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def isspace(self):
+        """
+        Return True all characters in the string are whitespace, False otherwise.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def islower(self):
+        """
+        Return True if the non-empty string is in lower case, False otherwise.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def isupper(self):
+        """
+        Return True if the non-empty string is in upper case, False otherwise.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def istitle(self):
+        """
+        Return True if each word of the string starts with an
+        upper case letter, False otherwise.
+        """
         raise NotImplementedError
 
     # Convert strings in the Column -----------------------------------------------------

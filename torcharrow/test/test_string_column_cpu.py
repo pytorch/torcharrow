@@ -1,5 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import typing as ty
 import unittest
+
+import torcharrow as ta
+import torcharrow.dtypes as dt
 
 from .test_string_column import TestStringColumn
 
@@ -7,6 +11,13 @@ from .test_string_column import TestStringColumn
 class TestStringColumnCpu(TestStringColumn):
     def setUp(self):
         self.device = "cpu"
+
+    def create_column(
+        self,
+        data: ty.Union[ty.Iterable, dt.DType, None] = None,
+        dtype: ty.Optional[dt.DType] = None,
+    ):
+        return ta.Column(data, dtype, self.device)
 
     def test_empty(self):
         self.base_test_empty()
