@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import typing as ty
 import unittest
 
 import torcharrow as ta
@@ -7,6 +8,15 @@ from torcharrow.istring_column import IStringColumn
 
 
 class TestStringColumn(unittest.TestCase):
+    # This create_column function is created so that child classes
+    # can override to generate column on other runtimes
+    def create_column(
+        self,
+        data: ty.Union[ty.Iterable, dt.DType, None] = None,
+        dtype: ty.Optional[dt.DType] = None,
+    ):
+        raise NotImplementedError
+
     def base_test_empty(self):
         empty = ta.Column(dt.string, device=self.device)
         self.assertTrue(isinstance(empty, IStringColumn))
@@ -50,74 +60,76 @@ class TestStringColumn(unittest.TestCase):
         # isalpha/isnumeric/isalnum/isdigit/isdecimal/isspace/islower/isupper/istitle
         self.assertEqual(
             list(
-                ta.Column(
+                self.create_column(
                     ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", None],
                     dt.String(True),
-                    device=self.device,
                 ).str.isalpha()
             ),
             [False, True, True, False, False, True, False, None],
         )
         self.assertEqual(
-            list(ta.Column(["+3.e12", "abc", "0"], device=self.device).str.isnumeric()),
+            list(
+                self.create_column(
+                    ["+3.e12", "abc", "0"],
+                ).str.isnumeric()
+            ),
             [False, False, True],
         )
         self.assertEqual(
             list(
-                ta.Column(
+                self.create_column(
                     ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", None],
                     dt.String(True),
-                    device=self.device,
                 ).str.isalnum()
             ),
             [False, True, True, True, True, True, False, None],
         )
         self.assertEqual(
             list(
-                ta.Column(
+                self.create_column(
                     ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", "\u00B2", None],
                     dt.String(True),
-                    device=self.device,
                 ).str.isdigit()
             ),
             [False, False, False, True, False, False, False, True, None],
         )
         self.assertEqual(
             list(
-                ta.Column(
+                self.create_column(
                     ["", "abc", "XYZ", "123", "XYZ123", "äöå", ",.!", "\u00B2", None],
                     dt.String(True),
-                    device=self.device,
                 ).str.isdecimal()
             ),
             [False, False, False, True, False, False, False, False, None],
         )
         self.assertEqual(
             list(
-                ta.Column(["\n", "\t", " ", "", "a"], device=self.device).str.isspace()
+                self.create_column(
+                    ["\n", "\t", " ", "", "a"],
+                ).str.isspace()
             ),
             [True, True, True, False, False],
         )
         self.assertEqual(
             list(
-                ta.Column(
-                    ["UPPER", "lower", ".abc", ".ABC", "123"], device=self.device
+                self.create_column(
+                    ["UPPER", "lower", ".abc", ".ABC", "123"],
                 ).str.islower()
             ),
             [False, True, True, False, False],
         )
         self.assertEqual(
             list(
-                ta.Column(
-                    ["UPPER", "lower", ".abc", ".ABC", "123"], device=self.device
+                self.create_column(
+                    ["UPPER", "lower", ".abc", ".ABC", "123"],
                 ).str.isupper()
             ),
             [True, False, False, True, False],
         )
         self.assertEqual(
             list(
-                ta.Column(
-                    ["A B C", "ABc", "Abc", "abc", " ", ""], device=self.device
+                self.create_column(
+                    ["A B C", "ABc", "Abc", "abc", " ", ""],
                 ).str.istitle()
             ),
             [True, False, True, False, False, False],

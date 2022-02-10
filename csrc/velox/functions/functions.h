@@ -16,8 +16,7 @@ inline void registerTorchArrowFunctions() {
       {"torcharrow_isalnum"});
   velox::registerFunction<torcharrow_isdigit, bool, velox::Varchar>(
       {"torcharrow_isdigit"});
-  velox::registerFunction<torcharrow_isinteger, bool, velox::Varchar>(
-      {"torcharrow_isinteger"});
+  // TODO: Fix inconsistent udf alias isdecimal, isupper, isnumeric.
   velox::registerFunction<torcharrow_isdecimal, bool, velox::Varchar>(
       {"isdecimal"});
   velox::registerFunction<torcharrow_islower, bool, velox::Varchar>(

@@ -26,7 +26,7 @@ from .trace import trace, traceproperty
 
 
 def Column(
-    data: ty.Union[ty.Iterable, dt.DType, ty.Literal[None]] = None,
+    data: ty.Union[ty.Iterable, dt.DType, None] = None,
     dtype: ty.Optional[dt.DType] = None,
     device: Device = "",
 ):

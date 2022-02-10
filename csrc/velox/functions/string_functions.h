@@ -96,7 +96,7 @@ struct torcharrow_isalpha {
 /**
  * torcharrow_isalnum(string) → bool
  * Return True if all characters in the string are alphanumeric (either
- *alphabets or numbers), False otherwise.
+ * alphabets or numbers), False otherwise.
  **/
 template <typename T>
 struct torcharrow_isalnum {
@@ -174,59 +174,9 @@ struct torcharrow_isdigit {
 };
 
 /**
- * torcharrow_isinteger(string) → bool
- * Return True if first character is -/+ or a number,
- * followed by all numbers, False otherwise.
- **/
-template <typename T>
-struct torcharrow_isinteger {
-  VELOX_DEFINE_FUNCTION_TYPES(T);
-
-  FOLLY_ALWAYS_INLINE
-  bool call(bool& result, const arg_type<velox::Varchar>& input) {
-    using namespace velox::functions;
-    using namespace internal;
-
-    size_t size = input.size();
-    if (size == 0) {
-      result = false;
-      return true;
-    }
-
-    bool has_digit =
-        false; // this is needed for the case where the string is "+" or "-"
-    size_t index = 0;
-    while (index < size) {
-      int codePointSize;
-      utf8proc_int32_t codePoint =
-          utf8proc_codepoint(input.data() + index, codePointSize);
-
-      if (index == 0 && (codePoint == '+' || codePoint == '-')) {
-        index += codePointSize;
-        continue;
-      }
-
-      utf8proc_category_t category =
-          static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
-
-      if (Utf8CatUtils::isNumber(category)) {
-        has_digit = true;
-      } else {
-        result = false;
-        return true;
-      }
-
-      index += codePointSize;
-    }
-    result = has_digit;
-    return true;
-  }
-};
-
-/**
  * torcharrow_isdecimal(string) → bool
  * Return True if the string contains only decimal digit (from 0 to 9), False
- *otherwise.
+ * otherwise.
  *
  * A string is decimal if all characters in the string are decimal digits
  * and there is at least one character in the string.
