@@ -186,13 +186,6 @@ OperatorHandle* BaseColumn::getOrCreateBinaryOperatorHandle(
         case BinaryOpCode::Lte:
         case BinaryOpCode::Gte:
           return velox::TypeFactory<velox::TypeKind::BOOLEAN>::create();
-        case BinaryOpCode::Pow:
-          if (commonType->kind() == velox::TypeKind::DOUBLE) {
-            return velox::TypeFactory<velox::TypeKind::DOUBLE>::create();
-          } else if (commonType->kind() == velox::TypeKind::REAL) {
-            return velox::TypeFactory<velox::TypeKind::REAL>::create();
-          }
-          return velox::TypeFactory<velox::TypeKind::BIGINT>::create();
         default:
           return commonType;
       }
