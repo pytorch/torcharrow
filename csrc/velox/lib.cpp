@@ -356,55 +356,12 @@ py::class_<SimpleColumn<T>, BaseColumn>& declareBitwiseOperations(
 template <
     velox::TypeKind kind,
     typename T = typename velox::TypeTraits<kind>::NativeType>
-std::unique_ptr<BaseColumn> cast_explicit(
-    SimpleColumn<T>& column,
-    velox::TypeKind return_type) {
-  switch (return_type) {
-    case velox::TypeKind::BOOLEAN: {
-      return column.template cast<bool>();
-      break;
-    }
-    case velox::TypeKind::TINYINT: {
-      return column.template cast<int8_t>();
-      break;
-    }
-    case velox::TypeKind::SMALLINT: {
-      return column.template cast<int16_t>();
-      break;
-    }
-    case velox::TypeKind::INTEGER: {
-      return column.template cast<int32_t>();
-      break;
-    }
-    case velox::TypeKind::BIGINT: {
-      return column.template cast<int64_t>();
-      break;
-    }
-    case velox::TypeKind::REAL: {
-      return column.template cast<float>();
-      break;
-    }
-    case velox::TypeKind::DOUBLE: {
-      return column.template cast<double>();
-      break;
-    }
-    default: {
-      throw std::invalid_argument(
-          "Unsupported cast type: " + velox::mapTypeKindToName(return_type));
-      break;
-    }
-  }
-}
-
-template <
-    velox::TypeKind kind,
-    typename T = typename velox::TypeTraits<kind>::NativeType>
 py::class_<SimpleColumn<T>, BaseColumn> declareNumericalType(py::module& m) {
   py::class_<SimpleColumn<T>, BaseColumn> pyClass =
       declareSimpleType<kind>(m, [](auto val) { return py::cast(val); })
           .def("neg", &SimpleColumn<T>::neg)
           .def("abs", &SimpleColumn<T>::abs)
-          .def("cast", &cast_explicit<kind>)
+          .def("cast", &SimpleColumn<T>::cast)
           // Defining three methods for each binary operation: one for column *
           // column, one for column * scalar, and one for scalar * column. Note
           // that the scalar * column form is for reverse operations, which is
@@ -856,7 +813,7 @@ PYBIND11_MODULE(_torcharrow, m) {
   auto boolColumnClass =
       declareSimpleType<velox::TypeKind::BOOLEAN>(
           m, [](auto val) { return py::cast(val); })
-          .def("cast", &cast_explicit<velox::TypeKind::BOOLEAN>)
+          .def("cast", &SimpleColumn<bool>::cast)
           .def(
               "append",
               [](SimpleColumn<bool>& self, bool value) { self.append(value); },

@@ -60,20 +60,32 @@ velox::variant pyToVariant(const pybind11::handle& obj);
 
 class BaseColumn;
 
-struct OperatorHandle {
-  velox::RowTypePtr inputRowType_;
-  std::shared_ptr<velox::exec::ExprSet> exprSet_;
-
+class OperatorHandle {
+ public:
   OperatorHandle(
       velox::RowTypePtr inputRowType,
       std::shared_ptr<velox::exec::ExprSet> exprSet)
       : inputRowType_(inputRowType), exprSet_(exprSet) {}
 
+  // Create OperatorHandle based on the function name, input type
+  // and explicitly provided output type.
+  static std::unique_ptr<OperatorHandle> fromCall(
+      velox::RowTypePtr inputRowType,
+      velox::TypePtr outputType,
+      const std::string& functionName);
+
   // Create OperatorHandle based on the function name and input type
   // Doesn't handle type promotion yet
-  static std::unique_ptr<OperatorHandle> fromGenericUDF(
+  static std::unique_ptr<OperatorHandle> fromUDF(
       velox::RowTypePtr inputRowType,
       const std::string& udfName);
+
+  // Create OperatorHandle based on input type and output type only.
+  // Note that this creates a cast expression, not a call expression.
+  static std::unique_ptr<OperatorHandle> fromCast(
+      velox::RowTypePtr inputRowType,
+      velox::TypePtr outputType);
+
 
   static velox::RowVectorPtr wrapRowVector(
       const std::vector<velox::VectorPtr>& children,
@@ -86,15 +98,30 @@ struct OperatorHandle {
         children);
   }
 
-  std::unique_ptr<BaseColumn> call(velox::vector_size_t size);
-
   // Specialized invoke methods for common arities
   // Input type velox::VectorPtr (instead of BaseColumn) since it might be a
   // ConstantVector
   // TODO: Use Column once ConstantColumn is supported
-  std::unique_ptr<BaseColumn> call(velox::VectorPtr a, velox::VectorPtr b);
+  std::unique_ptr<BaseColumn> call(
+      velox::RowVectorPtr inputRows,
+      velox::vector_size_t size);
 
-  std::unique_ptr<BaseColumn> call(const std::vector<velox::VectorPtr>& args);
+  std::unique_ptr<BaseColumn> call(
+      velox::vector_size_t size);
+
+  std::unique_ptr<BaseColumn> call(
+      velox::VectorPtr a);
+
+  std::unique_ptr<BaseColumn> call(
+      velox::VectorPtr a,
+      velox::VectorPtr b);
+
+  std::unique_ptr<BaseColumn> call(
+      const std::vector<velox::VectorPtr>& args);
+
+ private:
+  velox::RowTypePtr inputRowType_;
+  std::shared_ptr<velox::exec::ExprSet> exprSet_;
 };
 
 class PromoteNumericTypeKind {
@@ -217,7 +244,7 @@ class BaseColumn {
   friend class ArrayColumn;
   friend class MapColumn;
   friend class RowColumn;
-  friend struct OperatorHandle;
+  friend class OperatorHandle;
 
  protected:
   velox::VectorPtr _delegate;
@@ -318,24 +345,6 @@ class BaseColumn {
   velox::VectorPtr getUnderlyingVeloxVector() const {
     return _delegate;
   }
-
-  // TODO: deprecate this method and method below and migrate to OperatorHandle::fromGenericUDF
-  static std::shared_ptr<velox::exec::ExprSet> genUnaryExprSet(
-      // input row type is required even for unary op since the input vector
-      // needs to be wrapped into a velox::RowVector before evaluation.
-      std::shared_ptr<const velox::RowType> inputRowType,
-      velox::TypePtr outputType,
-      const std::string& functionName);
-
-  static std::shared_ptr<velox::exec::ExprSet> genCastExprSet(
-      std::shared_ptr<const velox::RowType> inputRowType,
-      velox::TypePtr outputType);
-
-  std::unique_ptr<BaseColumn> applyUnaryExprSet(
-      // input row type is required even for unary op since the input vector
-      // needs to be wrapped into a velox::RowVector before evaluation.
-      std::shared_ptr<const velox::RowType> inputRowType,
-      std::shared_ptr<velox::exec::ExprSet> exprSet);
 
   static std::shared_ptr<velox::exec::ExprSet> genBinaryExprSet(
       std::shared_ptr<const velox::RowType> inputRowType,
@@ -438,68 +447,85 @@ class SimpleColumn : public BaseColumn {
   std::unique_ptr<BaseColumn> invert() {
     const static auto inputRowType =
         velox::ROW({"c0"}, {velox::CppToType<T>::create()});
-    const static auto exprSet = []() -> std::shared_ptr<velox::exec::ExprSet> {
+    const static auto opHandle = []() -> std::unique_ptr<OperatorHandle> {
       if constexpr (std::is_same_v<T, bool>) {
-        return BaseColumn::genUnaryExprSet(
+        return OperatorHandle::fromCall(
             inputRowType, velox::CppToType<T>::create(), "not");
       } else {
-        return BaseColumn::genUnaryExprSet(
+        return OperatorHandle::fromCall(
             inputRowType, velox::CppToType<T>::create(), "bitwise_not");
       }
     }();
-    return this->applyUnaryExprSet(inputRowType, exprSet);
+
+    return opHandle->call(_delegate);
   }
 
   std::unique_ptr<BaseColumn> neg() {
     const static auto inputRowType =
         velox::ROW({"c0"}, {velox::CppToType<T>::create()});
-    const static auto exprSet = BaseColumn::genUnaryExprSet(
+    const static auto opHandle = OperatorHandle::fromCall(
         inputRowType, velox::CppToType<T>::create(), "negate");
-    return this->applyUnaryExprSet(inputRowType, exprSet);
+    return opHandle->call(_delegate);
   }
 
   std::unique_ptr<BaseColumn> abs() {
     const static auto inputRowType =
         velox::ROW({"c0"}, {velox::CppToType<T>::create()});
-    const static auto exprSet = BaseColumn::genUnaryExprSet(
+    const static auto opHandle = OperatorHandle::fromCall(
         inputRowType, velox::CppToType<T>::create(), "abs");
-    return this->applyUnaryExprSet(inputRowType, exprSet);
+    return opHandle->call(_delegate);
   }
 
   std::unique_ptr<BaseColumn> ceil() {
     const static auto inputRowType =
         velox::ROW({"c0"}, {velox::CppToType<T>::create()});
-    const static auto exprSet = BaseColumn::genUnaryExprSet(
+    const static auto opHandle = OperatorHandle::fromCall(
         inputRowType, velox::CppToType<T>::create(), "ceil");
-    return this->applyUnaryExprSet(inputRowType, exprSet);
+    return opHandle->call(_delegate);
   }
 
   std::unique_ptr<BaseColumn> floor() {
     const static auto inputRowType =
         velox::ROW({"c0"}, {velox::CppToType<T>::create()});
-    const static auto exprSet = BaseColumn::genUnaryExprSet(
+    const static auto opHandle = OperatorHandle::fromCall(
         inputRowType, velox::CppToType<T>::create(), "floor");
-    return this->applyUnaryExprSet(inputRowType, exprSet);
+    return opHandle->call(_delegate);
   }
 
   std::unique_ptr<BaseColumn> round() {
     const static auto inputRowType =
         velox::ROW({"c0"}, {velox::CppToType<T>::create()});
-    const static auto exprSet = BaseColumn::genUnaryExprSet(
+    const static auto opHandle = OperatorHandle::fromCall(
         inputRowType, velox::CppToType<T>::create(), "round");
-    return this->applyUnaryExprSet(inputRowType, exprSet);
+    return opHandle->call(_delegate);
   }
 
   //
   // unary cast
   //
-  template <typename ReturnType>
-  std::unique_ptr<BaseColumn> cast() {
-    const static auto inputRowType =
-        velox::ROW({"c0"}, {velox::CppToType<T>::create()});
-    const static auto exprSet = BaseColumn::genCastExprSet(
-        inputRowType, velox::CppToType<ReturnType>::create());
-    return this->applyUnaryExprSet(inputRowType, exprSet);
+  // Note that we accept the casted-to return type as a value parameter, and
+  // we populate a static array of OperatorHandles, one for each casted-to
+  // type we see. We accept the return type as a value at runtime instead of
+  // as a template parameter at compile-time to avoid creating N^2 number of
+  // cast functions.
+  //
+  std::unique_ptr<BaseColumn> cast(velox::TypeKind toKind) {
+    constexpr auto num_numeric_types =
+      static_cast<int>(velox::TypeKind::DOUBLE) + 1;
+    static std::array<
+      std::unique_ptr<OperatorHandle>,
+      num_numeric_types> /* library-local */ opHandles;
+
+    int id = static_cast<int>(toKind);
+    if (opHandles[id] == nullptr) {
+      const static auto inputRowType =
+          velox::ROW({"c0"}, {velox::CppToType<T>::create()});
+      velox::TypePtr toType =
+        VELOX_DYNAMIC_SCALAR_TYPE_DISPATCH(kind2type, toKind);
+      opHandles[id] = OperatorHandle::fromCast(inputRowType, toType);
+    }
+
+    return opHandles[id]->call(_delegate);
   }
 
   //
