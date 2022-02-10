@@ -75,11 +75,11 @@ inline void registerTorchArrowFunctions() {
       {"torcharrow_pow"});
   velox::registerFunction<torcharrow_pow, double, double, double>(
       {"torcharrow_pow"});
-  velox::registerFunction<torcharrow_pow_int, int64_t, int8_t, int8_t>(
+  velox::registerFunction<torcharrow_pow_int, int8_t, int8_t, int8_t>(
       {"torcharrow_pow"});
-  velox::registerFunction<torcharrow_pow_int, int64_t, int16_t, int16_t>(
+  velox::registerFunction<torcharrow_pow_int, int16_t, int16_t, int16_t>(
       {"torcharrow_pow"});
-  velox::registerFunction<torcharrow_pow_int, int64_t, int32_t, int32_t>(
+  velox::registerFunction<torcharrow_pow_int, int32_t, int32_t, int32_t>(
       {"torcharrow_pow"});
   velox::registerFunction<torcharrow_pow_int, int64_t, int64_t, int64_t>(
       {"torcharrow_pow"});
