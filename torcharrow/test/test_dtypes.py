@@ -17,8 +17,8 @@ from torcharrow.dtypes import (
     is_int64,
     is_struct,
     string,
-    dtype_of_velox_type,
 )
+from torcharrow.velox_rt.typing import dtype_of_velox_type
 
 
 class TestTypes(unittest.TestCase):
