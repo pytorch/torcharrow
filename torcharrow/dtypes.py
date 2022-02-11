@@ -846,50 +846,6 @@ def typeof_np_dtype(t: np.dtype) -> DType:
     )
 
 
-def dtype_of_velox_type(vtype: torcharrow._torcharrow.VeloxType) -> DType:
-    if vtype.kind() == torcharrow._torcharrow.TypeKind.BOOLEAN:
-        return Boolean(nullable=True)
-    if vtype.kind() == torcharrow._torcharrow.TypeKind.TINYINT:
-        return Int8(nullable=True)
-    if vtype.kind() == torcharrow._torcharrow.TypeKind.SMALLINT:
-        return Int16(nullable=True)
-    if vtype.kind() == torcharrow._torcharrow.TypeKind.INTEGER:
-        return Int32(nullable=True)
-    if vtype.kind() == torcharrow._torcharrow.TypeKind.BIGINT:
-        return Int64(nullable=True)
-    if vtype.kind() == torcharrow._torcharrow.TypeKind.REAL:
-        return Float32(nullable=True)
-    if vtype.kind() == torcharrow._torcharrow.TypeKind.DOUBLE:
-        return Float64(nullable=True)
-    if vtype.kind() == torcharrow._torcharrow.TypeKind.VARCHAR:
-        return String(nullable=True)
-    if vtype.kind() == torcharrow._torcharrow.TypeKind.ARRAY:
-        return List(
-            item_dtype=dtype_of_velox_type(
-                ty.cast(torcharrow._torcharrow.VeloxArrayType, vtype).element_type()
-            ),
-            nullable=True,
-        )
-    if vtype.kind() == torcharrow._torcharrow.TypeKind.MAP:
-        vtype = ty.cast(torcharrow._torcharrow.VeloxMapType, vtype)
-        return Map(
-            key_dtype=dtype_of_velox_type(vtype.key_type()),
-            item_dtype=dtype_of_velox_type(vtype.value_type()),
-            nullable=True,
-        )
-    if vtype.kind() == torcharrow._torcharrow.TypeKind.ROW:
-        vtype = ty.cast(torcharrow._torcharrow.VeloxRowType, vtype)
-        fields = [
-            Field(name=vtype.name_of(i), dtype=dtype_of_velox_type(vtype.child_at(i)))
-            for i in range(vtype.size())
-        ]
-        return Struct(fields=fields, nullable=True)
-
-    raise AssertionError(
-        f"translation of Velox typekind {vtype.kind()} to dtype unsupported"
-    )
-
-
 def cast_as(dtype):
     if is_string(dtype):
         return str

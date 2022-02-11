@@ -10,6 +10,6 @@ import torcharrow._torcharrow
 # Initialize and register Velox functional
 import torcharrow.velox_rt.functional
 
-torcharrow._torcharrow.BaseColumn.dtype = (
-    lambda self: torcharrow.dtypes.dtype_of_velox_type(self.type())
-)
+from .typing import dtype_of_velox_type
+
+torcharrow._torcharrow.BaseColumn.dtype = lambda self: dtype_of_velox_type(self.type())
