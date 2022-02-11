@@ -228,8 +228,7 @@ def from_tensor(
     raise ValueError(f"Unexpected data in `from_tensor`: {type(data)}")
 
 
-# TODO: Rename this class to TorchConversion
-class ITorchConversion(abc.ABC):
+class TensorConversion(abc.ABC):
     """
     PyTorch Conversion class.
 
@@ -254,9 +253,9 @@ class ITorchConversion(abc.ABC):
         raise TypeError(f"{name} for type {type(self).__name__} is not supported")
 
 
-class DefaultTorchConversion(ITorchConversion):
+class DefaultTensorConversion(TensorConversion):
     """
-    Default PyTorch representation.
+    Default Tensor conversion.
     """
 
     def to_tensor(self, col):
@@ -266,7 +265,7 @@ class DefaultTorchConversion(ITorchConversion):
         return from_tensor(data, dtype, device)
 
 
-class PadSequence(ITorchConversion):
+class PadSequence(TensorConversion):
     """
     Pad a batch of variable length numeric lists with ``padding_value``.
     See also https://github.com/pytorch/pytorch/blob/515d9fb2a99586e62cfb941cfc51e86e7d58c1f4/torch/nn/utils/rnn.py#L323-L359
