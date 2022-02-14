@@ -572,18 +572,9 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def round(self, decimals=0):
-        self._prototype_support_warning("round")
-
-        # TODO: round(-2.5) returns -2.0 in Numpy/PyTorch but returns -3.0 in Velox
-        # return ColumnFromVelox._from_velox(self.device, self.dtype, self._data.round(), True)
-
-        col = velox.Column(get_velox_type(self.dtype))
-        for i in range(len(self)):
-            if self._getmask(i):
-                col.append_null()
-            else:
-                col.append(round(self._getdata(i), decimals))
-        return ColumnFromVelox._from_velox(self.device, self.dtype, col, True)
+        return functional.torcharrow_round(self, decimals)._with_null(
+            self.dtype.nullable
+        )
 
     @trace
     @expression

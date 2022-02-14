@@ -496,7 +496,7 @@ class SimpleColumn : public BaseColumn {
     const static auto inputRowType =
         velox::ROW({"c0"}, {velox::CppToType<T>::create()});
     const static auto opHandle = OperatorHandle::fromCall(
-        inputRowType, velox::CppToType<T>::create(), "round");
+        inputRowType, velox::CppToType<T>::create(), "torcharrow_round");
     return opHandle->call(_delegate);
   }
 

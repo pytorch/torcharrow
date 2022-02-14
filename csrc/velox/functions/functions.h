@@ -83,6 +83,37 @@ inline void registerTorchArrowFunctions() {
   velox::registerFunction<torcharrow_pow_int, int64_t, int64_t, int64_t>(
       {"torcharrow_pow"});
 
+  // Round
+  velox::registerFunction<torcharrow_round, float, float>({"torcharrow_round"});
+  velox::registerFunction<torcharrow_round, double, double>(
+      {"torcharrow_round"});
+  velox::registerFunction<torcharrow_round, int8_t, int8_t>(
+      {"torcharrow_round"});
+  velox::registerFunction<torcharrow_round, int16_t, int16_t>(
+      {"torcharrow_round"});
+  velox::registerFunction<torcharrow_round, int32_t, int32_t>(
+      {"torcharrow_round"});
+  velox::registerFunction<torcharrow_round, int64_t, int64_t>(
+      {"torcharrow_round"});
+  velox::registerFunction<torcharrow_round, float, bool>({"torcharrow_round"});
+  velox::registerFunction<torcharrow_round, float, float, int64_t>(
+      {"torcharrow_round"});
+  velox::registerFunction<torcharrow_round, double, double, int64_t>(
+      {"torcharrow_round"});
+  velox::registerFunction<torcharrow_round, int8_t, int8_t, int64_t>(
+      {"torcharrow_round"});
+  velox::registerFunction<torcharrow_round, int16_t, int16_t, int64_t>(
+      {"torcharrow_round"});
+  velox::registerFunction<torcharrow_round, int32_t, int32_t, int64_t>(
+      {"torcharrow_round"});
+  velox::registerFunction<torcharrow_round, int64_t, int64_t, int64_t>(
+      {"torcharrow_round"});
+  velox::registerFunction<torcharrow_round, float, bool, int64_t>(
+      {"torcharrow_round"});
+
+  // TODO: consider to refactor registration code with helper functions
+  // to save some lines, like https://fburl.com/code/dk6zi7t3
+
   velox::exec::registerStatefulVectorFunction(
       "match_re",
       velox::functions::re2MatchSignatures(),

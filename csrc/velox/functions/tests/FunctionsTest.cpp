@@ -1,5 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
+#include <cstdint>
 #include <optional>
 
 #include <gmock/gmock.h>
@@ -27,17 +28,35 @@ class FunctionsTest : public functions::test::FunctionBaseTest {
     torcharrow::functions::registerTorchArrowFunctions();
   }
 
-  template <typename T, typename TExpected = T>
+  template <typename T, typename T1 = T, typename TExpected = T>
   void assertExpression(
       const std::string& expression,
       const std::vector<T>& arg0,
-      const std::vector<T>& arg1,
+      const std::vector<T1>& arg1,
       const std::vector<TExpected>& expected) {
     auto vector0 = makeFlatVector(arg0);
     auto vector1 = makeFlatVector(arg1);
 
     auto result = evaluate<SimpleVector<TExpected>>(
         expression, makeRowVector({vector0, vector1}));
+    for (int32_t i = 0; i < arg0.size(); ++i) {
+      if (std::isnan(expected[i])) {
+        ASSERT_TRUE(std::isnan(result->valueAt(i))) << "at " << i;
+      } else {
+        ASSERT_EQ(result->valueAt(i), expected[i]) << "at " << i;
+      }
+    }
+  }
+
+  template <typename T, typename TExpected = T>
+  void assertUnaryExpression(
+      const std::string& expression,
+      const std::vector<T>& arg0,
+      const std::vector<TExpected>& expected) {
+    auto vector0 = makeFlatVector(arg0);
+
+    auto result =
+        evaluate<SimpleVector<TExpected>>(expression, makeRowVector({vector0}));
     for (int32_t i = 0; i < arg0.size(); ++i) {
       if (std::isnan(expected[i])) {
         ASSERT_TRUE(std::isnan(result->valueAt(i))) << "at " << i;
@@ -168,6 +187,87 @@ TEST_F(FunctionsTest, pow) {
       {9},
       {123456},
       "Inf is outside the range of representable values of type int64");
+}
+
+TEST_F(FunctionsTest, round) {
+  std::vector<double> doubles = {
+      1.3, 2.3, 1.5, 2.5, 1.8, 2.8, -1.3, -2.3, -1.5, -2.5, -1.8, -2.8};
+  std::vector<double> expectedDoubles = {
+      1.0, 2.0, 2.0, 2.0, 2.0, 3.0, -1.0, -2.0, -2.0, -2.0, -2.0, -3.0};
+  assertUnaryExpression<double>(
+      "torcharrow_round(c0)", doubles, expectedDoubles);
+
+  std::vector<float> floats = {
+      1.3, 2.3, 1.5, 2.5, 1.8, 2.8, -1.3, -2.3, -1.5, -2.5, -1.8, -2.8};
+  std::vector<float> expectedFloats = {
+      1.0, 2.0, 2.0, 2.0, 2.0, 3.0, -1.0, -2.0, -2.0, -2.0, -2.0, -3.0};
+  assertUnaryExpression<float>("torcharrow_round(c0)", floats, expectedFloats);
+
+  std::vector<int32_t> ints = {1, 2, -1, -2};
+  std::vector<int32_t> expectedInts = {1, 2, -1, -2};
+  assertUnaryExpression<int32_t>("torcharrow_round(c0)", ints, expectedInts);
+
+  std::vector<bool> bools = {true, false};
+  std::vector<float> expectedBools = {1.0, 0.0};
+  assertUnaryExpression<bool, float>(
+      "torcharrow_round(c0)", bools, expectedBools);
+
+  std::vector<float> floats2 = {
+      1.21,
+      1.31,
+      1.25,
+      1.35,
+      1.27,
+      1.37,
+      -1.21,
+      -1.31,
+      -1.25,
+      -1.35,
+      -1.27,
+      -1.37};
+  std::vector<float> expectedFloats2 = {
+      1.2, 1.3, 1.2, 1.4, 1.3, 1.4, -1.2, -1.3, -1.2, -1.4, -1.3, -1.4};
+  std::vector<int64_t> decimals2 = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+  assertExpression<float, int64_t>(
+      "torcharrow_round(c0, c1)", floats2, decimals2, expectedFloats2);
+
+  std::vector<float> floats3 = {
+      12.1,
+      14.9,
+      15.0,
+      15.1,
+      25.0,
+      25.1,
+      -12.1,
+      -14.9,
+      -15.0,
+      -15.1,
+      -25.0,
+      -25.1};
+  std::vector<float> expectedFloats3 = {
+      10.0,
+      10.0,
+      20.0,
+      20.0,
+      20.0,
+      30.0,
+      -10.0,
+      -10.0,
+      -20.0,
+      -20.0,
+      -20.0,
+      -30.0};
+  std::vector<int64_t> decimals3 = {
+      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+  assertExpression<float, int64_t>(
+      "torcharrow_round(c0, c1)", floats3, decimals3, expectedFloats3);
+
+  std::vector<int32_t> ints2 = {4, 15, 25, 123, -4, -15, -25, -123};
+  std::vector<int32_t> expectedInts2 = {0, 20, 20, 120, 0, -20, -20, -120};
+  assertExpression<int32_t>("torcharrow_round(c0, c1)", ints2, decimals3, expectedInts2);
+
+  std::vector<float> limits = {NAN, INFINITY, -INFINITY};
+  assertUnaryExpression<float>("torcharrow_round(c0)", limits, limits);
 }
 
 } // namespace
