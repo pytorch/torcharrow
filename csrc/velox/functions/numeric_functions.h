@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <cmath>
+#include <math.h>
 #include <limits>
 #include "velox/functions/Udf.h"
 
@@ -100,6 +102,33 @@ struct torcharrow_pow {
   FOLLY_ALWAYS_INLINE bool
   call(TOutput& result, const TInput& a, const TInput& b) {
     result = std::pow(a, b);
+    return true;
+  }
+};
+
+// Velox round doesn't accept boolean input nor negative decimals, and round .5
+// is different from Pytorch/Pandas. E.g Velox round(2.5) is 3, but we want
+// round(2.5) to 2. Ref: https://fburl.com/code/emfs990p
+// This implemenation is similar to Pandas/Numpy here:
+// https://github.com/numpy/numpy/blob/7b2f20b406d27364c812f7a81a9c901afbd3600c/numpy/core/src/multiarray/calculation.c#L588
+template <typename T>
+struct torcharrow_round {
+  template <typename TOutput, typename TInput = TOutput>
+  FOLLY_ALWAYS_INLINE bool
+  call(TOutput& result, const TInput& number, const int64_t decimals = 0) {
+    if (!std::isfinite(number)) {
+      result = number;
+    }
+
+    if (decimals == 0) {
+      result = rint(number);
+    } else if (decimals > 0) {
+      TInput factor = std::pow(10, decimals);
+      result = rint(number * factor) / factor;
+    } else {
+      TInput factor = std::pow(10, -decimals);
+      result = rint(double(number) / factor) * factor;
+    }
     return true;
   }
 };

@@ -226,7 +226,12 @@ class INumericalColumn(IColumn):
     @trace
     @expression
     def round(self, decimals=0):
-        """Round each value in a data to the given number of decimals."""
+        """Round each value in a data to the given number of decimals.
+
+        decimals : int, default 0
+            Number of decimal places to round to. If decimals is negative,
+            it specifies the number of positions to the left of the decimal point.
+        """
         return self._vectorize(partial(round, ndigits=decimals), self.dtype)
 
     # cumsum
