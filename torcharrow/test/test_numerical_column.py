@@ -487,12 +487,36 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(list(C.floor())[:-1], [floor(i) for i in c])
         self.assertEqual(list(C.floor())[-1], None)
 
-        self.assertEqual(list(C.round()), [round(i) for i in c] + [None])
-
+        self.assertEqual(list(C.round()), list(np.array(c).round()) + [None])
         numpy.testing.assert_almost_equal(
-            list(C.round(2))[:-1], [round(i, 2) for i in c], 6
+            list(C.round(2))[:-1], list(np.array(c).round(2)), 6
         )
         self.assertEqual(list(C.round(2))[-1], None)
+        c_round_list = [
+            1.1,
+            1.5,
+            1.8,
+            2.5,
+            -1.1,
+            -1.5,
+            -1.8,
+            -2.5,
+            1.12,
+            1.15,  # note: round(1.15, 1) is 1.1 in python, but 1.2 in Pandas/Numpy
+            1.25,
+            11.1,
+            11.5,
+            11.9,
+        ]
+        c_round = ta.Column(c_round_list, device=self.device)
+        self.assertEqual(list(c_round.round()), list(np.array(c_round_list).round()))
+        for decimals in [-1, 1, 2]:
+            numpy.testing.assert_almost_equal(
+                list(c_round.round(decimals)),
+                list(np.array(c_round_list).round(decimals)),
+                6,
+            )
+
         # self.assertEqual(list(C.hash_values()), [hash(i) for i in c] + [None])
 
         c1 = ta.Column(
