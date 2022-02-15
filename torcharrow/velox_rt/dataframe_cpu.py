@@ -1738,7 +1738,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         pytorch.ensure_available()
 
         conversion = conversion or {}
-        if isinstance(conversion, pytorch.ITorchConversion):
+        if isinstance(conversion, pytorch.TensorConversion):
             return conversion.to_tensor(self)
 
         assert isinstance(conversion, dict)
@@ -1748,7 +1748,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
         return tup_type(
             *(
-                conversion.get(f.name, pytorch.DefaultTorchConversion()).to_tensor(
+                conversion.get(f.name, pytorch.DefaultTensorConversion()).to_tensor(
                     self[f.name]
                 )
                 for f in self.dtype.fields

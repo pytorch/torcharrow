@@ -1127,7 +1127,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         Parameters
         ----------
-        conversion : ITorchConversion, or dict
+        conversion : TensorConversion, or dict
             conversion can only be a dict type for IDataFrame.to_tensor(). The dict maps from
             column name to the conversion methods.
             For column names not contained in dict, default PyTorch conversion will be used.
@@ -1156,8 +1156,8 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """
         pytorch.ensure_available()
 
-        conversion = conversion or pytorch.DefaultTorchConversion()
-        assert isinstance(conversion, pytorch.ITorchConversion)
+        conversion = conversion or pytorch.DefaultTensorConversion()
+        assert isinstance(conversion, pytorch.TensorConversion)
         return conversion.to_tensor(self)
 
     # batching/unbatching
