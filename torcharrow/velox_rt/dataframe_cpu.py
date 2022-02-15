@@ -1738,9 +1738,10 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         pytorch.ensure_available()
 
         conversion = conversion or {}
+        # TODO: Deprecate pytorch.ITorchConversion with predefined Final[Callable]
         if isinstance(conversion, pytorch.TensorConversion):
             return conversion.to_tensor(self)
-        if isinstance(conversion, Callable):
+        if callable(conversion):
             return conversion(self)
 
         assert isinstance(conversion, dict)
@@ -1748,16 +1749,20 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         # We might need to address it eventually, but because it's Python it doesn't matter
         tup_type = self._dtype.py_type
 
-        tensors = []
-        for f in self.dtype.fields:
-            field_conversion = conversion.get(f.name, pytorch.DefaultTensorConversion())
-            if isinstance(field_conversion, pytorch.TensorConversion):
-                tensors.append(field_conversion.to_tensor(self[f.name]))
-            else:
-                assert isinstance(field_conversion, Callable)
-                tensors.append(field_conversion(self[f.name]))
-
-        return tup_type(*tensors)
+        conversions = [
+            conversion.get(f.name, pytorch.DefaultTensorConversion())
+            for f in self.dtype.fields
+        ]
+        conversion_funcs = [
+            c.to_tensor if isinstance(c, pytorch.TensorConversion) else c
+            for c in conversions
+        ]
+        return tup_type(
+            *(
+                conversion_funcs[idx](self[f.name])
+                for idx, f in enumerate(self.dtype.fields)
+            )
+        )
 
     def _to_tensor_default(self):
         return self.to_tensor()
