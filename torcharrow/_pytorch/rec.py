@@ -2,11 +2,11 @@ import torch
 import torcharrow._torcharrow as pyvelox
 import torcharrow.dtypes as dt
 
-from .common import ITorchConversion
+from .common import TensorConversion
 from .common import _dtype_to_pytorch_dtype
 
 
-class Dense(ITorchConversion):
+class Dense(TensorConversion):
     def __init__(self, *, batch_first=False, with_presence=False):
         self.batch_first = batch_first
         self.with_presence = with_presence
