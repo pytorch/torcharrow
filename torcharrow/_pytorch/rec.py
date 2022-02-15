@@ -1,17 +1,21 @@
-import torch
-import torcharrow._torcharrow as pyvelox
-import torcharrow.dtypes as dt
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+from typing import Callable
 
-from .common import TensorConversion
+import torch
+import torcharrow._torcharrow as _torcharrow
+import torcharrow.dtypes as dt
+from typing_extensions import final
+
 from .common import _dtype_to_pytorch_dtype
 
 
-class Dense(TensorConversion):
+@final
+class Dense(Callable):
     def __init__(self, *, batch_first=False, with_presence=False):
         self.batch_first = batch_first
         self.with_presence = with_presence
 
-    def to_tensor(self, df):
+    def __call__(self, df):
         # Only support CPU dataframe for now
         assert df.device == "cpu"
 
@@ -25,7 +29,9 @@ class Dense(TensorConversion):
             (len(df.columns), len(df)),
             dtype=_dtype_to_pytorch_dtype(df.dtype.fields[0].dtype),
         )
-        pyvelox._populate_dense_features_nopresence(df._data, data_tensor.data_ptr())
+        _torcharrow._populate_dense_features_nopresence(
+            df._data, data_tensor.data_ptr()
+        )
 
         if self.batch_first:
             # TODO: this would incur an extra copy. We can avoid this copy
