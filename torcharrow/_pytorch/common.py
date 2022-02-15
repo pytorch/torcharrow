@@ -1,8 +1,8 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms, Inc. and affiliates.
 import abc
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import TypeVar, Generic, Union, List, Optional, Tuple
+from typing import TypeVar, Generic, Union, List, Optional, Tuple, Callable
 
 import torch  # type: ignore
 import torcharrow as ta
@@ -10,7 +10,7 @@ import torcharrow.dtypes as dt
 from torcharrow import dtypes
 from torcharrow.dtypes import DType, is_struct, is_list, is_map
 from torcharrow.scope import Scope
-
+from typing_extensions import final
 
 T = TypeVar("T")
 KT = TypeVar("KT")
@@ -265,21 +265,19 @@ class DefaultTensorConversion(TensorConversion):
         return from_tensor(data, dtype, device)
 
 
-class PadSequence(TensorConversion):
+@final
+class PadSequence(Callable):
     """
     Pad a batch of variable length numeric lists with ``padding_value``.
     See also https://github.com/pytorch/pytorch/blob/515d9fb2a99586e62cfb941cfc51e86e7d58c1f4/torch/nn/utils/rnn.py#L323-L359
     """
 
-    def __init__(self, batch_first: bool = True, padding_value=0.0):
+    def __init__(self, *, batch_first: bool = True, padding_value=0.0):
         self.batch_first = batch_first
         self.padding_value = padding_value
 
-    def to_tensor(self, col) -> torch.Tensor:
+    def __call__(self, col) -> torch.Tensor:
         return col._to_tensor_pad_sequence(self.batch_first, self.padding_value)
-
-    def from_tensor(self, data: torch.Tensor, dtype=None, device=None):
-        self._not_supported("from_tensor")
 
 
 def _dtype_to_pytorch_dtype(dtype: dt.DType) -> torch.dtype:
