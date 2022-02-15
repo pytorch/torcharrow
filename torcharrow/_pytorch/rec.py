@@ -11,7 +11,16 @@ from .common import _dtype_to_pytorch_dtype
 
 @final
 class Dense(Callable):
+    """
+    Predefined conversion callable for dense features.
+
+    batch_first: bool, whether keep batch_size as the first dim of output tensor
+    with_presense: bool, whether to include vector of per-element validity bit
+    """
+
     def __init__(self, *, batch_first=False, with_presence=False):
+        if batch_first and with_presence:
+            raise ValueError("Column-major Dense format with mask is not supported")
         self.batch_first = batch_first
         self.with_presence = with_presence
 
@@ -39,3 +48,94 @@ class Dense(Callable):
             data_tensor = data_tensor.transpose(0, 1).contiguous()
 
         return data_tensor
+
+
+@final
+class Sparse(Callable):
+    """
+    Predefined conversion callable for sparse features.
+
+    is_jagged: bool, whether to output jagged format tensors with keys and key offsets
+    is_combined: bool, whether to combine individual features as final output
+    as_list: bool, whether to concate individual features to list as final output
+    is_legacy: bool, whether to use by legacy HPC (only for combined format)
+    """
+
+    def __init__(
+        self, *, is_jagged=False, is_combined=False, as_list=False, is_legacy=False
+    ):
+        if is_legacy and not is_combined:
+            raise ValueError("Legacy HPC only supports CombinedSparse format")
+        self.is_jagged = is_jagged
+        self.is_combined = is_combined
+        self.as_list = as_list
+        self.is_legacy = is_legacy
+
+    def __call__(self, df):
+        # Only support CPU dataframe for now
+        assert df.device == "cpu"
+
+        # TODO: Implement OSS Sparse conversions
+        raise NotImplementedError
+
+
+@final
+class WeightedSparse(Callable):
+    """
+    Predefined conversion callable for weighted sparse features.
+
+    is_jagged: bool, whether to output jagged format tensors with keys and key offsets
+    is_combined: bool, whether to combine individual features as final output
+    is_legacy: bool, whether to use by legacy HPC (only for combined format)
+    """
+
+    def __init__(self, *, is_jagged=False, is_combined=False, is_legacy=False):
+        if is_legacy and not is_combined:
+            raise ValueError("Legacy HPC only supports CombinedWeightedSparse format")
+        self.is_jagged = is_jagged
+        self.is_combined = is_combined
+        self.is_legacy = is_legacy
+
+    def __call__(self, df):
+        # Only support CPU dataframe for now
+        assert df.device == "cpu"
+
+        # TODO: Implement OSS Weighted Sparse conversions
+        raise NotImplementedError
+
+
+@final
+class Embedding(Callable):
+    """
+    Predefined conversion callable for embedding features.
+    """
+
+    def __call__(self, df):
+        # Only support CPU dataframe for now
+        assert df.device == "cpu"
+
+        # TODO: Implement OSS Embedding conversions
+        raise NotImplementedError
+
+
+@final
+class Scalar(Callable):
+    """
+    Predefined conversion callable for scalar features.
+
+    with_presense: bool, whether to include vector of per-element validity bit
+    """
+
+    def __init__(self, *, with_presence=False):
+        self.with_presence = with_presence
+
+    def __call__(self, df):
+        # Only support CPU dataframe for now
+        assert df.device == "cpu"
+
+        # Only support Scalar_No_Mask format for now
+        if self.with_presence:
+            raise NotImplementedError
+
+        # TODO: Implement OSS Scalar conversions
+        raise NotImplementedError
