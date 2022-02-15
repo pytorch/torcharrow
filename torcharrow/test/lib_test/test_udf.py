@@ -62,7 +62,7 @@ class TestSimpleColumns(unittest.TestCase):
         alnum = ta.generic_udf_dispatch("torcharrow_isalnum", col)
         self.assert_SimpleColumn(alnum, [True, True, True, None, True, True, True])
 
-        digit = ta.generic_udf_dispatch("isdecimal", col)
+        digit = ta.generic_udf_dispatch("torcharrow_isdecimal", col)
         self.assert_SimpleColumn(digit, [False, False, False, None, False, True, False])
 
         islower = ta.generic_udf_dispatch("torcharrow_islower", col)
@@ -70,7 +70,7 @@ class TestSimpleColumns(unittest.TestCase):
             islower, [True, False, False, None, False, False, True]
         )
 
-        isupper = ta.generic_udf_dispatch("isupper", col)
+        isupper = ta.generic_udf_dispatch("torcharrow_isupper", col)
         self.assert_SimpleColumn(
             isupper, [False, True, True, None, False, False, False]
         )
@@ -190,7 +190,7 @@ class TestSimpleColumns(unittest.TestCase):
         # All False
         data = ["-1", "1.5", "+2", "abc", "AA", "VIII", "1/3", None]
         col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
-        lcol = ta.generic_udf_dispatch("isnumeric", col)
+        lcol = ta.generic_udf_dispatch("torcharrow_isnumeric", col)
         self.assert_SimpleColumn(
             lcol, [False, False, False, False, False, False, False, None]
         )
@@ -198,7 +198,7 @@ class TestSimpleColumns(unittest.TestCase):
         # All True
         data = ["9876543210123456789", "ⅧⅪ", "ⅷ〩𐍁ᛯ", "᧖७𝟡௫６", "¼⑲⑹⓲➎㉏𐧯"]
         col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
-        lcol = ta.generic_udf_dispatch("isnumeric", col)
+        lcol = ta.generic_udf_dispatch("torcharrow_isnumeric", col)
         self.assert_SimpleColumn(lcol, [True, True, True, True, True])
 
     def test_factory(self):

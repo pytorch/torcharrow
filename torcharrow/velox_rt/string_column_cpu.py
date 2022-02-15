@@ -278,7 +278,7 @@ class StringMethodsCpu(IStringMethods):
         )
 
     def isdecimal(self) -> IStringColumn:
-        return functional.isdecimal(self._parent)._with_null(
+        return functional.torcharrow_isdecimal(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
@@ -288,7 +288,9 @@ class StringMethodsCpu(IStringMethods):
         )
 
     def isupper(self) -> IStringColumn:
-        return functional.isupper(self._parent)._with_null(self._parent.dtype.nullable)
+        return functional.torcharrow_isupper(self._parent)._with_null(
+            self._parent.dtype.nullable
+        )
 
     def isspace(self) -> IStringColumn:
         return functional.torcharrow_isspace(self._parent)._with_null(
@@ -301,7 +303,7 @@ class StringMethodsCpu(IStringMethods):
         )
 
     def isnumeric(self) -> IStringColumn:
-        return functional.isnumeric(self._parent)._with_null(
+        return functional.torcharrow_isnumeric(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
