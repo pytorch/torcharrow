@@ -9,6 +9,7 @@ import operator
 import typing as ty
 import warnings
 from collections import OrderedDict, defaultdict
+from typing import Callable
 
 import numpy as np
 import torcharrow as ta
@@ -1155,6 +1156,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         )
         """
         pytorch.ensure_available()
+
+        if isinstance(conversion, Callable):
+            return conversion(self)
 
         conversion = conversion or pytorch.DefaultTensorConversion()
         assert isinstance(conversion, pytorch.TensorConversion)

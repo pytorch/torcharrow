@@ -1740,20 +1740,24 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         conversion = conversion or {}
         if isinstance(conversion, pytorch.TensorConversion):
             return conversion.to_tensor(self)
+        if isinstance(conversion, Callable):
+            return conversion(self)
 
         assert isinstance(conversion, dict)
         # TODO: this actually puts the type annotations on the tuple wrong.
         # We might need to address it eventually, but because it's Python it doesn't matter
         tup_type = self._dtype.py_type
 
-        return tup_type(
-            *(
-                conversion.get(f.name, pytorch.DefaultTensorConversion()).to_tensor(
-                    self[f.name]
-                )
-                for f in self.dtype.fields
-            )
-        )
+        tensors = []
+        for f in self.dtype.fields:
+            field_conversion = conversion.get(f.name, pytorch.DefaultTensorConversion())
+            if isinstance(field_conversion, pytorch.TensorConversion):
+                tensors.append(field_conversion.to_tensor(self[f.name]))
+            else:
+                assert isinstance(field_conversion, Callable)
+                tensors.append(field_conversion(self[f.name]))
+
+        return tup_type(*tensors)
 
     def _to_tensor_default(self):
         return self.to_tensor()
