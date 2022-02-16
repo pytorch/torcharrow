@@ -16,19 +16,18 @@ inline void registerTorchArrowFunctions() {
       {"torcharrow_isalnum"});
   velox::registerFunction<torcharrow_isdigit, bool, velox::Varchar>(
       {"torcharrow_isdigit"});
-  // TODO: Fix inconsistent udf alias isdecimal, isupper, isnumeric.
   velox::registerFunction<torcharrow_isdecimal, bool, velox::Varchar>(
-      {"isdecimal"});
+      {"torcharrow_isdecimal"});
   velox::registerFunction<torcharrow_islower, bool, velox::Varchar>(
       {"torcharrow_islower"});
   velox::registerFunction<torcharrow_isupper, bool, velox::Varchar>(
-      {"isupper"});
+      {"torcharrow_isupper"});
   velox::registerFunction<torcharrow_isspace, bool, velox::Varchar>(
       {"torcharrow_isspace"});
   velox::registerFunction<torcharrow_istitle, bool, velox::Varchar>(
       {"torcharrow_istitle"});
   velox::registerFunction<torcharrow_isnumeric, bool, velox::Varchar>(
-      {"isnumeric"});
+      {"torcharrow_isnumeric"});
 
   // Natural logarithm
   velox::registerFunction<torcharrow_log, float, float>({"torcharrow_log"});
