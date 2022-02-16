@@ -81,6 +81,8 @@ class IListMethods(abc.ABC):
 
         return me._vectorize(fun, me.dtype.item_dtype.with_null(me.dtype.nullable))
 
+    # pyre-fixme[9]: start has type `int`; used as `None`.
+    # pyre-fixme[9]: stop has type `int`; used as `None`.
     def slice(self, start: int = None, stop: int = None) -> IListColumn:
         """Slice sublist from each element in the column"""
         self._parent._prototype_support_warning("list.slice")
@@ -156,6 +158,7 @@ class IListMethods(abc.ABC):
         def func(xs):
             return functools.reduce(fun, xs, initializer)
 
+        # pyre-fixme[16]: `DType` has no attribute `item_dtype`.
         dtype = me.dtype.item_dtype if dtype is None else dtype
         return me._vectorize(func, dtype)
 

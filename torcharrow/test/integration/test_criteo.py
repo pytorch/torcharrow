@@ -55,6 +55,8 @@ DTYPE = dt.Struct(
 # TODO: allow to use to_tensor with Callable
 # TODO: implement conversion in native C++
 class _DenseConversion(tap.TensorConversion):
+    # pyre-fixme[14]: `to_tensor` overrides method defined in `TensorConversion`
+    #  inconsistently.
     def to_tensor(self, df: ta.IDataFrame):
         # Default to_tensor, each field is a Tensor
         tensors = df.to_tensor()
@@ -69,6 +71,8 @@ class _DenseConversion(tap.TensorConversion):
 # TODO: this is not a general purpose JaggedTensor conversion -- it leverages the fact that in Criteo preproc, each array is single element
 # TODO: implement general purpose jagged sparse tensor conversion in native C++
 class _CriteoJaggedTensorConversion(tap.TensorConversion):
+    # pyre-fixme[14]: `to_tensor` overrides method defined in `TensorConversion`
+    #  inconsistently.
     def to_tensor(self, df: ta.IDataFrame):
         # TODO: Implement df.size(), similar to Pandas
         num_arrays = len(df) * len(df.columns)

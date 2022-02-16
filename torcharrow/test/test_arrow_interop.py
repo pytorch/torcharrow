@@ -50,6 +50,7 @@ class TestArrowInterop(unittest.TestCase):
         self, pydata: List, arrow_type: pa.DataType, expected_dtype: dt.DType
     ):
         s = pa.array(pydata, type=arrow_type)
+        # pyre-fixme[16]: `TestArrowInterop` has no attribute `device`.
         t = ta.from_arrow(s, device=self.device)
         self.assertFalse(isinstance(t, IDataFrame))
         expected_dtype = expected_dtype.with_null(nullable=s.null_count > 0)
@@ -180,9 +181,12 @@ class TestArrowInterop(unittest.TestCase):
     def _test_to_arrow_array_numeric(
         self, pydata: List, dtype: dt.DType, expected_arrowtype: pa.DataType
     ):
+        # pyre-fixme[16]: `TestArrowInterop` has no attribute `device`.
         t = ta.Column(pydata, dtype=dtype, device=self.device)
         s = t.to_arrow()
         self.assertTrue(isinstance(s, type(pa.array([], type=expected_arrowtype))))
+        # pyre-fixme[16]: Item `Array` of `Union[Array[typing.Any], ChunkedArray]`
+        #  has no attribute `type`.
         self.assertEqual(s.type, expected_arrowtype)
         for pa_val, ta_val in zip(s.to_pylist(), list(t)):
             if pa_val and math.isnan(pa_val) and ta_val and math.isnan(ta_val):

@@ -275,9 +275,7 @@ class TestInterop(unittest.TestCase):
         ):
             tensors = df[1:4].to_tensor(
                 {
-                    "dense_int8": tap.rec.Dense(  # pyre-ignore
-                        with_presence=True, batch_first=True
-                    ),
+                    "dense_int8": tap.rec.Dense(with_presence=True, batch_first=True),
                     "dense_int16": tap.rec.Dense(),
                     "dense_int32": tap.rec.Dense(),
                     "dense_int64": tap.rec.Dense(),
@@ -302,8 +300,10 @@ class TestInterop(unittest.TestCase):
         from torcharrow.pytorch import WithPresence, PackedList, PackedMap
 
         def list_plus_one(x: PackedList[WithPresence[torch.Tensor]]):
+            # pyre-fixme[16]: Module `pytorch` has no attribute `PackedList`.
             return PackedList(
                 offsets=x.offsets,
+                # pyre-fixme[16]: Module `pytorch` has no attribute `WithPresence`.
                 values=WithPresence(
                     presence=x.values.presence,
                     values=(x.values.values + 1) * x.values.presence,

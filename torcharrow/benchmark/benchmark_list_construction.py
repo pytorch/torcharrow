@@ -25,6 +25,7 @@ class BenchmarkListConstruction:
         def run(self):
             pass
 
+    # pyre-fixme[13]: Attribute `test_strings` is never initialized.
     class AppendRunner(ListConstructionRunner):
         def __init__(self):
             self.test_strings: List[str]
@@ -38,6 +39,7 @@ class BenchmarkListConstruction:
                 col._append(s)
             col._finalize()
 
+    # pyre-fixme[13]: Attribute `test_strings` is never initialized.
     class FromlistRunner(ListConstructionRunner):
         def __init__(self):
             self.test_strings: List[str]
@@ -51,16 +53,20 @@ class BenchmarkListConstruction:
     def runListConstruction(
         self, runner: ListConstructionRunner, test_strings: Optional[List[str]] = None
     ) -> List[int]:
+        # pyre-fixme[16]: `BenchmarkListConstruction` has no attribute `test_strings`.
         test_strings = test_strings or self.test_strings
+        # pyre-fixme[7]: Expected `List[int]` but got `List[float]`.
         return timeit.repeat(
             stmt=lambda: runner.run(),
             setup=lambda: runner.setup(test_strings),
+            # pyre-fixme[16]: `BenchmarkListConstruction` has no attribute `nLoop`.
             number=self.nLoop,
         )
 
     def printResult(self, result: List[int]):
         print(
             f"min of {len(result)} repeats is {min(result)} seconds over "
+            # pyre-fixme[16]: `BenchmarkListConstruction` has no attribute `nLoop`.
             f"{self.nLoop} loops, or {min(result)/self.nLoop} seconds per loop"
         )
 

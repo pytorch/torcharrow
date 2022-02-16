@@ -32,7 +32,11 @@ class INumericalColumn(IColumn):
             return self
         elif isinstance(self, NumericalColumnCpu):
             return Scope.default._FullColumn(
-                self._data, self.dtype, device=device, mask=self._mask
+                self._data,
+                self.dtype,
+                device=device,
+                # pyre-fixme[16]: `NumericalColumnCpu` has no attribute `_mask`.
+                mask=self._mask,
             )
         else:
             raise AssertionError("unexpected case")

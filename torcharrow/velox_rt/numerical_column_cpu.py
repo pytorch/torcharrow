@@ -5,6 +5,8 @@ from typing import Callable, Dict, List, Optional, Sequence, Union
 
 import numpy as np
 import torcharrow as ta
+
+# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
@@ -25,6 +27,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     """A Numerical Column on Velox backend"""
 
     # private
+    # pyre-fixme[11]: Annotation `BaseColumn` is not defined as a type.
     def __init__(self, device, dtype, data: velox.BaseColumn):
         assert dt.is_boolean_or_numerical(dtype)
         INumericalColumn.__init__(self, device, dtype)
@@ -42,6 +45,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     def _from_pysequence(
         device: str, data: Sequence[Union[int, float, bool]], dtype: dt.DType
     ):
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         velox_column = velox.Column(get_velox_type(dtype), data)
         return ColumnFromVelox._from_velox(
             device,
@@ -61,8 +65,10 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         ptr_schema = int(ffi.cast("uintptr_t", c_schema))
         c_array = ffi.new("struct ArrowArray*")
         ptr_array = int(ffi.cast("uintptr_t", c_array))
+        # pyre-fixme[16]: `Array` has no attribute `_export_to_c`.
         array._export_to_c(ptr_array, ptr_schema)
 
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         velox_column = velox._import_from_arrow(
             get_velox_type(dtype), ptr_array, ptr_schema
         )
@@ -173,6 +179,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
                 res.append(self._getdata(i))
         res.sort(reverse=not ascending)
 
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = velox.Column(get_velox_type(self.dtype))
         if na_position == "first":
             for i in range(none_count):
@@ -287,6 +294,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __add__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
+        # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
+        #  `Union[INumericalColumn, float, int]`.
         return self._checked_arithmetic_op_call(other, "add", operator.add)
 
     @trace
@@ -299,6 +308,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __sub__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
+        # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
+        #  `Union[INumericalColumn, float, int]`.
         return self._checked_arithmetic_op_call(other, "sub", operator.sub)
 
     @trace
@@ -311,6 +322,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __mul__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
+        # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
+        #  `Union[INumericalColumn, float, int]`.
         return self._checked_arithmetic_op_call(other, "mul", operator.mul)
 
     @trace
@@ -398,6 +411,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
               if a is float type, a % 0 will be float('nan')
         """
         return self._rethrow_zero_division_error(
+            # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but
+            #  got `Union[INumericalColumn, float, int]`.
             lambda: self._checked_arithmetic_op_call(other, "mod", operator.mod)
         )
 
@@ -471,6 +486,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __and__(self, other: Union[INumericalColumn, int]) -> INumericalColumn:
+        # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
+        #  `Union[INumericalColumn, int]`.
         return self._checked_arithmetic_op_call(other, "bitwise_and", operator.__and__)
 
     @trace
@@ -483,6 +500,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __or__(self, other: Union[INumericalColumn, int]) -> INumericalColumn:
+        # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
+        #  `Union[INumericalColumn, int]`.
         return self._checked_arithmetic_op_call(other, "bitwise_or", operator.__or__)
 
     @trace
@@ -495,6 +514,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @trace
     @expression
     def __xor__(self, other: Union[INumericalColumn, int]) -> INumericalColumn:
+        # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
+        #  `Union[INumericalColumn, int]`.
         return self._checked_arithmetic_op_call(other, "bitwise_xor", operator.__xor__)
 
     @trace
@@ -593,6 +614,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         if not self.is_nullable:
             return self
         else:
+            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
             col = velox.Column(get_velox_type(self.dtype))
             for i in range(len(self)):
                 if self._getmask(i):
@@ -631,6 +653,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         if subset is not None:
             raise TypeError(f"subset parameter for numerical columns not supported")
         seen = set()
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = velox.Column(get_velox_type(self.dtype))
         for i in range(len(self)):
             if self._getmask(i):

@@ -17,10 +17,12 @@ def prepare_list_int_col():
 
 
 def list_map_int(col: ta.IColumn):
+    # pyre-fixme[16]: `IColumn` has no attribute `list`.
     return col.list.map(lambda val: val + 1)
 
 
 def list_vmap_int(col: ta.IColumn):
+    # pyre-fixme[16]: `IColumn` has no attribute `list`.
     return col.list.vmap(lambda col: col + 1)
 
 
@@ -36,10 +38,12 @@ def prepare_list_str_col():
 
 
 def list_map_str(col: ta.IColumn):
+    # pyre-fixme[16]: `IColumn` has no attribute `list`.
     return col.list.map(lambda val: val + "_1")
 
 
 def list_vmap_str(col: ta.IColumn):
+    # pyre-fixme[16]: `IColumn` has no attribute `list`.
     return col.list.vmap(lambda col: col + "_1")
 
 

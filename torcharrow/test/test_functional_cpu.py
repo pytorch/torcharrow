@@ -2,6 +2,8 @@
 import unittest
 
 import torcharrow as ta
+
+# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow
 import torcharrow.dtypes as dt
 from torcharrow import functional

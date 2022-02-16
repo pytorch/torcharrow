@@ -266,6 +266,7 @@ class DefaultTensorConversion(TensorConversion):
 
 
 @final
+# pyre-fixme[39]: `(...) -> Any` is not a valid parent class.
 class PadSequence(Callable):
     """
     Pad a batch of variable length numeric lists with ``padding_value``.
@@ -282,6 +283,7 @@ class PadSequence(Callable):
 
 def _dtype_to_pytorch_dtype(dtype: dt.DType) -> torch.dtype:
     # our names of types conveniently almost match
+    # pyre-fixme[16]: `DType` has no attribute `name`.
     torch_dtype_name = "bool" if dtype.name == "boolean" else dtype.name
     if not hasattr(torch, torch_dtype_name):
         raise ValueError(f"Can't convert {dtype} to PyTorch")
