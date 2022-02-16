@@ -31,6 +31,7 @@ class Counter:
 
 # Scope will be deprecated in the future.
 # Please DON'T use it in user-level code.
+# pyre-fixme[13]: Attribute `default` is never initialized.
 class Scope:
     """
     This class will be deprecated in the future.
@@ -174,6 +175,8 @@ class Scope:
             (data, dtype) = (dtype, data)
 
         # data is a list or a tuple; we only allow type inference from flat tuples
+        # pyre-fixme[6]: For 2nd param expected `Union[Type[typing.Any],
+        #  typing.Tuple[Type[typing.Any], ...]]` but got `_SpecialForm`.
         if isinstance(data, ty.List) or isinstance(data, ty.Tuple):
             # TODO: infer the type from the whole list
             dtype = dtype or dt.infer_dtype_from_prefix(data[:7])

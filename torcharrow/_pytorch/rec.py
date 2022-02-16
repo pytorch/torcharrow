@@ -2,6 +2,8 @@
 from typing import Callable
 
 import torch
+
+# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow as _torcharrow
 import torcharrow.dtypes as dt
 from typing_extensions import final
@@ -10,6 +12,7 @@ from .common import _dtype_to_pytorch_dtype
 
 
 @final
+# pyre-fixme[39]: `(...) -> Any` is not a valid parent class.
 class Dense(Callable):
     """
     Predefined conversion callable for dense features.
@@ -51,6 +54,7 @@ class Dense(Callable):
 
 
 @final
+# pyre-fixme[39]: `(...) -> Any` is not a valid parent class.
 class Sparse(Callable):
     """
     Predefined conversion callable for sparse features.
@@ -80,6 +84,7 @@ class Sparse(Callable):
 
 
 @final
+# pyre-fixme[39]: `(...) -> Any` is not a valid parent class.
 class WeightedSparse(Callable):
     """
     Predefined conversion callable for weighted sparse features.
@@ -105,6 +110,7 @@ class WeightedSparse(Callable):
 
 
 @final
+# pyre-fixme[39]: `(...) -> Any` is not a valid parent class.
 class Embedding(Callable):
     """
     Predefined conversion callable for embedding features.
@@ -119,6 +125,7 @@ class Embedding(Callable):
 
 
 @final
+# pyre-fixme[39]: `(...) -> Any` is not a valid parent class.
 class Scalar(Callable):
     """
     Predefined conversion callable for scalar features.

@@ -6,11 +6,13 @@ import unittest
 from dataclasses import dataclass
 from typing import Union, List, Any
 
+# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 # @manual=//pytorch/torcharrow/csrc/velox:_torcharrow
 import torcharrow._torcharrow as ta
 
 
 class BaseTestColumns(unittest.TestCase):
+    # pyre-fixme[11]: Annotation `BaseColumn` is not defined as a type.
     def assert_Column(self, col: ta.BaseColumn, val: List[Any]):
         self.assertEqual(len(col), len(val))
         self.assertEqual(col.get_null_count(), sum(x is None for x in val))
@@ -438,13 +440,21 @@ class TestSimpleColumns(BaseTestColumns):
 
 
 def is_same_type(a, b) -> bool:
+    # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
     if isinstance(a, ta.VeloxType_BIGINT):
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         return isinstance(b, ta.VeloxType_BIGINT)
+    # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
     if isinstance(a, ta.VeloxType_VARCHAR):
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         return isinstance(b, ta.VeloxType_VARCHAR)
+    # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
     if isinstance(a, ta.VeloxType_BOOLEAN):
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         return isinstance(b, ta.VeloxType_BOOLEAN)
+    # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
     if isinstance(a, ta.VeloxArrayType):
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         return isinstance(b, ta.VeloxArrayType) and is_same_type(
             a.element_type(), b.element_type()
         )
@@ -474,10 +484,12 @@ def infer_column(data) -> ta.BaseColumn:
 def resolve_column_with_arbitrary_type(unresolved: Unresolved) -> ta.BaseColumn:
     if isinstance(unresolved, UnresolvedArray):
         element = resolve_column_with_arbitrary_type(unresolved.element_type)
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(ta.VeloxArrayType(element.type()))
         col.append(element)
         return col
     else:
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         return ta.Column(ta.VeloxType_BIGINT())
 
 
@@ -525,6 +537,7 @@ def _infer_column(data) -> Union[ta.BaseColumn, Unresolved, None]:
                 return UnresolvedArray(union_type)
             else:
                 resolved_item_type = union_type
+                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 col = ta.Column(ta.VeloxArrayType(resolved_item_type))
                 for item_col, item in zip(inferred_columns, data):
                     if item is None:
@@ -558,10 +571,16 @@ def _infer_column(data) -> Union[ta.BaseColumn, Unresolved, None]:
             keys_array_type = inferred_keys_array_columns.type()
             values_array_type = inferred_values_array_columns.type()
 
+            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
             if isinstance(keys_array_type, ta.VeloxArrayType) and isinstance(
-                values_array_type, ta.VeloxArrayType
+                values_array_type,
+                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+                ta.VeloxArrayType,
             ):
+                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 col = ta.Column(
+                    # pyre-fixme[16]: Module `torcharrow` has no attribute
+                    #  `_torcharrow`.
                     ta.VeloxMapType(
                         keys_array_type.element_type(), values_array_type.element_type()
                     )
@@ -570,7 +589,11 @@ def _infer_column(data) -> Union[ta.BaseColumn, Unresolved, None]:
                     if item is None:
                         col.append_null()
                     else:
+                        # pyre-fixme[16]: Module `torcharrow` has no attribute
+                        #  `_torcharrow`.
                         key_col = ta.Column(keys_array_type.element_type())
+                        # pyre-fixme[16]: Module `torcharrow` has no attribute
+                        #  `_torcharrow`.
                         value_col = ta.Column(values_array_type.element_type())
                         for key, value in item.items():
                             key_col.append(key)
@@ -585,14 +608,19 @@ def _infer_column(data) -> Union[ta.BaseColumn, Unresolved, None]:
 
         else:
             type_ = {
+                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 int: ta.VeloxType_BIGINT(),
+                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 float: ta.VeloxType_REAL(),
+                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 str: ta.VeloxType_VARCHAR(),
+                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 bool: ta.VeloxType_BOOLEAN(),
             }.get(type(non_null_item))
             if type_ is None:
                 raise NotImplementedError(f"Cannot infer {type(non_null_item)}")
             else:
+                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 col = ta.Column(type_)
                 for item in data:
                     if item is None:
@@ -603,17 +631,22 @@ def _infer_column(data) -> Union[ta.BaseColumn, Unresolved, None]:
 
 
 def resolve_column(item, type_) -> ta.BaseColumn:
+    # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
     col = ta.Column(type_)
     for value in item:
         if value is None:
             col.append_null()
         else:
             if type(type_) in (
+                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 ta.VeloxType_INTEGER,
+                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 ta.VeloxType_VARCHAR,
+                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 ta.VeloxType_BOOLEAN,
             ):
                 col.append(value)
+            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
             elif type(type_) == ta.VeloxArrayType:
                 col.append(resolve_column(value, type_.element_type()))
             else:

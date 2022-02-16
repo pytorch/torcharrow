@@ -5,6 +5,8 @@ from .list_column_cpu import *
 from .map_column_cpu import *
 from .dataframe_cpu import *
 import torcharrow
+
+# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow
 
 # Initialize and register Velox functional

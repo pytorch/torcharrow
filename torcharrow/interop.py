@@ -45,4 +45,5 @@ def from_pysequence(
     # TODO(https://github.com/facebookresearch/torcharrow/issues/80) Infer dtype
     device = device or Scope.default.device
 
+    # pyre-fixme[6]: For 2nd param expected `DType` but got `Optional[DType]`.
     return Scope.default._FromPySequence(data, dtype, device)

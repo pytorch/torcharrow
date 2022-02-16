@@ -25,6 +25,8 @@ from typing import (
 import numpy as np
 import pyarrow as pa
 import torcharrow as ta
+
+# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
@@ -62,13 +64,17 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         assert dt.is_struct(dtype)
         IDataFrame.__init__(self, device, dtype)
 
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self._data = velox.Column(get_velox_type(dtype))
         assert isinstance(data, Dict)
 
         if len(data) != 0:
+            # pyre-fixme[6]: For 1st param expected `Sized` but got `ColumnFromVelox`.
             length = len(next(iter(data.values())))
             for idx, (_, col) in enumerate(data.items()):
                 assert isinstance(col, ColumnFromVelox)
+                # pyre-fixme[6]: For 1st param expected `Sized` but got
+                #  `ColumnFromVelox`.
                 assert len(col) == length
                 self._data.set_child(idx, col._data)
             self._data.set_length(length)
@@ -92,9 +98,12 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         assert all(isinstance(c, ColumnFromVelox) for c in data.values())
         ct = 0
         if len(data) > 0:
+            # pyre-fixme[6]: For 1st param expected `Sized` but got `ColumnFromVelox`.
             ct = len(list(cols)[0])
+            # pyre-fixme[6]: For 1st param expected `Sized` but got `ColumnFromVelox`.
             if not all(len(c) == ct for c in cols):
                 ValueError(f"length of all columns must be the same (e.g {ct})")
+        # pyre-fixme[16]: `ColumnFromVelox` has no attribute `dtype`.
         inferred_dtype = dt.Struct([dt.Field(n, c.dtype) for n, c in data.items()])
         if dtype is None:
             dtype = inferred_dtype
@@ -132,6 +141,8 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                 )
                 for i in range(len(dtype.fields))
             }
+            # pyre-fixme[6]: For 3rd param expected `Dict[str, ColumnFromVelox]` but
+            #  got `Dict[str, IColumn]`.
             return DataFrameCpu(device, dtype, field_data)
 
         # append-based (extremenly ineffincient) implementation
@@ -147,6 +158,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     @staticmethod
     def _from_arrow(device: str, array: pa.StructArray, dtype: dt.Struct):
         # TODO: use native Arrow StructArray -> Velox RowVector conversion
+        # pyre-fixme[16]: `StructArray` has no attribute `type`.
         assert array.type.num_fields == len(dtype.fields)
 
         if array.null_count != 0:
@@ -186,8 +198,10 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
             [dt.Field(n, c.dtype) for n, c in field_data.items()],
             nullable=self.dtype.nullable,
         )
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = velox.Column(get_velox_type(dtype))
         for n, c in field_data.items():
+            # pyre-fixme[16]: `IColumn` has no attribute `_data`.
             col.set_child(col.type().get_child_idx(n), c._data)
             col.set_length(len(c._data))
 
@@ -198,6 +212,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                 if mask_list[i]:
                     col.set_null_at(i)
 
+        # pyre-fixme[7]: Expected `DataFrameCpu` but got `IColumn`.
         return ColumnFromVelox._from_velox(self.device, dtype, col, True)
 
     def __len__(self):
@@ -246,6 +261,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                         f"a tuple of type {self.dtype} is required, got None"
                     )
                 else:
+                    # pyre-fixme[16]: `DType` has no attribute `fields`.
                     df = self.append([{f.name: None for f in self.dtype.fields}])
                     df._data.set_null_at(len(df) - 1)
                     return df
@@ -262,6 +278,8 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                     )
                     child_col = child_col.append([v])
                     res[k] = child_col
+                # pyre-fixme[6]: For 1st param expected `OrderedDict[str, IColumn]`
+                #  but got `Dict[typing.Any, typing.Any]`.
                 new_data = self._fromdata(res, self._mask + [False])
 
                 return new_data.append(it)
@@ -281,6 +299,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
             return self
 
     def _check_columns(self, columns: Iterable[str]):
+        # pyre-fixme[16]: `DType` has no attribute `fields`.
         valid_names = {f.name for f in self.dtype.fields}
         for n in columns:
             if n not in valid_names:
@@ -292,11 +311,15 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         if not empty_df and len(col) != len(self):
             raise TypeError("all columns/lists must have equal length")
 
+        # pyre-fixme[16]: `DType` has no attribute `get_index`.
         column_idx = self._dtype.get_index(name)
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         new_delegate = velox.Column(get_velox_type(self._dtype))
+        # pyre-fixme[16]: `IColumn` has no attribute `_data`.
         new_delegate.set_length(len(col._data))
 
         # Set columns for new_delegate
+        # pyre-fixme[16]: `DType` has no attribute `fields`.
         for idx in range(len(self._dtype.fields)):
             if idx != column_idx:
                 new_delegate.set_child(idx, self._data.child_at(idx))
@@ -394,6 +417,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         columns: Optional[List[str]] = None,
     ):
         if columns is None:
+            # pyre-fixme[16]: `ColumnFromVelox` has no attribute `map`.
             return super().map(arg, na_action, dtype)
         self._check_columns(columns)
 
@@ -401,6 +425,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
             idx = self._data.type().get_child_idx(columns[0])
             return ColumnFromVelox._from_velox(
                 self.device,
+                # pyre-fixme[16]: `DType` has no attribute `fields`.
                 self.dtype.fields[idx].dtype,
                 self._data.child_at(idx),
                 True,
@@ -460,10 +485,12 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         columns: Optional[List[str]] = None,
     ):
         if columns is None:
+            # pyre-fixme[16]: `ColumnFromVelox` has no attribute `flatmap`.
             return super().flatmap(arg, na_action, dtype)
         self._check_columns(columns)
 
         if len(columns) == 1:
+            # pyre-fixme[16]: `DataFrameCpu` has no attribute `_field_data`.
             return self._field_data[columns[0]].flatmap(
                 arg,
                 na_action,
@@ -478,6 +505,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
             cols = [self._field_data[n] for n in columns]
             res = Scope._EmptyColumn(dtype_)
             for i in range(len(self)):
+                # pyre-fixme[16]: `DataFrameCpu` has no attribute `valid`.
                 if self.valid(i):
                     res._extend(func(*[col[i] for col in cols]))
                 elif na_action is None:
@@ -492,6 +520,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         self, predicate: Union[Callable, Iterable], columns: Optional[List[str]] = None
     ):
         if columns is None:
+            # pyre-fixme[16]: `ColumnFromVelox` has no attribute `filter`.
             return super().filter(predicate)
 
         self._check_columns(columns)
@@ -508,6 +537,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
             cols.append(
                 ColumnFromVelox._from_velox(
                     self.device,
+                    # pyre-fixme[16]: `DType` has no attribute `fields`.
                     self.dtype.fields[idx].dtype,
                     self._data.child_at(idx),
                     True,
@@ -543,6 +573,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
             for i in by:
                 _ = self._data.type().get_child_idx(i)  # throws key error
                 xs.append(self.columns.index(i))
+            # pyre-fixme[16]: `DType` has no attribute `fields`.
             reorder = xs + [j for j in range(len(self.dtype.fields)) if j not in xs]
 
             def func(tup):
@@ -1259,14 +1290,15 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     def log(self) -> DataFrameCpu:
         return self._fromdata(
             {
+                # pyre-fixme[16]: `DType` has no attribute `fields`.
                 self.dtype.fields[i]
+                # pyre-fixme[16]: `IColumn` has no attribute `log`.
                 .name: ColumnFromVelox._from_velox(
                     self.device,
                     self.dtype.fields[i].dtype,
                     self._data.child_at(i),
                     True,
-                )
-                .log()
+                ).log()
                 for i in range(self._data.children_size())
             },
             mask=(None if self.null_count == 0 else self._mask),
@@ -1280,6 +1312,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         if isinstance(values, list):
             return self._fromdata(
                 {
+                    # pyre-fixme[16]: `DType` has no attribute `fields`.
                     self.dtype.fields[i]
                     .name: ColumnFromVelox._from_velox(
                         self.device,
@@ -1294,11 +1327,14 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
             )
         if isinstance(values, dict):
             self._check_columns(values.keys())
+            # pyre-fixme[20]: Argument `mask` expected.
             return self._fromdata(
+                # pyre-fixme[16]: `DataFrameCpu` has no attribute `_field_data`.
                 {n: c.isin(values[n]) for n, c in self._field_data.items()}
             )
         if isinstance(values, IDataFrame):
             self._check_columns(values.columns)
+            # pyre-fixme[20]: Argument `mask` expected.
             return self._fromdata(
                 {n: c.isin(values=list(values[n])) for n, c in self._field_data.items()}
             )
@@ -1317,6 +1353,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         if isinstance(fill_value, IColumn._scalar_types):
             return self._fromdata(
                 {
+                    # pyre-fixme[16]: `DType` has no attribute `fields`.
                     self.dtype.fields[i]
                     .name: ColumnFromVelox._from_velox(
                         self.device,
@@ -1619,6 +1656,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         self._check_columns(columns)
         return self._fromdata(
             {
+                # pyre-fixme[16]: `DType` has no attribute `fields`.
                 self.dtype.fields[i].name: ColumnFromVelox._from_velox(
                     self.device,
                     self.dtype.fields[i].dtype,
@@ -1640,6 +1678,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         self._check_columns(columns)
         return self._fromdata(
             {
+                # pyre-fixme[16]: `DType` has no attribute `fields`.
                 self.dtype.fields[i].name: ColumnFromVelox._from_velox(
                     self.device,
                     self.dtype.fields[i].dtype,
@@ -1657,9 +1696,13 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     def rename(self, mapper: Dict[str, str]):
         self._check_columns(mapper.keys())
         return self._fromdata(
+            # pyre-fixme[6]: For 1st param expected `OrderedDict[str, IColumn]` but
+            #  got `Dict[str, IColumn]`.
             {
                 mapper.get(
-                    self.dtype.fields[i].name, self.dtype.fields[i].name
+                    # pyre-fixme[16]: `DType` has no attribute `fields`.
+                    self.dtype.fields[i].name,
+                    self.dtype.fields[i].name,
                 ): ColumnFromVelox._from_velox(
                     self.device,
                     self.dtype.fields[i].dtype,
@@ -1676,9 +1719,12 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     def reorder(self, columns: List[str]):
         self._check_columns(columns)
         return self._fromdata(
+            # pyre-fixme[6]: For 1st param expected `OrderedDict[str, IColumn]` but
+            #  got `Dict[str, IColumn]`.
             {
                 col: ColumnFromVelox._from_velox(
                     self.device,
+                    # pyre-fixme[16]: `DType` has no attribute `fields`.
                     self.dtype.fields[self._data.type().get_child_idx(col)].dtype,
                     self._data.child_at(self._data.type().get_child_idx(col)),
                     True,
@@ -2011,7 +2057,9 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         key_fields = []
         item_fields = []
         for k in key_columns:
+            # pyre-fixme[16]: `DType` has no attribute `get`.
             key_fields.append(dt.Field(k, self.dtype.get(k)))
+        # pyre-fixme[16]: `DType` has no attribute `fields`.
         for f in self.dtype.fields:
             if f.name not in key_columns:
                 item_fields.append(f)
@@ -2094,6 +2142,8 @@ class GroupedDataFrame:
             res[f.name] = c
         for f, c in zip(agg_fields, self._apply(op)):
             res[f.name] = c
+        # pyre-fixme[6]: For 1st param expected `OrderedDict[str, IColumn]` but got
+        #  `Dict[typing.Any, typing.Any]`.
         return self._parent._fromdata(res, None)
 
     def _apply(self, op: str) -> List[IColumn]:

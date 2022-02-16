@@ -7,6 +7,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace, is_dataclass
 
 import numpy as np
+
+# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow
 import typing_inspect
 
@@ -275,6 +277,7 @@ class Struct(DType):
         for idx, field in enumerate(self.fields):
             if field.name == name:
                 return idx
+        # pyre-fixme[7]: Expected `int` but got `None`.
         return None
 
     def __post_init__(self):
@@ -539,10 +542,13 @@ def contains_tuple(t: DType):
     if is_tuple(t):
         return True
     if is_list(t):
+        # pyre-fixme[16]: `DType` has no attribute `item_dtype`.
         return contains_tuple(t.item_dtype)
     if is_map(t):
+        # pyre-fixme[16]: `DType` has no attribute `key_dtype`.
         return contains_tuple(t.key_dtype) or contains_tuple(t.item_dtype)
     if is_struct(t):
+        # pyre-fixme[16]: `DType` has no attribute `fields`.
         return any(contains_tuple(f.dtype) for f in t.fields)
 
     return False
@@ -614,6 +620,7 @@ def infer_dtype_from_prefix(prefix: ty.Sequence) -> ty.Optional[DType]:
 
 def infer_dype_from_callable_hint(
     func: ty.Callable,
+    # pyre-fixme[31]: Expression `Type])` is not a valid type.
 ) -> (ty.Optional[DType], ty.Optional[ty.Type]):
     dtype = None
     py_type = None
@@ -677,6 +684,7 @@ def common_dtype(l: DType, r: DType) -> ty.Optional[DType]:
         return String(l.nullable or r.nullable)
     if is_boolean_or_numerical(l) and is_boolean_or_numerical(r):
         return promote(l, r)
+    # pyre-fixme[16]: `DType` has no attribute `fields`.
     if is_tuple(l) and is_tuple(r) and len(l.fields) == len(r.fields):
         res = []
         for i, j in zip(l.fields, r.fields):
@@ -686,7 +694,9 @@ def common_dtype(l: DType, r: DType) -> ty.Optional[DType]:
             res.append(m)
         return Tuple(res).with_null(l.nullable or r.nullable)
     if is_map(l) and is_map(r):
+        # pyre-fixme[16]: `DType` has no attribute `key_dtype`.
         k = common_dtype(l.key_dtype, r.key_dtype)
+        # pyre-fixme[16]: `DType` has no attribute `item_dtype`.
         i = common_dtype(l.item_dtype, r.item_dtype)
         return (
             Map(k, i).with_null(l.nullable or r.nullable)
