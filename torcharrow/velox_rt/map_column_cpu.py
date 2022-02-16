@@ -5,6 +5,8 @@ from typing import List
 
 import numpy as np
 import torcharrow as ta
+
+# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch

@@ -10,6 +10,7 @@ from .scope import Scope
 
 
 def _from_arrow_array(
+    # pyre-fixme[11]: Annotation `Array` is not defined as a type.
     array,  # type: pa.Array
     dtype: Optional[dt.DType] = None,
     device: str = "",
@@ -27,6 +28,7 @@ def _from_arrow_array(
     # vice versa), (ii) when we bring in a stricter type system in Velox
     # to allow functions to only be invokable on non-null types we
     # increase the amount of places we can use the from_arrow result
+    # pyre-fixme[16]: `Array` has no attribute `type`.
     dtype_from_arrowtype = _arrowtype_to_dtype(array.type, array.null_count > 0)
     if dtype and (
         dt.get_underlying_dtype(dtype) != dt.get_underlying_dtype(dtype_from_arrowtype)
@@ -45,6 +47,7 @@ def _from_arrow_array(
 
 
 def _from_arrow_table(
+    # pyre-fixme[11]: Annotation `Table` is not defined as a type.
     table,  # type: pa.Table
     dtype: Optional[dt.DType] = None,
     device: str = "",
@@ -78,6 +81,7 @@ def _from_arrow_table(
         df_data[field.name] = _from_arrow_array(
             table[i].chunk(0),
             dtype=(
+                # pyre-fixme[16]: `DType` has no attribute `get`.
                 dtype.get(field.name)
                 if dtype is not None
                 else _arrowtype_to_dtype(field.type, field.nullable)

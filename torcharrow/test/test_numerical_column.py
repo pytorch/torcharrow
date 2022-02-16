@@ -565,6 +565,7 @@ class TestNumericalColumn(unittest.TestCase):
         data: ty.Iterable[ty.Union[int, float]],
         validation: ty.Callable = lambda x: x,
     ):
+        # pyre-fixme[16]: `TestNumericalColumn` has no attribute `device`.
         col_from = ta.Column(data, device=self.device, dtype=from_type)
         col_casted = col_from.cast(to_type)
         self.assertEqual(list(col_casted), [validation(d) for d in data])

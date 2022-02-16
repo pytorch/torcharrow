@@ -175,6 +175,7 @@ class IDataFrame(IColumn):
         raise self._not_supported("_set_field_data")
 
     def __contains__(self, key: str) -> bool:
+        # pyre-fixme[16]: `DType` has no attribute `fields`.
         for f in self.dtype.fields:
             if key == f.name:
                 return True
@@ -188,9 +189,11 @@ class IDataFrame(IColumn):
         else:
             col = ta.Column(value)
 
+        # pyre-fixme[16]: `DType` has no attribute `fields`.
         empty_df = len(self.dtype.fields) == 0
 
         # Update dtype
+        # pyre-fixme[16]: `DType` has no attribute `get_index`.
         idx = self.dtype.get_index(name)
         if idx is None:
             # append column

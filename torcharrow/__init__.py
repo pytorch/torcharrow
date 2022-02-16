@@ -12,6 +12,7 @@ from .inumerical_column import INumericalColumn  # noqa
 from .istring_column import IStringColumn  # noqa
 
 try:
+    # pyre-fixme[21]: Could not find module `torcharrow.version`.
     from .version import __version__  # noqa: F401
 except ImportError:
     pass

@@ -4,11 +4,13 @@
 import unittest
 from typing import List, Any
 
+# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 # @manual=//pytorch/torcharrow/csrc/velox:_torcharrow
 import torcharrow._torcharrow as ta
 
 
 class TestSimpleColumns(unittest.TestCase):
+    # pyre-fixme[11]: Annotation `BaseColumn` is not defined as a type.
     def assert_SimpleColumn(self, col: ta.BaseColumn, val: List[Any]):
         self.assertEqual(len(col), len(val))
         for i in range(len(val)):
@@ -23,6 +25,7 @@ class TestSimpleColumns(unittest.TestCase):
 
     @staticmethod
     def construct_simple_column(velox_type, data: List[Any]):
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(velox_type)
         for item in data:
             if item is None:

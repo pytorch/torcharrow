@@ -192,6 +192,7 @@ def _arrowtype_to_dtype(t: pa.DataType, nullable: bool) -> dt.DType:
         return dt.String(nullable)
     if pa.types.is_struct(t):
         return dt.Struct(
+            # pyre-fixme[16]: `DataType` has no attribute `__iter__`.
             [dt.Field(f.name, _arrowtype_to_dtype(f.type, f.nullable)) for f in t],
             nullable,
         )
