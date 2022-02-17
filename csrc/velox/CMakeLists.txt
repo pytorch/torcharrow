@@ -6,6 +6,10 @@ cmake_minimum_required(VERSION 3.15)
 # _torcharrow is a shared library as it's a Python extension
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# To make the right CPython is built with on GitHub Actions,
+# see https://github.com/actions/setup-python/issues/121#issuecomment-1014500503
+set(Python_FIND_FRAMEWORK "LAST")
+
 project(lib_velox_df)
 
 set(VELOX_ROOT ${CMAKE_BINARY_DIR}/csrc/velox/velox)
