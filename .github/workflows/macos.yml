@@ -61,8 +61,7 @@ jobs:
       - name: Bulid TorchArrow
         run: |
           CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz
-          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache
-          python setup.py develop
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache python setup.py develop
 
       - name: Print CCache Stats
         run: CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -s
