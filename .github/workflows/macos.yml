@@ -16,6 +16,9 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      - name: Print CPU info
+        run: sysctl -a | grep machdep.cpu
+
       - name: Setup Python environment
         uses: actions/setup-python@v2
         with:
