@@ -109,7 +109,7 @@ class CriteoIntegrationTest(unittest.TestCase):
     NUM_ROWS = 128
     TEMPORARY_PARQUETY_FILE = "_test_criteo.parquet"
 
-    def setUp(self):
+    def setUp(self) -> None:
         # Generate some random data
         random.seed(42)
 
@@ -160,7 +160,7 @@ class CriteoIntegrationTest(unittest.TestCase):
 
         return df
 
-    def test_criteo_transform(self):
+    def test_criteo_transform(self) -> None:
         # Read data from Parquet file
         table = pq.read_table(type(self).TEMPORARY_PARQUETY_FILE)
         df = ta.from_arrow(table)
@@ -168,6 +168,8 @@ class CriteoIntegrationTest(unittest.TestCase):
         self.assertEqual(df.dtype, DTYPE)
         self.assertEqual(list(df), self.RAW_ROWS)
 
+        # pyre-fixme[6]: For 1st param expected `IDataFrame` but got `Union[IColumn,
+        #  IDataFrame]`.
         df = type(self).preproc(df)
 
         # Check result

@@ -17,7 +17,7 @@ def from_pandas_dataframe(
     dtype: Optional[dt.DType] = None,
     columns: Optional[List[str]] = None,
     scope=None,
-    device="",
+    device: str = "",
 ):
     """
     Convert pandas dataframe to torcharrow dataframe (drops indices).
@@ -75,7 +75,7 @@ def from_pandas_dataframe(
         return scope.Frame(res, device=device)
 
 
-def from_pandas_series(series, dtype=None, scope=None, device=""):
+def from_pandas_series(series, dtype=None, scope=None, device: str = ""):
     """ "
     Convert pandas series array to a torcharrow column (drops indices).
     """
@@ -85,7 +85,7 @@ def from_pandas_series(series, dtype=None, scope=None, device=""):
     return from_numpy(series.to_numpy(), dtype, scope, device)
 
 
-def from_numpy(array, dtype, scope=None, device=""):
+def from_numpy(array, dtype, scope=None, device: str = ""):
     """
     Convert 1dim numpy array to a torcharrow column (zero copy).
     """
@@ -100,15 +100,16 @@ def from_numpy(array, dtype, scope=None, device=""):
         raise TypeError(f"cannot convert numpy array of type {array.dtype}")
 
 
-def _is_not_str(s):
+def _is_not_str(s) -> bool:
     return not isinstance(s, str)
 
 
-def _from_numpy_ma(data, mask, dtype, scope=None, device=""):
+def _from_numpy_ma(data, mask, dtype, scope=None, device: str = ""):
     # adopt types
     if dtype is None:
         dtype = dt.typeof_np_dtype(data.dtype).with_null()
     else:
+        # pyre-fixme[16]: Module `dtypes` has no attribute `is_primitive_type`.
         assert dt.is_primitive_type(dtype)
         assert dtype == dt.typeof_np_dtype(data.dtype).with_null()
         # TODO if not, adopt the type or?
@@ -128,7 +129,7 @@ def _from_numpy_ma(data, mask, dtype, scope=None, device=""):
         raise TypeError(f"cannot convert masked numpy array of type {data.dtype}")
 
 
-def _from_numpy_nd(data, dtype, scope=None, device=""):
+def _from_numpy_nd(data, dtype, scope=None, device: str = ""):
     # adopt types
     if dtype is None:
         dtype = dt.typeof_np_dtype(data.dtype)
