@@ -270,5 +270,17 @@ TEST_F(FunctionsTest, round) {
   assertUnaryExpression<float>("torcharrow_round(c0)", limits, limits);
 }
 
+TEST_F(FunctionsTest, not) {
+  assertUnaryExpression<int8_t>(
+      "torcharrow_not(c0)", {10, 11, -1, -34}, {-11, -12, 0, 33});
+  assertUnaryExpression<int32_t>(
+      "torcharrow_not(c0)", {10, 11, -1, -34}, {-11, -12, 0, 33});
+  assertUnaryExpression<int64_t>(
+      "torcharrow_not(c0)", {10, 11, -1, -34}, {-11, -12, 0, 33});
+
+  assertUnaryExpression<bool>(
+      "torcharrow_not(c0)", {true, false, true}, {false, true, false});
+}
+
 } // namespace
 } // namespace facebook::velox
