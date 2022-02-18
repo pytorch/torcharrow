@@ -110,6 +110,13 @@ inline void registerTorchArrowFunctions() {
   velox::registerFunction<torcharrow_round, float, bool, int64_t>(
       {"torcharrow_round"});
 
+  // Invert/Not
+  velox::registerFunction<torcharrow_not, bool, bool>({"torcharrow_not"});
+  velox::registerFunction<torcharrow_not_int, int8_t, int8_t>({"torcharrow_not"});
+  velox::registerFunction<torcharrow_not_int, int16_t, int16_t>({"torcharrow_not"});
+  velox::registerFunction<torcharrow_not_int, int32_t, int32_t>({"torcharrow_not"});
+  velox::registerFunction<torcharrow_not_int, int64_t, int64_t>({"torcharrow_not"});
+
   // TODO: consider to refactor registration code with helper functions
   // to save some lines, like https://fburl.com/code/dk6zi7t3
 
