@@ -90,7 +90,7 @@ function cmake_install {
     -DCMAKE_CXX_FLAGS="${COMPILER_FLAGS}" \
     -DBUILD_TESTING=OFF \
     "$@"
-  sudo ninja -C "${BINARY_DIR}" install
+  ninja -C "${BINARY_DIR}" install
 }
 
 function install_fmt {
