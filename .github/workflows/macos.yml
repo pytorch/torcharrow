@@ -57,12 +57,12 @@ jobs:
 
       - name: Bulid TorchArrow
         run: |
-          python setup.py develop --user
+          python setup.py develop
 
       - name: Install dependencies for test
         run: |
-          pip3 install pytest  --user
-          pip3 install torch --user
+          pip3 install pytest
+          pip3 install torch
 
       - name : Run TorchArrow unit tests
         run: pytest --no-header -v torcharrow/test
