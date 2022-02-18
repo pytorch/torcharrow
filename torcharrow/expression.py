@@ -71,7 +71,7 @@ class GetAttr(Expression):
         return f"{self._obj}.{self._name}"
 
 
-def _dummy_function():
+def _dummy_function() -> None:
     pass
 
 

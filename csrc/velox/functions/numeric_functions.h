@@ -66,6 +66,24 @@ struct torcharrow_floormod_int {
 };
 
 template <typename T>
+struct torcharrow_not {
+  template <typename TOutput, typename TInput = TOutput>
+  FOLLY_ALWAYS_INLINE bool call(TOutput& result, const TInput& input) {
+    result = !input;
+    return true;
+  }
+};
+
+template <typename T>
+struct torcharrow_not_int {
+  template <typename TOutput, typename TInput = TOutput>
+  FOLLY_ALWAYS_INLINE bool call(TOutput& result, const TInput& input) {
+    result = ~input;
+    return true;
+  }
+};
+
+template <typename T>
 struct torcharrow_floormod {
   template <typename TOutput, typename TInput = TOutput>
   FOLLY_ALWAYS_INLINE bool
