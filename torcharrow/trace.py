@@ -76,7 +76,7 @@ class Trace:
 # function decorator
 
 
-def get_trace(*args, **kwargs):
+def get_trace(*args, **kwargs) -> Trace:
     from .scope import Scope
 
     return Scope.default.trace

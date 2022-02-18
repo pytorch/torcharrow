@@ -113,11 +113,11 @@ class TestDFWithTrace(unittest.TestCase):
 # aux: global function --------------------------------------------------------
 
 
-def h(x):
+def h(x) -> int:
     return 133 if x == 13 else x
 
 
-def cmds(stms):
+def cmds(stms) -> str:
     quote = lambda x: f'"{x}"' if "'" in x else f"'{x}'"
     res = []
     for stm in stms:

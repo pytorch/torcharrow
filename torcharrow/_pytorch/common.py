@@ -102,7 +102,7 @@ def infer_dtype_from_tensor(
 def from_tensor(
     data: Union[PackedMap, PackedList, List, torch.Tensor, Tuple],
     dtype: Optional[DType] = None,
-    device="",
+    device: str = "",
 ):
     if dtype is None:
         dtype = infer_dtype_from_tensor(data)
