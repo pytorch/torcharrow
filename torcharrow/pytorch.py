@@ -12,7 +12,7 @@ if available:
     from ._pytorch.common import _dtype_to_pytorch_dtype  # noqa
 
 
-def ensure_available():
+def ensure_available() -> None:
     if not available:
         raise ModuleNotFoundError(
             "PyTorch is not installed and conversion functionality is not available"

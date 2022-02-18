@@ -382,5 +382,5 @@ Dispatcher.register(
 )
 
 
-def _is_not_str(s):
+def _is_not_str(s) -> bool:
     return not isinstance(s, str)
