@@ -8,9 +8,11 @@ from torcharrow.scope import Scope
 
 
 class BenchmarkListConstruction:
-    def setup(self):
+    def setup(self) -> None:
+        # pyre-fixme[16]: `BenchmarkListConstruction` has no attribute `nLoop`.
         self.nLoop: int = 300
 
+        # pyre-fixme[16]: `BenchmarkListConstruction` has no attribute `test_strings`.
         self.test_strings: List[str] = [f"short{x}" for x in range(1000)]
         self.test_strings.extend(
             [f"this_is_a_long_string_for_velox_stringview{x}" for x in range(1000)]
@@ -63,14 +65,14 @@ class BenchmarkListConstruction:
             number=self.nLoop,
         )
 
-    def printResult(self, result: List[int]):
+    def printResult(self, result: List[int]) -> None:
         print(
             f"min of {len(result)} repeats is {min(result)} seconds over "
             # pyre-fixme[16]: `BenchmarkListConstruction` has no attribute `nLoop`.
             f"{self.nLoop} loops, or {min(result)/self.nLoop} seconds per loop"
         )
 
-    def run(self):
+    def run(self) -> None:
         self.setup()
 
         appendResult: List[int] = self.runListConstruction(self.AppendRunner())

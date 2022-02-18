@@ -47,6 +47,7 @@ jobs:
 
       - name: Install dependencies with APT
         run: |
+          sudo apt-get update
           sudo apt install -y g++ cmake ccache ninja-build checkinstall git \
           libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
           libbz2-dev libgflags-dev libgtest-dev libgmock-dev libevent-dev \
