@@ -90,7 +90,7 @@ function cmake_install {
     -DCMAKE_CXX_FLAGS="${COMPILER_FLAGS}" \
     -DBUILD_TESTING=OFF \
     "$@"
-  sudo ninja -C "${BINARY_DIR}" install
+  ninja -C "${BINARY_DIR}" install
 }
 
 function install_fmt {
@@ -105,8 +105,6 @@ function install_folly {
 
 function install_velox_deps {
   run_and_time install_fmt
-  sudo ln -s /usr/local/lib/libfmt.a /usr/lib/x86_64-linux-gnu/libfmt.a
-
   run_and_time install_folly
 }
 
