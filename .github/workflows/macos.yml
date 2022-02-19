@@ -30,37 +30,41 @@ jobs:
       - name: Update submodules
         run: git submodule update --init --recursive
 
-#      # Based on https://cristianadam.eu/20200113/speeding-up-c-plus-plus-github-actions-using-ccache/
-#      - name: Prepare ccache timestamp
-#        id: ccache_cache_timestamp
-#        run: |
-#          echo "::set-output name=timestamp::$(/bin/date -u "+%Y%m%d-%H:%M:%S")"
-#        shell: bash
-#
-#      - name: Load ccache files
-#        uses: actions/cache@v2
-#        with:
-#          path: .ccache
-#          key: ubuntu-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-#          restore-keys: |
-#              ubuntu-ccache-
+      # Based on https://cristianadam.eu/20200113/speeding-up-c-plus-plus-github-actions-using-ccache/
+      - name: Prepare ccache timestamp
+        id: ccache_cache_timestamp
+        run: |
+          echo "::set-output name=timestamp::$(/bin/date -u "+%Y%m%d-%H:%M:%S")"
+        shell: bash
+
+      - name: Load ccache files
+        uses: actions/cache@v2
+        with:
+          path: .ccache
+          key: macos-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+          restore-keys: |
+              macos-ccache-
 
       - name: Install dependencies from Brew
         run: |
           brew install --formula ninja cmake ccache protobuf icu4c boost gflags glog libevent lz4 lzo snappy xz zstd
 
-#      # Based on https://github.com/facebookincubator/velox/blob/99429407c3d524e07b32b8b19a03aa7382f819cf/.circleci/config.yml#L114-L116
-#      - name: Configure ccache
-#        run: |
-#          echo "$GITHUB_WORKSPACE"
-#          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz -M 5G
+      # Based on https://github.com/facebookincubator/velox/blob/99429407c3d524e07b32b8b19a03aa7382f819cf/.circleci/config.yml#L114-L116
+      - name: Configure ccache
+        run: |
+          echo "$GITHUB_WORKSPACE"
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz -M 5G
 
       - name: Build and install other dependencies
-        run: scripts/build_mac_dep.sh ranges_v3 googletest fmt double_conversion folly re2
+        run: CMAKE_C_COMPILER_LAUNCHER=ccache CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache scripts/build_mac_dep.sh ranges_v3 googletest fmt double_conversion folly re2
 
       - name: Bulid TorchArrow
         run: |
-          python setup.py develop
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache python setup.py develop
+
+      - name: Print CCache Stats
+        run: CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -s
 
       - name: Install dependencies for test
         run: |
