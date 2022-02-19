@@ -1,7 +1,7 @@
 name: Ubuntu Build and Test
 on:
   push:
-    branches: [ main, fbsync ]
+    branches: [ main ]
   pull_request:
     branches:
       - main
