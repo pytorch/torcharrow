@@ -38,9 +38,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .ccache
-          key: ubuntu-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+          key: clean-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
           restore-keys: |
-              ubuntu-ccache-
+              clean-ccache-
 
       - name: Install dependencies with APT
         run: |
