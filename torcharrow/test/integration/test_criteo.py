@@ -135,7 +135,7 @@ class CriteoIntegrationTest(unittest.TestCase):
             rows.append((label, dense_features_struct, sparse_features_struct))
 
         self.RAW_ROWS = rows
-        df = ta.DataFrame(rows, dtype=DTYPE)
+        df = ta.dataframe(rows, dtype=DTYPE)
 
         pq.write_table(df.to_arrow(), self.TEMPORARY_PARQUETY_FILE)
 

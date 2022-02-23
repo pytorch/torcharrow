@@ -1539,8 +1539,8 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     def _nunique(self, drop_null=True):
         """Returns the number of unique values per column"""
         res = {}
-        res["column"] = ta.Column([f.name for f in self.dtype.fields], dt.string)
-        res["unique"] = ta.Column(
+        res["column"] = ta.column([f.name for f in self.dtype.fields], dt.string)
+        res["unique"] = ta.column(
             [
                 ColumnFromVelox._from_velox(
                     self.device,
@@ -1555,7 +1555,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         return self._fromdata(res, None)
 
     def _summarize(self, func):
-        res = ta.Column(self.dtype)
+        res = ta.column(self.dtype)
 
         for i in range(self._data.children_size()):
             result = func(
@@ -1635,7 +1635,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                 raise ValueError("percentiles must be betwen 0 and 100")
 
         res = {}
-        res["metric"] = ta.Column(
+        res["metric"] = ta.column(
             ["count", "mean", "std", "min"] + [f"{p}%" for p in percentiles] + ["max"]
         )
         for s in selected:
@@ -1646,7 +1646,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                 self._data.child_at(idx),
                 True,
             )
-            res[s] = ta.Column(
+            res[s] = ta.column(
                 [c._count(), c.mean(), c.std(), c.min()]
                 + c._quantile(percentiles, "midpoint")
                 + [c.max()]
@@ -1834,7 +1834,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         --------
 
         >>> from torcharrow import ta
-        >>> xf = ta.DataFrame({
+        >>> xf = ta.dataframe({
         >>>    'A':['a', 'b', 'a', 'b'],
         >>>    'B': [1, 2, 3, 4],
         >>>    'C': [10,11,12,13]})
@@ -1890,7 +1890,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         Examples
         --------
         >>> from torcharrow import ta
-        >>> xf = ta.DataFrame({
+        >>> xf = ta.dataframe({
         >>>    'A': ['a', 'b', 'a', 'b'],
         >>>    'B': [1, 2, 3, 4],
         >>>    'C': [10,11,12,13]})
@@ -2001,13 +2001,13 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> df = ta.DataFrame({'A': ['a', 'b', 'a', 'b'], 'B': [1, 2, 3, 4]})
+        >>> df = ta.dataframe({'A': ['a', 'b', 'a', 'b'], 'B': [1, 2, 3, 4]})
         >>> # group by A
         >>> grouped = df.groupby(['A'])
         >>> # apply sum on each of B's grouped column to create a new column
         >>> grouped_sum = grouped['B'].sum()
         >>> # combine a new dataframe from old and new columns
-        >>> res = ta.DataFrame()
+        >>> res = ta.dataframe()
         >>> res['A'] = grouped['A']
         >>> res['B.sum'] = grouped_sum
         >>> res
@@ -2030,7 +2030,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         dataframe, use groupby followed by select.
 
 
-        >>> df = ta.DataFrame({
+        >>> df = ta.dataframe({
         >>>    'A':['a', 'b', 'a', 'b'],
         >>>    'B': [1, 2, 3, 4],
         >>>    'C': [10,11,12,13]})
@@ -2103,11 +2103,11 @@ class GroupedDataFrame:
         Return the size of each group (including nulls).
         """
         res = {
-            f.name: ta.Column([v[idx] for v, _ in self._groups.items()], f.dtype)
+            f.name: ta.column([v[idx] for v, _ in self._groups.items()], f.dtype)
             for idx, f in enumerate(self._key_fields)
         }
 
-        res["size"] = ta.Column([len(c) for _, c in self._groups.items()], dt.int64)
+        res["size"] = ta.column([len(c) for _, c in self._groups.items()], dt.int64)
 
         return self._parent._fromdata(res, None)
 
@@ -2117,7 +2117,7 @@ class GroupedDataFrame:
         """
         for g, xs in self._groups.items():
             dtype = dt.Struct(self._item_fields)
-            df = ta.Column(dtype).append(
+            df = ta.column(dtype).append(
                 tuple(
                     tuple(
                         self._parent._data.child_at(
@@ -2166,7 +2166,7 @@ class GroupedDataFrame:
         )
         for g, xs in self._groups.items():
             dest_data = [src_c[x] for x in xs]
-            dest_c = dest_f(ta.Column(dest_data, dtype=dest_t))
+            dest_c = dest_f(ta.column(dest_data, dtype=dest_t))
             res._append(dest_c)
         return res._finalize()
 

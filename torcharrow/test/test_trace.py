@@ -143,7 +143,7 @@ class TestColumnTrace(unittest.TestCase):
         )
 
     def test_columns(self):
-        c0 = ta.Column(dt.int64)
+        c0 = ta.column(dt.int64)
         c0 = c0.append([13])
         t = c0.dtype
         c0 = c0.append([14])
@@ -164,7 +164,7 @@ class TestColumnTrace(unittest.TestCase):
         c3 = c1[[0, 1]]
 
         # NOTE can't be traced...
-        b = ta.Column([True] * len(c3))
+        b = ta.column([True] * len(c3))
         # ... rewrite to
         b = c1 != c1
 
@@ -224,7 +224,7 @@ class TestDataframeTrace(unittest.TestCase):
 
     def test_simple_df_ops_fail(self):
 
-        df = ta.DataFrame()
+        df = ta.dataframe()
         df["a"] = [1, 2, 3]
         df["b"] = [11, 22, 33]
         df["c"] = [111, 222, 333]
@@ -242,7 +242,7 @@ class TestDataframeTrace(unittest.TestCase):
         self.assertTrue(True)
 
     def test_simple_df_ops_succeed(self):
-        df = ta.DataFrame()
+        df = ta.dataframe()
         df["a"] = [1, 2, 3]
         df["b"] = [11, 22, 33]
         df["c"] = [111, 222, 333]
@@ -273,7 +273,7 @@ class TestDataframeTrace(unittest.TestCase):
         self.assertEqual(Scope.default.trace.statements(), verdict)
 
     def test_df_trace_equivalence(self):
-        df = ta.DataFrame()
+        df = ta.dataframe()
         # print("TRACE", cmds(Scope.default.trace.statements()))
         self.assertEqual(
             Scope.default.trace.statements(),
@@ -317,7 +317,7 @@ class TestDataframeTrace(unittest.TestCase):
         self.assertEqual(list(d11), list(eval(result)))
 
     def test_df_trace_locals_and_me_equivalence(self):
-        d0 = ta.DataFrame({"a": [1, 2, 3], "b": [11, 22, 33], "c": [111, 222, 333]})
+        d0 = ta.dataframe({"a": [1, 2, 3], "b": [11, 22, 33], "c": [111, 222, 333]})
 
         d1 = d0.where((d0["a"] > 1))
         d1_result = Scope.default.trace.result()
@@ -338,7 +338,7 @@ class TestDataframeTrace(unittest.TestCase):
         # self.assertEqual(list(eval(d1_result)), list(eval(d2_result)))
 
     def test_df_trace_select_with_map(self):
-        d0 = ta.DataFrame({"a": [1, 2, 3], "b": [11, 22, 33], "c": [111, 222, 333]})
+        d0 = ta.dataframe({"a": [1, 2, 3], "b": [11, 22, 33], "c": [111, 222, 333]})
         d2 = d0.select(f=me.map(add, dtype=dt.int64))
 
         d2_result = Scope.default.trace.result()
@@ -353,7 +353,7 @@ class TestDataframeTrace(unittest.TestCase):
         # self.assertEqual(list(d2), list(eval(d2_result)))
 
     def test_df_trace_select_map_equivalence(self):
-        d0 = ta.DataFrame({"a": [1, 2, 3], "b": [11, 22, 33], "c": [111, 222, 333]})
+        d0 = ta.dataframe({"a": [1, 2, 3], "b": [11, 22, 33], "c": [111, 222, 333]})
 
         d1 = d0.select("*", e=me["a"] + me["b"])
         d1_result = Scope.default.trace.result()
@@ -372,7 +372,7 @@ class TestDataframeTrace(unittest.TestCase):
         # self.assertEqual(list(eval(d1_result)), list(eval(d2_result)))
 
     def test_df_without_input(self):
-        d0 = ta.DataFrame(
+        d0 = ta.dataframe(
             dtype=dt.Struct([dt.Field(i, dt.int64) for i in ["a", "b", "c"]])
         )
 

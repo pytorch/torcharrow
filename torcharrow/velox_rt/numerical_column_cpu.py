@@ -135,9 +135,9 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         if not dt.is_boolean(self.dtype):
             raise TypeError("condition must be a boolean vector")
         if not isinstance(then_, IColumn):
-            then_ = ta.Column(then_)
+            then_ = ta.column(then_)
         if not isinstance(else_, IColumn):
-            else_ = ta.Column(else_)
+            else_ = ta.column(else_)
         lub = dt.common_dtype(then_.dtype, else_.dtype)
 
         if lub is None or dt.is_void(lub):
@@ -267,7 +267,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     ) -> INumericalColumn:
         if isinstance(other, list):
             # Reuse the fromlist construction path
-            other = ta.Column(other)
+            other = ta.column(other)
         return self._checked_binary_op_call(other, op_name)
 
     def _checked_arithmetic_op_call(
@@ -723,7 +723,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
             else:
                 total = func(total, element)
                 res.append(total)
-        return ta.Column(res, self.dtype)
+        return ta.column(res, self.dtype)
 
     @trace
     @expression

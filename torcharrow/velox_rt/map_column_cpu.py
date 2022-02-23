@@ -104,8 +104,8 @@ class MapColumnCpu(ColumnFromVelox, IMapColumn):
         elif value is None:
             self._data.append_null()
         else:
-            new_key = ta.Column(self._dtype.key_dtype)
-            new_value = ta.Column(self._dtype.item_dtype)
+            new_key = ta.column(self._dtype.key_dtype)
+            new_value = ta.column(self._dtype.item_dtype)
             new_key = new_key.append(value.keys())
             new_value = new_value.append(value.values())
             self._data.append(new_key._data, new_value._data)

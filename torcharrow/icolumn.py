@@ -31,7 +31,7 @@ from .trace import trace, traceproperty
 # Column Factory with default device
 
 
-def Column(
+def column(
     data: ty.Union[ty.Iterable, dt.DType, None] = None,
     dtype: ty.Optional[dt.DType] = None,
     device: Device = "",
@@ -60,7 +60,7 @@ def Column(
     Creating a column using auto-inferred type:
 
     >>> import torcharrow as ta
-    >>> s = ta.Column([1,2,None,4])
+    >>> s = ta.column([1,2,None,4])
     >>> s
     0  1
     1  2
@@ -71,14 +71,14 @@ def Column(
     Create a column with arbitrarily data types, here a non-nullable
     column of a list of non-nullable strings of arbitrary length:
 
-    >>> sf = ta.Column([ ["hello", "world"], ["how", "are", "you"] ], dtype =dt.List(dt.string))
+    >>> sf = ta.column([ ["hello", "world"], ["how", "are", "you"] ], dtype =dt.List(dt.string))
     >>> sf.dtype
     List(item_dtype=String(nullable=False), nullable=False, fixed_size=-1)
 
     Create a column of average climate data, one map per continent,
     with city as key and yearly average min and max temperature:
 
-    >>> mf = ta.Column([
+    >>> mf = ta.column([
     >>>     {'helsinki': [-1.3, 21.5], 'moscow': [-4.0,24.3]},
     >>>     {'algiers':[11.2, 25.2], 'kinshasa':[22.2,26.8]}
     >>>     ])
@@ -106,9 +106,9 @@ def if_else(cond: IColumn, left: IColumn, right: IColumn):
     Examples
     --------
     >>> import torcharrow as ta
-    >>> cond = ta.Column([True, False, True, False])
-    >>> left = ta.Column(["a1", "a2", "a3", "a4"])
-    >>> right = ta.Column(["b1", "b2", "b3", "b4"])
+    >>> cond = ta.column([True, False, True, False])
+    >>> left = ta.column(["a1", "a2", "a3", "a4"])
+    >>> right = ta.column(["b1", "b2", "b3", "b4"])
     >>> ta.if_else(cond, left, right)
     0  'a1'
     1  'b2'
@@ -218,7 +218,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> sf = ta.Column([ ["hello", "world"], ["how", "are", "you"] ], dtype =dt.List(dt.string))
+        >>> sf = ta.column([ ["hello", "world"], ["how", "are", "you"] ], dtype =dt.List(dt.string))
         >>> sf = sf.append([["I", "am", "fine"]])
         >>> sf
         0  ['hello', 'world']
@@ -329,7 +329,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 )
         elif isinstance(arg, list):
             if len(arg) == 0:
-                return ta.DataFrame(device=self.device)
+                return ta.dataframe(device=self.device)
             if all(isinstance(a, bool) for a in arg):
                 return self.filter(arg)
             if all(isinstance(a, int) for a in arg):
@@ -361,7 +361,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> df = ta.DataFrame({'a': list(range(7)),
+        >>> df = ta.dataframe({'a': list(range(7)),
         >>>             'b': list(reversed(range(7))),
         >>>             'c': list(range(7))
         >>>            })
@@ -394,7 +394,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> df = ta.DataFrame({'a': list(range(7)),
+        >>> df = ta.dataframe({'a': list(range(7)),
         >>>             'b': list(reversed(range(7))),
         >>>             'c': list(range(7))
         >>>            })
@@ -454,7 +454,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> ta.Column([1,2,None,4]).map({1:111})
+        >>> ta.column([1,2,None,4]).map({1:111})
         0  111
         1  None
         2  None
@@ -464,7 +464,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         Using a defaultdict to provide a missing value:
 
         >>> from collections import defaultdict
-        >>> ta.Column([1,2,None,4]).map(defaultdict(lambda: -1, {1:111}))
+        >>> ta.column([1,2,None,4]).map(defaultdict(lambda: -1, {1:111}))
         0  111
         1   -1
         2   -1
@@ -476,7 +476,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         >>> def add_ten(num):
         >>>     return num + 10
         >>>
-        >>> ta.Column([1,2,None,4]).map(add_ten, na_action='ignore')
+        >>> ta.column([1,2,None,4]).map(add_ten, na_action='ignore')
         0  11
         1  12
         2  None
@@ -491,7 +491,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         >>> def add_ten_or_0(num):
         >>>     return 0 if num is None else num + 10
         >>>
-        >>> ta.Column([1,2,None,4]).map(add_ten_or_0, na_action=None)
+        >>> ta.column([1,2,None,4]).map(add_ten_or_0, na_action=None)
         0  11
         1  12
         2   0
@@ -500,7 +500,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         Mapping to different types requires a dtype parameter:
 
-        >>> ta.Column([1,2,None,4]).map(str, dtype=dt.string)
+        >>> ta.column([1,2,None,4]).map(str, dtype=dt.string)
         0  '1'
         1  '2'
         2  'None'
@@ -512,7 +512,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         >>> def add_unary(tup):
         >>>     return tup[0]+tup[1]
         >>>
-        >>> ta.DataFrame({'a': [1,2,3], 'b': [1,2,3]}).map(add_unary , dtype = dt.int64)
+        >>> ta.dataframe({'a': [1,2,3], 'b': [1,2,3]}).map(add_unary , dtype = dt.int64)
         0  2
         1  4
         2  6
@@ -523,7 +523,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         >>> def add_binary(a,b):
         >>>     return a + b
         >>>
-        >>> ta.DataFrame({'a': [1,2,3], 'b': ['a', 'b', 'c'], 'c':[1,2,3]}).map(add_binary, columns = ['a','c'], dtype = dt.int64)
+        >>> ta.dataframe({'a': [1,2,3], 'b': ['a', 'b', 'c'], 'c':[1,2,3]}).map(add_binary, columns = ['a','c'], dtype = dt.int64)
         0  2
         1  4
         2  6
@@ -533,7 +533,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         can be specified by returning a DataFrame (also known as a
         struct column); providing the return dtype is mandatory.
 
-        ta.DataFrame({'a': [17, 29, 30], 'b': [3,5,11]}).map(divmod, columns= ['a','b'], dtype = dt.Struct([dt.Field('quotient', dt.int64), dt.Field('remainder', dt.int64)]))
+        ta.dataframe({'a': [17, 29, 30], 'b': [3,5,11]}).map(divmod, columns= ['a','b'], dtype = dt.Struct([dt.Field('quotient', dt.int64), dt.Field('remainder', dt.int64)]))
           index    quotient    remainder
         -------  ----------  -----------
               0           5            2
@@ -562,7 +562,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         >>>         return self.state+x
         >>>
         >>> m = State(10)
-        >>> ta.Column([1,2,3]).map(m.add_fib)
+        >>> ta.column([1,2,3]).map(m.add_fib)
         0  56
         1  57
         2  58
@@ -701,7 +701,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
 
         Examples
         --------
-        >>> ta.Column([1,2,3,4]).filter([True, False, True, False]) == ta.Column([1,2,3,4]).filter(lambda x: x%2==1)
+        >>> ta.column([1,2,3,4]).filter([True, False, True, False]) == ta.column([1,2,3,4]).filter(lambda x: x%2==1)
         0  1
         1  1
         dtype: boolean, length: 2, null_count: 0
@@ -748,7 +748,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         --------
         >>> import operator
         >>> import torcharrow
-        >>> ta.Column([1,2,3,4]).reduce(operator.mul)
+        >>> ta.column([1,2,3,4]).reduce(operator.mul)
         24
         """
         if len(self) == 0:
@@ -795,7 +795,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> df = ta.DataFrame({'a': list(range(7)),
+        >>> df = ta.dataframe({'a': list(range(7)),
         >>>             'b': list(reversed(range(7))),
         >>>             'c': list(range(7))
         >>>            })
@@ -955,7 +955,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> df = ta.DataFrame({'a': list(range(7)),
+        >>> df = ta.dataframe({'a': list(range(7)),
         >>>             'b': list(reversed(range(7))),
         >>>             'c': list(range(7))
         >>>            })
@@ -997,7 +997,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> s = ta.Column([1,2,None,4])
+        >>> s = ta.column([1,2,None,4])
         >>> s.fill_null(999)
         0    1
         1    2
@@ -1041,7 +1041,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> s = ta.Column([1,2,None,4])
+        >>> s = ta.column([1,2,None,4])
         >>> s.drop_null()
         0    1
         1    2
@@ -1142,7 +1142,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         --------
         >>> import torcharrow as ta
         >>> import torcharrow.pytorch as tap
-        >>> df = ta.DataFrame({"label_ids": [0, 1], "token_ids": [[1, 2, 3, 4, 5], [101, 102]]})
+        >>> df = ta.dataframe({"label_ids": [0, 1], "token_ids": [[1, 2, 3, 4, 5], [101, 102]]})
 
         >>> df
         index    label_ids  token_ids
@@ -1317,7 +1317,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             # pyre-fixme[16]: Module `pytorch` has no attribute `from_tensor`.
             ret = pytorch.from_tensor(raw, dtype=dtype)
         elif format == "python" or format == "column":
-            ret = ta.Column(raw, dtype=dtype)
+            ret = ta.column(raw, dtype=dtype)
         else:
             raise ValueError(f"Invalid value for `format` argument: {format}")
 

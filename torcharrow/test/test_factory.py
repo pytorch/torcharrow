@@ -14,23 +14,23 @@ import torcharrow.dtypes as dt
 class TestFactory(unittest.TestCase):
     def test_column_cast(self):
         data = [1, 2, 3]
-        col_int64 = ta.Column(data, device="cpu")
+        col_int64 = ta.column(data, device="cpu")
         self.assertEqual(list(col_int64), data)
         self.assertEqual(col_int64.dtype, dt.int64)
 
-        col_int32 = ta.Column(col_int64, dtype=dt.int32, device="cpu")
+        col_int32 = ta.column(col_int64, dtype=dt.int32, device="cpu")
         self.assertEqual(list(col_int32), data)
         self.assertEqual(col_int32.dtype, dt.int32)
 
-        col_int16 = ta.Column(col_int64, dtype=dt.int16, device="cpu")
+        col_int16 = ta.column(col_int64, dtype=dt.int16, device="cpu")
         self.assertEqual(list(col_int16), data)
         self.assertEqual(col_int16.dtype, dt.int16)
 
-        col_int8 = ta.Column(col_int64, dtype=dt.int8, device="cpu")
+        col_int8 = ta.column(col_int64, dtype=dt.int8, device="cpu")
         self.assertEqual(list(col_int8), data)
         self.assertEqual(col_int8.dtype, dt.int8)
 
-        col_float32 = ta.Column(col_int64, dtype=dt.float32, device="cpu")
+        col_float32 = ta.column(col_int64, dtype=dt.float32, device="cpu")
         self.assertEqual(list(col_float32), [1.0, 2.0, 3.0])
         self.assertEqual(col_float32.dtype, dt.float32)
 
@@ -56,7 +56,7 @@ class TestFactory(unittest.TestCase):
             ],
         )
 
-        df = ta.DataFrame(data, device="cpu")
+        df = ta.dataframe(data, device="cpu")
         self.assertEqual(df.dtype, dtype)
         self.assertEqual(
             list(df),
@@ -74,7 +74,7 @@ class TestFactory(unittest.TestCase):
         casted_fields[3] = dt.Field("b", dt.int32)
         casted_dtype = dt.Struct(casted_fields)
 
-        casted_eager_df = ta.DataFrame(df, dtype=casted_dtype, device="cpu")
+        casted_eager_df = ta.dataframe(df, dtype=casted_dtype, device="cpu")
         self.assertEqual(casted_eager_df.dtype, casted_eager_df.dtype)
         self.assertEqual(
             list(casted_eager_df),

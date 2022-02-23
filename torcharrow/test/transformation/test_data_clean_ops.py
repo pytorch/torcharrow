@@ -14,14 +14,14 @@ import torcharrow.dtypes as dt
 class _TestDataCleanOpsBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.base_df1 = ta.DataFrame(
+        cls.base_df1 = ta.dataframe(
             {
-                "int32": ta.Column([None, 2, 3, 4], dtype=dt.Int32(nullable=True)),
-                "int64": ta.Column([1, None, 3, 4], dtype=dt.Int64(nullable=True)),
-                "float32": ta.Column(
+                "int32": ta.column([None, 2, 3, 4], dtype=dt.Int32(nullable=True)),
+                "int64": ta.column([1, None, 3, 4], dtype=dt.Int64(nullable=True)),
+                "float32": ta.column(
                     [1.0, 2.0, None, 4.0], dtype=dt.Float32(nullable=True)
                 ),
-                "float64": ta.Column(
+                "float64": ta.column(
                     [1.0, 2.0, 3.0, None], dtype=dt.Float64(nullable=True)
                 ),
             }
