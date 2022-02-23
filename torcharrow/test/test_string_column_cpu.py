@@ -22,7 +22,7 @@ class TestStringColumnCpu(TestStringColumn):
         data: ty.Union[ty.Iterable, dt.DType, None] = None,
         dtype: ty.Optional[dt.DType] = None,
     ):
-        return ta.Column(data, dtype, self.device)
+        return ta.column(data, dtype, self.device)
 
     def test_empty(self):
         self.base_test_empty()

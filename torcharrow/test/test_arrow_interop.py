@@ -187,7 +187,7 @@ class TestArrowInterop(unittest.TestCase):
         self, pydata: List, dtype: dt.DType, expected_arrowtype: pa.DataType
     ):
         # pyre-fixme[16]: `TestArrowInterop` has no attribute `device`.
-        t = ta.Column(pydata, dtype=dtype, device=self.device)
+        t = ta.column(pydata, dtype=dtype, device=self.device)
         s = t.to_arrow()
         self.assertTrue(isinstance(s, type(pa.array([], type=expected_arrowtype))))
         # pyre-fixme[16]: Item `Array` of `Union[Array[typing.Any], ChunkedArray]`
@@ -203,7 +203,7 @@ class TestArrowInterop(unittest.TestCase):
         pydata = [True, True, False, None, False]
         for (expected_arrowtype, dtype) in TestArrowInterop.supported_types:
             if dt.is_boolean(dtype):
-                t = ta.Column(pydata, dtype=dtype, device=self.device)
+                t = ta.column(pydata, dtype=dtype, device=self.device)
                 s = t.to_arrow()
                 self.assertTrue(
                     isinstance(s, type(pa.array([], type=expected_arrowtype)))
@@ -227,7 +227,7 @@ class TestArrowInterop(unittest.TestCase):
         pydata = ["a", "b", None, "d", None, "f", "g"]
         for (expected_arrowtype, dtype) in TestArrowInterop.supported_types:
             if dt.is_string(dtype):
-                t = ta.Column(pydata, dtype=dtype, device=self.device)
+                t = ta.column(pydata, dtype=dtype, device=self.device)
                 s = t.to_arrow()
                 pa.types.is_string(s.type)
                 self.assertEqual(s.to_pylist(), list(t))
@@ -235,7 +235,7 @@ class TestArrowInterop(unittest.TestCase):
     def base_test_to_arrow_array_slice(self):
         # Only export the slice part but not the entire buffer when it's a slice
         pydata = [1, 2, 3, None, 5, None]
-        t = ta.Column(pydata, device=self.device)
+        t = ta.column(pydata, device=self.device)
         t_slice = t[1:4]
         s = t_slice.to_arrow()
         self.assertEqual(len(s), len(t_slice))
@@ -244,7 +244,7 @@ class TestArrowInterop(unittest.TestCase):
         self.assertEqual(s.is_valid().to_pylist(), [True, True, False])
 
     def base_test_to_arrow_table(self):
-        df = ta.DataFrame(
+        df = ta.dataframe(
             {
                 "f1": [1, 2, 3],
                 "f2": ["foo", "bar", None],
@@ -265,7 +265,7 @@ class TestArrowInterop(unittest.TestCase):
             self.assertEqual(list(df[ta_field.name]), pt[i].to_pylist())
 
     def base_test_to_arrow_table_with_struct(self):
-        df = ta.DataFrame(
+        df = ta.dataframe(
             [
                 (1, (10, 11)),
                 (2, (20, 21)),

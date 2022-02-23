@@ -23,7 +23,7 @@ class TestStringColumn(unittest.TestCase):
         raise NotImplementedError
 
     def base_test_empty(self):
-        empty = ta.Column(dt.string, device=self.device)
+        empty = ta.column(dt.string, device=self.device)
         self.assertTrue(isinstance(empty, IStringColumn))
         self.assertEqual(empty.dtype, dt.string)
         self.assertEqual(empty.length, 0)
@@ -31,7 +31,7 @@ class TestStringColumn(unittest.TestCase):
         # self.assertEqual(empty._offsets[0], 0)
 
     def base_test_append_offsets(self):
-        c = ta.Column(dt.string, device=self.device)
+        c = ta.column(dt.string, device=self.device)
         c = c.append(["abc", "de", "", "f"])
         # self.assertEqual(list(c._offsets), [0, 3, 5, 5, 6])
         self.assertEqual(list(c), ["abc", "de", "", "f"])
@@ -40,18 +40,18 @@ class TestStringColumn(unittest.TestCase):
         #     # TypeError: a dt.string is required (got type NoneType)
         #     c.append(None)
 
-        c = ta.Column(["abc", "de", "", "f", None])
+        c = ta.column(["abc", "de", "", "f", None])
         # self.assertEqual(list(c._offsets), [0, 3, 5, 5, 6, 6])
         self.assertEqual(list(c), ["abc", "de", "", "f", None])
 
     def base_test_string_column_from_tuple(self):
         data_str = ("one", "two", "three", "four", "five", "six")
-        col_str = ta.Column(data_str, device=self.device)
+        col_str = ta.column(data_str, device=self.device)
         self.assertEqual(tuple(col_str), data_str)
 
     def base_test_string_split_methods(self):
         s = ["a b c", "1,2,3", "d e f g h", "hello.this.is.very.very.very.very.long"]
-        c = ta.Column(s, device=self.device)
+        c = ta.column(s, device=self.device)
         self.assertEqual(list(c.str.split(".")), [v.split(".") for v in s])
         self.assertEqual(list(c.str.split()), [v.split() for v in s])
         self.assertEqual(list(c.str.split(",")), [v.split(",") for v in s])
@@ -143,8 +143,8 @@ class TestStringColumn(unittest.TestCase):
     def base_test_concat(self):
         s1 = ["abc", "de", "", "f", None]
         s2 = ["12", "567", "77", None, "55"]
-        c1 = ta.Column(s1, device=self.device)
-        c2 = ta.Column(s2, device=self.device)
+        c1 = ta.column(s1, device=self.device)
+        c2 = ta.column(s2, device=self.device)
         concat1 = [x + y for (x, y) in zip(s1[:-2], s2[:-2])] + [None, None]
         self.assertEqual(list(c1 + c2), concat1)
 
@@ -155,8 +155,8 @@ class TestStringColumn(unittest.TestCase):
         self.assertEqual(list("prefix_" + c1), concat3)
 
     def base_test_comparison(self):
-        c = ta.Column(["abc", "de", "", "f", None], device=self.device)
-        d = ta.Column(["abc", "77", "", None, "55"], device=self.device)
+        c = ta.column(["abc", "de", "", "f", None], device=self.device)
+        d = ta.column(["abc", "77", "", None, "55"], device=self.device)
         self.assertEqual(list(c == c), [True, True, True, True, None])
         self.assertEqual(list(c == d), [True, False, True, None, None])
         self.assertEqual(list(c == "de"), [False, True, False, False, None])
@@ -187,24 +187,24 @@ class TestStringColumn(unittest.TestCase):
 
     def base_test_string_lifted_methods(self):
         s = ["abc", "de", "", "f"]
-        c = ta.Column(s, device=self.device)
+        c = ta.column(s, device=self.device)
         self.assertEqual(list(c.str.length()), [len(i) for i in s])
         self.assertEqual(list(c.str.slice(stop=2)), [i[:2] for i in s])
         self.assertEqual(list(c.str.slice(1, 2)), [i[1:2] for i in s])
         self.assertEqual(list(c.str.slice(1)), [i[1:] for i in s])
 
         self.assertEqual(
-            list(ta.Column(["UPPER", "lower"], device=self.device).str.lower()),
+            list(ta.column(["UPPER", "lower"], device=self.device).str.lower()),
             ["upper", "lower"],
         )
         self.assertEqual(
-            list(ta.Column(["UPPER", "lower"], device=self.device).str.upper()),
+            list(ta.column(["UPPER", "lower"], device=self.device).str.upper()),
             ["UPPER", "LOWER"],
         )
 
         # strip
         self.assertEqual(
-            list(ta.Column(["  ab", " cde\n  "], device=self.device).str.strip()),
+            list(ta.column(["  ab", " cde\n  "], device=self.device).str.strip()),
             ["ab", "cde"],
         )
 
@@ -212,21 +212,21 @@ class TestStringColumn(unittest.TestCase):
         s = ["hello.this", "is.interesting.", "this.is_24", "paradise", "h", ""]
 
         self.assertEqual(
-            list(ta.Column(s, device=self.device).str.startswith("h")),
+            list(ta.column(s, device=self.device).str.startswith("h")),
             [True, False, False, False, True, False],
         )
         self.assertEqual(
-            list(ta.Column(s, device=self.device).str.endswith("this")),
+            list(ta.column(s, device=self.device).str.endswith("this")),
             [True, False, False, False, False, False],
         )
         self.assertEqual(
-            list(ta.Column(s, device=self.device).str.find("this")),
+            list(ta.column(s, device=self.device).str.find("this")),
             [6, -1, 0, -1, -1, -1],
         )
 
         self.assertEqual(
             list(
-                ta.Column(s, device=self.device).str.replace(
+                ta.column(s, device=self.device).str.replace(
                     "this", "that", regex=False
                 )
             ),
@@ -234,7 +234,7 @@ class TestStringColumn(unittest.TestCase):
         )
 
     def base_test_regular_expressions(self):
-        S = ta.Column(
+        S = ta.column(
             [
                 "Finland",
                 "Colombia",

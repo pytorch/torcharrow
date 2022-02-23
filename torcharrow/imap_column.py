@@ -45,7 +45,7 @@ class IMapMethods(abc.ABC):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> mf = ta.Column([
+        >>> mf = ta.column([
         >>>  {'helsinki': [-1.3, 21.5], 'moscow': [-4.0,24.3]},
         >>>  {'algiers':[11.2, 25.2], 'kinshasa':[22.2,26.8]}
         >>>  ])
@@ -68,7 +68,7 @@ class IMapMethods(abc.ABC):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> mf = ta.Column([
+        >>> mf = ta.column([
         >>>  {'helsinki': [-1.3, 21.5], 'moscow': [-4.0,24.3]},
         >>>  {'algiers':[11.2, 25.2], 'kinshasa':[22.2,26.8]}
         >>>  ])

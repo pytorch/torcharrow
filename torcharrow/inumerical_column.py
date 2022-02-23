@@ -170,7 +170,7 @@ class INumericalColumn(IColumn):
         Examples
         --------
         >>> import torcharrow
-        >>> t = ta.Column([1,2,999,4])
+        >>> t = ta.column([1,2,999,4])
         >>> t.describe()
           index  statistic      value
         -------  -----------  -------
@@ -261,7 +261,7 @@ class INumericalColumn(IColumn):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> s = ta.Column([1,2,None,4])
+        >>> s = ta.column([1,2,None,4])
         >>> s.min()
         1
         """
@@ -279,7 +279,7 @@ class INumericalColumn(IColumn):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> s = ta.Column([1,2,None,4])
+        >>> s = ta.column([1,2,None,4])
         >>> s.max()
         4
         """
@@ -297,7 +297,7 @@ class INumericalColumn(IColumn):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> s = ta.Column([1,2,None,4])
+        >>> s = ta.column([1,2,None,4])
         >>> s.sum()
         7
         """
@@ -338,7 +338,7 @@ class INumericalColumn(IColumn):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> s = ta.Column([1,2,None,6])
+        >>> s = ta.column([1,2,None,6])
         >>> s.mean()
         3.0
         """

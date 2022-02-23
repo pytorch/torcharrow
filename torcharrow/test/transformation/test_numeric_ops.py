@@ -17,17 +17,17 @@ class _TestNumericOpsBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Prepare input data as CPU dataframe
-        cls.base_add_df = ta.DataFrame(
+        cls.base_add_df = ta.dataframe(
             {"c": [0, 1, 3], "d": [5, 5, 6], "e": [1.0, 1, 7]}
         )
-        cls.base_log_df = ta.DataFrame(
+        cls.base_log_df = ta.dataframe(
             {
-                "int32": ta.Column([1, 0, 4, None], dtype=dt.Int32(nullable=True)),
-                "int64": ta.Column([1, 0, 4, None], dtype=dt.Int64(nullable=True)),
-                "float32": ta.Column(
+                "int32": ta.column([1, 0, 4, None], dtype=dt.Int32(nullable=True)),
+                "int64": ta.column([1, 0, 4, None], dtype=dt.Int64(nullable=True)),
+                "float32": ta.column(
                     [1.0, 0.0, 4.0, None], dtype=dt.Float32(nullable=True)
                 ),
-                "float64": ta.Column(
+                "float64": ta.column(
                     [1.0, 0.0, 4.0, None], dtype=dt.Float64(nullable=True)
                 ),
             }

@@ -7,8 +7,8 @@
 from . import pytorch  # noqa
 from . import velox_rt  # noqa
 from ._functional import functional
-from .icolumn import IColumn, Column, concat, if_else  # noqa
-from .idataframe import IDataFrame, DataFrame, me  # noqa
+from .icolumn import IColumn, column, concat, if_else  # noqa
+from .idataframe import IDataFrame, dataframe, me  # noqa
 from .ilist_column import IListColumn  # noqa
 from .imap_column import IMapColumn  # noqa
 from .interop import from_pysequence, from_arrow  # noqa
@@ -22,8 +22,8 @@ except ImportError:
     pass
 
 __all__ = [
-    "DataFrame",
-    "Column",
+    "dataframe",
+    "column",
     "concat",
     "if_else",
     "from_pysequence",
@@ -55,7 +55,7 @@ integrates well with PyTorch data-wrangling workflows.
 Examples
 --------
 >>> import torcharrow as ta
->>> df = ta.DataFrame({'a':[1,2,3], 'b':[4,None,6]})
+>>> df = ta.dataframe({'a':[1,2,3], 'b':[4,None,6]})
 >>> df['a'] + df['b']
 0  5
 1  None

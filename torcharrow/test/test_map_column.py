@@ -13,7 +13,7 @@ from torcharrow.imap_column import IMapColumn
 
 class TestMapColumn(unittest.TestCase):
     def base_test_map(self):
-        c = ta.Column(dt.Map(dt.string, dt.int64), device=self.device)
+        c = ta.column(dt.Map(dt.string, dt.int64), device=self.device)
         self.assertIsInstance(c, IMapColumn)
 
         c = c.append([{"abc": 123}])
@@ -25,7 +25,7 @@ class TestMapColumn(unittest.TestCase):
         c = c.append([None])
         self.assertIsNone(c[2])
 
-        c2 = ta.Column(
+        c2 = ta.column(
             [None, None, {"foo": 123}],
             dt.Map(dt.string, dt.int64, nullable=True),
             device=self.device,
@@ -35,7 +35,7 @@ class TestMapColumn(unittest.TestCase):
         self.assertDictEqual(c2[2], {"foo": 123})
 
     def base_test_infer(self):
-        c = ta.Column(
+        c = ta.column(
             [
                 {"helsinki": [-1.0, 21.0], "moscow": [-4.0, 24.0]},
                 {},
@@ -57,7 +57,7 @@ class TestMapColumn(unittest.TestCase):
         )
 
     def base_test_keys_values_get(self):
-        c = ta.Column([{"abc": 123}, {"de": 45, "fg": 67}, None], device=self.device)
+        c = ta.column([{"abc": 123}, {"de": 45, "fg": 67}, None], device=self.device)
 
         self.assertEqual(list(c.maps.keys()), [["abc"], ["de", "fg"], None])
         self.assertEqual(list(c.maps.values()), [[123], [45, 67], None])

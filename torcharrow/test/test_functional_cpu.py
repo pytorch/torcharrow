@@ -20,7 +20,7 @@ class TestStringColumnCpu(unittest.TestCase):
         self.device = "cpu"
 
     def test_velox_functional(self):
-        str_col = ta.Column(
+        str_col = ta.column(
             ["", "abc", "XYZ", "123", "xyz123", None], device=self.device
         )
 
@@ -35,7 +35,7 @@ class TestStringColumnCpu(unittest.TestCase):
         )
 
     def test_functional_dispatch(self):
-        str_col = ta.Column(
+        str_col = ta.column(
             ["", "abc", "XYZ", "123", "xyz123", None], device=self.device
         )
 
