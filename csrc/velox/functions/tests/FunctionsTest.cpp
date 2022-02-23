@@ -195,6 +195,80 @@ TEST_F(FunctionsTest, pow) {
       "Inf is outside the range of representable values of type int64");
 }
 
+TEST_F(FunctionsTest, bitwise_and) {
+  const std::vector<int64_t> a = {-3, -1, 0, 1, 3};
+  const std::vector<int64_t> b = {1, 2, 4, 6, 8};
+  const std::vector<int64_t> expected = {1, 2, 0, 0, 0};
+  assertExpression<int64_t>("torcharrow_bitwiseand(c0, c1)", a, b, expected);
+
+  assertExpression<int32_t>(
+      "torcharrow_bitwiseand(c0, c1)",
+      {-3, -1, 0, 1, 3},
+      {1, 2, 4, 6, 8},
+      {1, 2, 0, 0, 0});
+
+  assertExpression<int16_t>(
+      "torcharrow_bitwiseand(c0, c1)",
+      {-3, -1, 0, 1, 3},
+      {1, 2, 4, 6, 8},
+      {1, 2, 0, 0, 0});
+
+  assertExpression<int8_t>(
+      "torcharrow_bitwiseand(c0, c1)",
+      {-3, -1, 0, 1, 3},
+      {1, 2, 4, 6, 8},
+      {1, 2, 0, 0, 0});
+
+  assertExpression<bool>(
+      "torcharrow_bitwiseand(c0, c1)",
+      {true, false, true, false},
+      {true, true, false, false},
+      {true, false, false, false});
+
+  assertError<float>(
+      "torcharrow_bitwiseand(c0, c1)",
+      {1.2},
+      {-3.4},
+      "Cannot resolve function call: torcharrow_bitwiseand(REAL, REAL)");
+}
+
+TEST_F(FunctionsTest, bitwise_or) {
+  const std::vector<int64_t> a = {-3, -1, 0, 1, 3};
+  const std::vector<int64_t> b = {1, 2, 4, 6, 8};
+  const std::vector<int64_t> expected = {-3, -1, 4, 7, 11};
+  assertExpression<int64_t>("torcharrow_bitwiseor(c0, c1)", a, b, expected);
+
+  assertExpression<int32_t>(
+      "torcharrow_bitwiseor(c0, c1)",
+      {-3, -1, 0, 1, 3},
+      {1, 2, 4, 6, 8},
+      {-3, -1, 4, 7, 11});
+
+  assertExpression<int16_t>(
+      "torcharrow_bitwiseor(c0, c1)",
+      {-3, -1, 0, 1, 3},
+      {1, 2, 4, 6, 8},
+      {-3, -1, 4, 7, 11});
+
+  assertExpression<int8_t>(
+      "torcharrow_bitwiseor(c0, c1)",
+      {-3, -1, 0, 1, 3},
+      {1, 2, 4, 6, 8},
+      {-3, -1, 4, 7, 11});
+
+  assertExpression<bool>(
+      "torcharrow_bitwiseor(c0, c1)",
+      {true, false, true, false},
+      {true, true, false, false},
+      {true, true, true, false});
+
+  assertError<float>(
+      "torcharrow_bitwiseor(c0, c1)",
+      {1.2},
+      {-3.4},
+      "Cannot resolve function call: torcharrow_bitwiseor(REAL, REAL)");
+}
+
 TEST_F(FunctionsTest, round) {
   std::vector<double> doubles = {
       1.3, 2.3, 1.5, 2.5, 1.8, 2.8, -1.3, -2.3, -1.5, -2.5, -1.8, -2.8};
@@ -270,7 +344,8 @@ TEST_F(FunctionsTest, round) {
 
   std::vector<int32_t> ints2 = {4, 15, 25, 123, -4, -15, -25, -123};
   std::vector<int32_t> expectedInts2 = {0, 20, 20, 120, 0, -20, -20, -120};
-  assertExpression<int32_t>("torcharrow_round(c0, c1)", ints2, decimals3, expectedInts2);
+  assertExpression<int32_t>(
+      "torcharrow_round(c0, c1)", ints2, decimals3, expectedInts2);
 
   std::vector<float> limits = {NAN, INFINITY, -INFINITY};
   assertUnaryExpression<float>("torcharrow_round(c0)", limits, limits);
