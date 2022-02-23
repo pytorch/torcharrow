@@ -1,5 +1,9 @@
 #!/bin/bash
-# Copyright (c) Facebook, Inc. and its affiliates.
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
 
 # Reference:
 # * https://github.com/pytorch/audio/blob/392a03c86d94d2747e1a0fc270a74c3845535173/packaging/build_wheel.sh
