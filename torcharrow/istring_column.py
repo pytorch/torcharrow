@@ -66,7 +66,7 @@ class IStringMethods(ABC):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> s = ta.Column(['what a wonderful world!', 'really?'])
+        >>> s = ta.column(['what a wonderful world!', 'really?'])
         >>> s.str.split(pat=' ')
         0  ['what', 'a', 'wonderful', 'world!']
         1  ['really?']

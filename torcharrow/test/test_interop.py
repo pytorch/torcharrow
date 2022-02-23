@@ -15,7 +15,7 @@ class TestInterop(unittest.TestCase):
     def base_test_to_pytorch(self):
         import torch
 
-        df = ta.DataFrame(
+        df = ta.dataframe(
             {
                 "A": ["a", "b", "c", "d", "e"],
                 "B": [[1, 2], [3, None], [4, 5], [6], [7]],
@@ -27,7 +27,7 @@ class TestInterop(unittest.TestCase):
                 "DSI": [{"a": 1}, {"b": 2, "bb": 22}, {}, {"d": 4}, {}],
                 "N_DII": [{1: 11}, {2: 22, 3: 33}, None, {4: 44}, {}],
                 # FIXME: https://github.com/facebookresearch/torcharrow/issues/60: Support to_arrow with a list(struct) column
-                # "N_ROW": ta.Column(
+                # "N_ROW": ta.column(
                 #    [
                 #        [(1, 1.1)],
                 #        [(2, 2.2), (3, 3.3)],
@@ -117,7 +117,7 @@ class TestInterop(unittest.TestCase):
     def base_test_pad_sequence(self):
         import torch
 
-        df = ta.DataFrame(
+        df = ta.dataframe(
             {
                 "int32": [[11, 12, 13, 14], [21, 22], [31], [41, 42, 43]],
                 "int64": [[11, 12, 13, 14], [21, 22], [31], [41, 42, 43]],
@@ -176,37 +176,37 @@ class TestInterop(unittest.TestCase):
     def base_test_dense_features_no_mask(self):
         import torch
 
-        df = ta.DataFrame(
+        df = ta.dataframe(
             {
-                "dense_int8": ta.DataFrame(
+                "dense_int8": ta.dataframe(
                     [(-1, -1), (1, 42), (2, 43), (3, 44), (-1, -1)],
                     dtype=dt.Struct([dt.Field("f1", dt.int8), dt.Field("f2", dt.int8)]),
                 ),
-                "dense_int16": ta.DataFrame(
+                "dense_int16": ta.dataframe(
                     [(-1, -1), (1, 42), (2, 43), (3, 44), (-1, -1)],
                     dtype=dt.Struct(
                         [dt.Field("f1", dt.int16), dt.Field("f2", dt.int16)]
                     ),
                 ),
-                "dense_int32": ta.DataFrame(
+                "dense_int32": ta.dataframe(
                     [(-1, -1), (1, 42), (2, 43), (3, 44), (-1, -1)],
                     dtype=dt.Struct(
                         [dt.Field("f1", dt.int32), dt.Field("f2", dt.int32)]
                     ),
                 ),
-                "dense_int64": ta.DataFrame(
+                "dense_int64": ta.dataframe(
                     [(-1, -1), (1, 42), (2, 43), (3, 44), (-1, -1)],
                     dtype=dt.Struct(
                         [dt.Field("f1", dt.int64), dt.Field("f2", dt.int64)]
                     ),
                 ),
-                "dense_float32": ta.DataFrame(
+                "dense_float32": ta.dataframe(
                     [(-1.5, -1.5), (1.5, 42.5), (2.5, 43.5), (3.5, 44.5), (-1.5, -1.5)],
                     dtype=dt.Struct(
                         [dt.Field("f1", dt.float32), dt.Field("f2", dt.float32)]
                     ),
                 ),
-                "dense_float64": ta.DataFrame(
+                "dense_float64": ta.dataframe(
                     [(-1.5, -1.5), (1.5, 42.5), (2.5, 43.5), (3.5, 44.5), (-1.5, -1.5)],
                     dtype=dt.Struct(
                         [dt.Field("f1", dt.float64), dt.Field("f2", dt.float64)]
@@ -292,7 +292,7 @@ class TestInterop(unittest.TestCase):
     def base_test_pytorch_transform(self):
         import torch
 
-        df = ta.DataFrame(
+        df = ta.dataframe(
             {
                 "lst_null": [[1, 2], [3, None], [4, 5], [6]],
                 "ids": [[1, 2], [3], [1, 4], [5]],

@@ -116,7 +116,7 @@ def from_tensor(
 
     if isinstance(data, list):
         # if it's a python list - we're switching to python representation for this subtree. This path is also taken for strings, because they are represented as List[str] in PyTorch
-        return ta.Column(data, dtype=dtype)
+        return ta.column(data, dtype=dtype)
 
     # handling nullability
     if isinstance(data, WithPresence):
@@ -126,7 +126,7 @@ def from_tensor(
             )
         nested = from_tensor(data.values, dtype=dtype.with_null(False))
         # TODO: this implementation is very inefficient, we should wrap the column directly instead of round-tripping through python
-        return ta.Column(
+        return ta.column(
             [(x if data.presence[i].item() else None) for i, x in enumerate(nested)],
             dtype=dtype,
             device=device,
@@ -154,7 +154,7 @@ def from_tensor(
             )
         # TODO: this implementation is very inefficient, we should wrap the column directly instead of round-tripping through python
         offsets = data.offsets.tolist()
-        return ta.Column(
+        return ta.column(
             [nested[offsets[i] : offsets[i + 1]] for i in range(len(data.offsets) - 1)],
             dtype=dtype,
             device=device,
@@ -179,7 +179,7 @@ def from_tensor(
             )
         # TODO: this implementation is very inefficient, we should wrap the column directly instead of round-tripping through python
         offsets = data.offsets.tolist()
-        return ta.Column(
+        return ta.column(
             [
                 OrderedDict(
                     zip(
@@ -211,7 +211,7 @@ def from_tensor(
             for i in range(len(data))
         )
         # TODO: this implementation is very inefficient, we should wrap the column directly instead of round-tripping through python
-        return ta.DataFrame(nested_fields, dtype=dtype, device=device)
+        return ta.dataframe(nested_fields, dtype=dtype, device=device)
 
     # numerics!
     if isinstance(data, torch.Tensor):
@@ -228,7 +228,7 @@ def from_tensor(
                 f"Unexpected dtype {data.dtype} for the tensor, expected {dtype}"
             )
         # TODO: this implementation is very inefficient, we should wrap the column directly instead of round-tripping through python
-        return ta.Column(data.tolist(), dtype=dtype, device=device)
+        return ta.column(data.tolist(), dtype=dtype, device=device)
 
     raise ValueError(f"Unexpected data in `from_tensor`: {type(data)}")
 

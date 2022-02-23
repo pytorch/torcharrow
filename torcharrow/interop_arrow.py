@@ -10,7 +10,7 @@ import torcharrow.dtypes as dt
 
 from .dispatcher import Dispatcher
 from .icolumn import IColumn
-from .idataframe import DataFrame, IDataFrame
+from .idataframe import dataframe, IDataFrame
 from .scope import Scope
 
 
@@ -94,4 +94,4 @@ def _from_arrow_table(
             device=device,
         )
 
-    return DataFrame(df_data, device=device)
+    return dataframe(df_data, device=device)

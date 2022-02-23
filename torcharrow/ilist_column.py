@@ -58,7 +58,7 @@ class IListMethods(abc.ABC):
 
         Examples
         >>> import torcharrow as ta
-        >>> s = ta.Column(['what a wonderful world!', 'really?'])
+        >>> s = ta.column(['what a wonderful world!', 'really?'])
         >>> s.str.split(sep=' ').list.join(sep='-')
         0  'what-a-wonderful-world!'
         1  'really?'
@@ -107,7 +107,7 @@ class IListMethods(abc.ABC):
 
         Examples:
         >>> import torcharrow as ta
-        >>> a = ta.Column([[1, 2, None, 3], [4, None, 5]])
+        >>> a = ta.column([[1, 2, None, 3], [4, None, 5]])
 
         >>> a
         0  [1, 2, None, 3]
@@ -120,7 +120,7 @@ class IListMethods(abc.ABC):
         dtype: List(Int64(nullable=True), nullable=True), length: 2, null_count: 0
 
         >>> import torcharrow.dtypes as dt
-        >>> b = ta.Column([[(1, "a"), (2, "b")], [(3, "c")]],
+        >>> b = ta.column([[(1, "a"), (2, "b")], [(3, "c")]],
             dtype=dt.List(
                 dt.Struct([dt.Field("f1", dt.int64), dt.Field("f2", dt.string)])
             ))

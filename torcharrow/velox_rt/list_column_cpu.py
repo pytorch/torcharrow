@@ -91,7 +91,7 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
         elif value is None:
             self._data.append_null()
         else:
-            new_element_column = ta.Column(self._dtype.item_dtype)
+            new_element_column = ta.column(self._dtype.item_dtype)
             new_element_column = new_element_column.append(value)
             self._data.append(new_element_column._data)
 

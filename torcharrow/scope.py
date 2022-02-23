@@ -97,7 +97,7 @@ class Scope:
     # TODO: refactor these static methods out of scope.py
     @staticmethod
     def _require_column_constructors_to_be_registered():
-        from .idataframe import DataFrame
+        from .idataframe import dataframe
         from .ilist_column import IListColumn
         from .imap_column import IMapColumn
         from .istring_column import IStringColumn

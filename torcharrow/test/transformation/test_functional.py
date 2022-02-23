@@ -14,7 +14,7 @@ class _TestFunctionalBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Prepare input data as CPU dataframe
-        cls.base_df1 = ta.DataFrame(
+        cls.base_df1 = ta.dataframe(
             {"a": [[11, 12, 13], [21, 22, 23, 24, 25, 26], [31, 32]]}
         )
 

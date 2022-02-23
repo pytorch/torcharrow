@@ -14,11 +14,11 @@ class _TestListBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Prepare input data as CPU dataframe
-        cls.base_df = ta.DataFrame(
+        cls.base_df = ta.dataframe(
             {
                 "int_list": [[1, 2, None, 3], [4, None, 5], None],
                 "str_list": [["a,b,c", "d,e"], [None, "g,h"], None],
-                "struct_list": ta.Column(
+                "struct_list": ta.column(
                     [[(1, "a"), (2, "b")], [(3, "c")], None],
                     dtype=dt.List(
                         dt.Struct(

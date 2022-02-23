@@ -40,7 +40,7 @@ from .trace import trace, traceproperty
 # DataFrame Factory with default scope and device
 
 
-def DataFrame(
+def dataframe(
     data: Optional[Union[Iterable, dt.DType]] = None,
     dtype: Optional[dt.DType] = None,
     columns: Optional[List[str]] = None,
@@ -80,7 +80,7 @@ def DataFrame(
     length:
 
     >>> import torcharrow as ta
-    >>> df = ta.DataFrame({'a': list(range(7)),
+    >>> df = ta.dataframe({'a': list(range(7)),
     >>>                    'b': list(reversed(range(7))),
     >>>                    'c': list(range(7))
     >>>                   })
@@ -100,7 +100,7 @@ def DataFrame(
     its name hasn't been used. The column is appended to the set of existing
     columns at the end:
 
-    >>> df['d'] = ta.Column(list(range(99, 99+7)))
+    >>> df['d'] = ta.column(list(range(99, 99+7)))
     >>> df
       index    a    b    c    d
     -------  ---  ---  ---  ---
@@ -115,8 +115,8 @@ def DataFrame(
 
     Building a nested Dataframe:
 
-    >>> df_inner = ta.DataFrame({'b1': [11, 22, 33], 'b2':[111,222,333]})
-    >>> df_outer = ta.DataFrame({'a': [1, 2, 3], 'b':df_inner})
+    >>> df_inner = ta.dataframe({'b1': [11, 22, 33], 'b2':[111,222,333]})
+    >>> df_outer = ta.dataframe({'a': [1, 2, 3], 'b':df_inner})
     >>> df_outer
       index    a  b
     -------  ---  ---------
@@ -129,7 +129,7 @@ def DataFrame(
 
     >>> import torcharrow.dtypes as dt
     >>> l = [(1, 'a'), (2, 'b'), (3, 'c')]
-    >>> ta.DataFrame(l, dtype = dt.Struct([dt.Field('t1', dt.int64), dt.Field('t2', dt.string)]))
+    >>> ta.dataframe(l, dtype = dt.Struct([dt.Field('t1', dt.int64), dt.Field('t2', dt.string)]))
       index    t1  t2
     -------  ----  ----
           0     1  a
@@ -139,7 +139,7 @@ def DataFrame(
 
     or
 
-    >>> ta.DataFrame(l, columns=['t1', 't2'])
+    >>> ta.dataframe(l, columns=['t1', 't2'])
       index    t1  t2
     -------  ----  ----
           0     1  a
@@ -192,7 +192,7 @@ class IDataFrame(IColumn):
             assert self.device == value.device
             col = value
         else:
-            col = ta.Column(value)
+            col = ta.column(value)
 
         # pyre-fixme[16]: `DType` has no attribute `fields`.
         empty_df = len(self.dtype.fields) == 0
@@ -234,7 +234,7 @@ class IDataFrame(IColumn):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> df = ta.DataFrame({"a": [1, 2, 3],
+        >>> df = ta.dataframe({"a": [1, 2, 3],
                               "b": [4, 5, 6]
                               })
         >>> df.isin([1, 2, 5])
@@ -261,7 +261,7 @@ class IDataFrame(IColumn):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> df = ta.DataFrame({"a": [1,2,None,4],
+        >>> df = ta.dataframe({"a": [1,2,None,4],
                                 "b": [5, 6, None, 8]
                                 })
         >>> df.min()
@@ -281,7 +281,7 @@ class IDataFrame(IColumn):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> df = ta.DataFrame({"a": [1,2,None,4],
+        >>> df = ta.dataframe({"a": [1,2,None,4],
                                 "b": [5, 6, None, 8]
                                 })
         >>> df.max()
@@ -301,7 +301,7 @@ class IDataFrame(IColumn):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> df = ta.DataFrame({"a": [1,2,None,4],
+        >>> df = ta.dataframe({"a": [1,2,None,4],
                                 "b": [5, 6, None, 8]
                                 })
         >>> df.sum()
@@ -321,7 +321,7 @@ class IDataFrame(IColumn):
         Examples
         --------
         >>> import torcharrow as ta
-        >>> df = ta.DataFrame({"a": [1.0,2.0,None,6.3],
+        >>> df = ta.dataframe({"a": [1.0,2.0,None,6.3],
                                 "b": [5.0, 6.0, None, 10.6]
                                 })
         >>> df.mean()

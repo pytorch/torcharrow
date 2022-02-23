@@ -18,7 +18,7 @@ from torcharrow.idataframe import IDataFrame
 
 class TestDataFrame(unittest.TestCase):
     def base_test_internals_empty(self):
-        empty = ta.DataFrame(device=self.device)
+        empty = ta.dataframe(device=self.device)
 
         # testing internals...
         self.assertTrue(isinstance(empty, IDataFrame))
@@ -28,7 +28,7 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(empty.columns, [])
 
     def base_test_internals_full(self):
-        df = ta.DataFrame(dt.Struct([dt.Field("a", dt.int64)]), device=self.device)
+        df = ta.dataframe(dt.Struct([dt.Field("a", dt.int64)]), device=self.device)
         for i in range(4):
             df = df.append([(i,)])
 
@@ -50,13 +50,13 @@ class TestDataFrame(unittest.TestCase):
     def base_test_internals_full_nullable(self):
         with self.assertRaises(TypeError):
             #  TypeError: nullable structs require each field (like a) to be nullable as well.
-            df = ta.DataFrame(
+            df = ta.dataframe(
                 dt.Struct(
                     [dt.Field("a", dt.int64), dt.Field("b", dt.int64)], nullable=True
                 ),
                 device=self.device,
             )
-        df = ta.DataFrame(
+        df = ta.dataframe(
             dt.Struct(
                 [dt.Field("a", dt.int64.with_null()), dt.Field("b", dt.Int64(True))],
                 nullable=True,
@@ -91,12 +91,12 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(len(df), 6)
 
     def base_test_internals_column_indexing(self):
-        df = ta.DataFrame()
-        df["a"] = ta.Column(
+        df = ta.dataframe()
+        df["a"] = ta.column(
             [None] * 3, dtype=dt.Int64(nullable=True), device=self.device
         )
-        df["b"] = ta.Column([1, 2, 3], device=self.device)
-        df["c"] = ta.Column([1.1, 2.2, 3.3], device=self.device)
+        df["b"] = ta.column([1, 2, 3], device=self.device)
+        df["c"] = ta.column([1.1, 2.2, 3.3], device=self.device)
 
         # index
         self.assertEqual(list(df["a"]), [None] * 3)
@@ -122,13 +122,13 @@ class TestDataFrame(unittest.TestCase):
         ]
         # only data will fail
         with self.assertRaises(TypeError) as ex:
-            a = ta.Column(data1, device=self.device)
+            a = ta.column(data1, device=self.device)
         self.assertTrue(
             "Cannot infer type from nested Python tuple" in str(ex.exception),
             f"Exception message is not as expected: {str(ex.exception)}",
         )
         # data + dtype
-        a = ta.Column(
+        a = ta.column(
             data1,
             dtype=dt.List(
                 dt.Struct([dt.Field("col1", dt.int64), dt.Field("col2", dt.string)])
@@ -142,13 +142,13 @@ class TestDataFrame(unittest.TestCase):
         dtype2 = dt.Struct([dt.Field("a", dt.int32), dt.Field("b", dt.int16)])
         expected2 = list(zip(*data2.values()))
         # only data, inferred as int64
-        df = ta.DataFrame(data2, device=self.device)
+        df = ta.dataframe(data2, device=self.device)
         self.assertEqual(list(df), expected2)
         self.assertEqual(
             df.dtype, dt.Struct([dt.Field("a", dt.int64), dt.Field("b", dt.int64)])
         )
         # data + dtype, use specified dtype (int32 and int16)
-        df = ta.DataFrame(data2, dtype2, device=self.device)
+        df = ta.dataframe(data2, dtype2, device=self.device)
         self.assertEqual(list(df), expected2)
         self.assertEqual(df.dtype, dtype2)
 
@@ -169,13 +169,13 @@ class TestDataFrame(unittest.TestCase):
         )
         # only data will fail
         with self.assertRaises(TypeError) as ex:
-            df = ta.DataFrame(data3, device=self.device)
+            df = ta.dataframe(data3, device=self.device)
         self.assertTrue(
             "Cannot infer type from nested Python tuple" in str(ex.exception),
             f"Excpeion message is not as expected: {str(ex.exception)}",
         )
         # data + dtype
-        df = ta.DataFrame(data3, dtype3, device=self.device)
+        df = ta.dataframe(data3, dtype3, device=self.device)
         self.assertEqual(list(df), list(zip(*data3.values())))
         self.assertEqual(df.dtype, dtype3)
 
@@ -190,20 +190,20 @@ class TestDataFrame(unittest.TestCase):
         # DataFrame construction from tuple data requires dtype or columns
         # provided to tell the column names
         with self.assertRaises(TypeError) as ex:
-            df = ta.DataFrame(data4, device=self.device)
+            df = ta.dataframe(data4, device=self.device)
         self.assertTrue(
             "DataFrame construction from tuples requires" in str(ex.exception),
             f"Excpeion message is not as expected: {str(ex.exception)}",
         )
-        df4 = ta.DataFrame(data4, columns=columns4)
+        df4 = ta.dataframe(data4, columns=columns4)
         self.assertEqual(list(df4), data4)
         self.assertEqual(df4.dtype, dtype4)
-        df4 = ta.DataFrame(data4, dtype=dtype4)
+        df4 = ta.dataframe(data4, dtype=dtype4)
         self.assertEqual(list(df4), data4)
         self.assertEqual(df4.dtype, dtype4)
 
     def base_test_infer(self):
-        df = ta.DataFrame({"a": [1, 2, 3], "b": [1.0, None, 3]}, device=self.device)
+        df = ta.dataframe({"a": [1, 2, 3], "b": [1.0, None, 3]}, device=self.device)
         self.assertEqual(df.columns, ["a", "b"])
         self.assertEqual(
             df.dtype,
@@ -215,24 +215,24 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(df.dtype.get("a"), dt.int64)
         self.assertEqual(list(df), list(zip([1, 2, 3], [1.0, None, 3])))
 
-        df = ta.DataFrame(device=self.device)
+        df = ta.dataframe(device=self.device)
         self.assertEqual(len(df), 0)
 
-        df["a"] = ta.Column([1, 2, 3], dtype=dt.int32, device=self.device)
+        df["a"] = ta.column([1, 2, 3], dtype=dt.int32, device=self.device)
         self.assertEqual(df._dtype.get("a"), dt.int32)
         self.assertEqual(len(df), 3)
 
         df["b"] = [1.0, None, 3]
         self.assertEqual(len(df), 3)
 
-        df = ta.DataFrame(
+        df = ta.dataframe(
             [(1, 2), (2, 3), (4, 5)], columns=["a", "b"], device=self.device
         )
         self.assertEqual(list(df), [(1, 2), (2, 3), (4, 5)])
 
         B = dt.Struct([dt.Field("b1", dt.int64), dt.Field("b2", dt.int64)])
         A = dt.Struct([dt.Field("a", dt.int64), dt.Field("b", B)])
-        df = ta.DataFrame(
+        df = ta.dataframe(
             [(1, (2, 22)), (2, (3, 33)), (4, (5, 55))], dtype=A, device=self.device
         )
 
@@ -245,7 +245,7 @@ class TestDataFrame(unittest.TestCase):
     def base_test_map_where_filter(self):
         # TODO have to decide on whether to follow Pandas, map, filter or our own.
 
-        df = ta.DataFrame(device=self.device)
+        df = ta.dataframe(device=self.device)
         df["a"] = [1, 2, 3]
         df["b"] = [11, 22, 33]
         df["c"] = ["a", "b", "C"]
@@ -337,7 +337,7 @@ class TestDataFrame(unittest.TestCase):
         )
 
     def base_test_transform(self):
-        df = ta.DataFrame(device=self.device)
+        df = ta.dataframe(device=self.device)
         df["a"] = [1, 2, 3]
         df["b"] = [11, 22, 33]
 
@@ -393,7 +393,7 @@ class TestDataFrame(unittest.TestCase):
         )
 
     def base_test_sort_stuff(self):
-        df = ta.DataFrame({"a": [1, 2, 3], "b": [1.0, None, 3]}, device=self.device)
+        df = ta.dataframe({"a": [1, 2, 3], "b": [1.0, None, 3]}, device=self.device)
         self.assertEqual(
             list(df.sort(by="a", ascending=False)),
             list(zip([3, 2, 1], [3, None, 1.0])),
@@ -407,7 +407,7 @@ class TestDataFrame(unittest.TestCase):
         #         list(zip([3, 2, 1], [3, None, 1.0])),
         #     )
 
-        df = ta.DataFrame(
+        df = ta.dataframe(
             {"a": [1, 2, 3], "b": [1.0, None, 3], "c": [4, 4, 1]}, device=self.device
         )
         self.assertEqual(
@@ -433,10 +433,10 @@ class TestDataFrame(unittest.TestCase):
         # and add operator tests for non-velox implementation.
 
         # without None
-        c = ta.DataFrame({"a": [0, 1, 3]}, device=self.device)
+        c = ta.dataframe({"a": [0, 1, 3]}, device=self.device)
 
-        d = ta.DataFrame({"a": [5, 5, 6]}, device=self.device)
-        e = ta.DataFrame({"a": [1.0, 1, 7]}, device=self.device)
+        d = ta.dataframe({"a": [5, 5, 6]}, device=self.device)
+        e = ta.dataframe({"a": [1.0, 1, 7]}, device=self.device)
 
         self.assertEqual(list(c == c), [(True,)] * 3)
         self.assertEqual(list(c == d), [(False,)] * 3)
@@ -448,7 +448,7 @@ class TestDataFrame(unittest.TestCase):
 
         self.assertEqual(list(c == 1), [(i,) for i in [False, True, False]])
         self.assertTrue(
-            ((c == 1) == ta.DataFrame({"a": [False, True, False]}, device=self.device))[
+            ((c == 1) == ta.dataframe({"a": [False, True, False]}, device=self.device))[
                 "a"
             ].all()
         )
@@ -519,21 +519,21 @@ class TestDataFrame(unittest.TestCase):
 
         #     # # null handling
 
-        c = ta.DataFrame({"a": [0, 1, 3, None]}, device=self.device)
+        c = ta.dataframe({"a": [0, 1, 3, None]}, device=self.device)
         self.assertEqual(list(c + 1), [(i,) for i in [1, 2, 4, None]])
 
         # # TODO decideo on special handling with fill_values, maybe just drop functionality?
         # self.assertEqual(list(c.add(1, fill_value=17)), [(i,) for i in [1, 2, 4, 18]])
         # self.assertEqual(list(c.radd(1, fill_value=-1)), [(i,) for i in [1, 2, 4, 0]])
-        f = ta.Column([None, 1, 3, None], device=self.device)
+        f = ta.column([None, 1, 3, None], device=self.device)
         # self.assertEqual(
         #     list(c.radd(f, fill_value=100)), [(i,) for i in [100, 2, 6, 200]]
         # )
         self.assertEqual(list((c + f).fill_null(100)), [(i,) for i in [100, 2, 6, 100]])
 
         # &, |, ^, ~
-        g = ta.Column([True, False, True, False], device=self.device)
-        h = ta.Column([False, False, True, True], device=self.device)
+        g = ta.column([True, False, True, False], device=self.device)
+        h = ta.column([False, False, True, True], device=self.device)
         self.assertEqual(list(g & h), [False, False, True, False])
         self.assertEqual(list(g | h), [True, False, True, True])
         self.assertEqual(list(g ^ h), [True, False, False, True])
@@ -542,8 +542,8 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(True ^ g), [False, True, False, True])
         self.assertEqual(list(~g), [False, True, False, True])
 
-        i = ta.Column([1, 2, 0], device=self.device)
-        j = ta.Column([3, 2, 3], device=self.device)
+        i = ta.column([1, 2, 0], device=self.device)
+        j = ta.column([3, 2, 3], device=self.device)
         self.assertEqual(list(i & j), [1, 2, 0])
         self.assertEqual(list(i | j), [3, 2, 3])
         self.assertEqual(list(i ^ j), [2, 0, 3])
@@ -552,10 +552,10 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(2 ^ i), [3, 0, 2])
         self.assertEqual(list(~i), [-2, -3, -1])
 
-        u = ta.Column(list(range(5)), device=self.device)
+        u = ta.column(list(range(5)), device=self.device)
         v = -u
-        uv = ta.DataFrame({"a": u, "b": v}, device=self.device)
-        uu = ta.DataFrame({"a": u, "b": u}, device=self.device)
+        uv = ta.dataframe({"a": u, "b": v}, device=self.device)
+        uu = ta.dataframe({"a": u, "b": u}, device=self.device)
         x = uv == 1
         y = uu["a"] == uv["a"]
         z = uv == uu
@@ -566,8 +566,8 @@ class TestDataFrame(unittest.TestCase):
         # Use a dtype of list to prevent fast path through numerical
         # column operators to ensure we are testing the generic python
         # operators.
-        c = ta.Column([[1, 2], [3, 4]])
-        d = ta.Column([[0, 1], [3, 4]])
+        c = ta.column([[1, 2], [3, 4]])
+        d = ta.column([[0, 1], [3, 4]])
 
         self.assertEqual(list(c == c), [True, True])
         self.assertEqual(list(c == d), [False, True])
@@ -591,7 +591,7 @@ class TestDataFrame(unittest.TestCase):
             assert c == c.append([None])
 
     def base_test_na_handling(self):
-        c = ta.DataFrame({"a": [None, 2, 17.0]}, device=self.device)
+        c = ta.dataframe({"a": [None, 2, 17.0]}, device=self.device)
 
         self.assertEqual(list(c.fill_null(99.0)), [(i,) for i in [99.0, 2, 17.0]])
         self.assertEqual(list(c.drop_null()), [(i,) for i in [2, 17.0]])
@@ -600,7 +600,7 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(c.drop_duplicates()), [(i,) for i in [None, 2, 17.0]])
 
         # duplicates with subset
-        d = ta.DataFrame(
+        d = ta.dataframe(
             {"a": [None, 2, 17.0, 7, 2], "b": [1, 2, 17.0, 2, 1]}, device=self.device
         )
         self.assertEqual(
@@ -624,7 +624,7 @@ class TestDataFrame(unittest.TestCase):
         import operator
 
         c = [1, 4, 2, 7, 9, 0]
-        C = ta.DataFrame({"a": [1, 4, 2, 7, 9, 0, None]}, device=self.device)
+        C = ta.dataframe({"a": [1, 4, 2, 7, 9, 0, None]}, device=self.device)
 
         self.assertEqual(len(C.min()["a"]), 1)
         self.assertEqual(C.min()["a"][0], min(c))
@@ -668,23 +668,23 @@ class TestDataFrame(unittest.TestCase):
 
     def base_test_isin(self):
         c = [1, 4, 2, 7]
-        C = ta.DataFrame({"a": c + [None]}, device=self.device)
+        C = ta.dataframe({"a": c + [None]}, device=self.device)
         self.assertEqual(
             list(C.isin([1, 2, 3])), [(i,) for i in [True, False, True, False, False]]
         )
 
     def base_test_isin2(self):
-        df = ta.DataFrame({"A": [1, 2, 3], "B": [1, 1, 1]}, device=self.device)
+        df = ta.dataframe({"A": [1, 2, 3], "B": [1, 1, 1]}, device=self.device)
         self.assertEqual(list(df.nunique()), [("A", 3), ("B", 1)])
 
     def base_test_describe_dataframe(self):
         # TODO introduces cyclic dependency between Column and Dataframe, need diff design...
-        c = ta.DataFrame(
+        c = ta.dataframe(
             {
-                "a": ta.Column([1, 2, 3], dtype=dt.int32),
-                "b": ta.Column([10, 20, 30], dtype=dt.int64),
-                "c": ta.Column([1.0, 2.0, 3.0], dtype=dt.float32),
-                "d": ta.Column([10.0, 20.0, 30.0], dtype=dt.float64),
+                "a": ta.column([1, 2, 3], dtype=dt.int32),
+                "b": ta.column([10, 20, 30], dtype=dt.int64),
+                "c": ta.column([1.0, 2.0, 3.0], dtype=dt.float32),
+                "d": ta.column([10.0, 20.0, 30.0], dtype=dt.float64),
             },
             device=self.device,
         )
@@ -732,7 +732,7 @@ class TestDataFrame(unittest.TestCase):
         )
 
     def base_test_drop_keep_rename_reorder_pipe(self):
-        df = ta.DataFrame(device=self.device)
+        df = ta.dataframe(device=self.device)
         df["a"] = [1, 2, 3]
         df["b"] = [11, 22, 33]
         df["c"] = [111, 222, 333]
@@ -762,7 +762,7 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(df + 13), list(df.pipe(g, 13)))
 
     def base_test_me_on_str(self):
-        df = ta.DataFrame(device=self.device)
+        df = ta.dataframe(device=self.device)
         df["a"] = [1, 2, 3]
         df["b"] = [11, 22, 33]
         df["c"] = ["a", "b", "C"]
@@ -770,7 +770,7 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(df.where(me["c"].str.upper() == me["c"])), [(3, 33, "C")])
 
     def base_test_locals_and_me_equivalence(self):
-        df = ta.DataFrame(device=self.device)
+        df = ta.dataframe(device=self.device)
         df["a"] = [1, 2, 3]
         df["b"] = [11, 22, 33]
 
@@ -788,18 +788,18 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(df.select(b=me["b"], a=me["a"])), list(df[["b", "a"]]))
         self.assertEqual(list(df.select("*", "-a")), list(df.drop(["a"])))
 
-        gf = ta.DataFrame(
+        gf = ta.dataframe(
             {"a": df["a"], "b": df["b"], "c": df["a"] + df["b"]}, device=self.device
         )
         self.assertEqual(list(df.select("*", d=me["a"] + me["b"])), list(gf))
 
     def base_test_groupby_size_pipe(self):
-        df = ta.DataFrame(
+        df = ta.dataframe(
             {"a": [1, 1, 2], "b": [1, 2, 3], "c": [2, 2, 1]}, device=self.device
         )
         self.assertEqual(list(df.groupby("a").size), [(1, 2), (2, 1)])
 
-        df = ta.DataFrame(
+        df = ta.dataframe(
             {"A": ["a", "b", "a", "b"], "B": [1, 2, 3, 4]}, device=self.device
         )
 
@@ -811,13 +811,13 @@ class TestDataFrame(unittest.TestCase):
         #                  [('a',  2), ('b', 2)])
 
     def base_test_groupby_agg(self):
-        df = ta.DataFrame(
+        df = ta.dataframe(
             {"A": ["a", "b", "a", "b"], "B": [1, 2, 3, 4]}, device=self.device
         )
 
         self.assertEqual(list(df.groupby("A").agg("sum")), [("a", 4), ("b", 6)])
 
-        df = ta.DataFrame(
+        df = ta.dataframe(
             {"a": [1, 1, 2], "b": [1, 2, 3], "c": [2, 2, 1]}, device=self.device
         )
 
@@ -834,7 +834,7 @@ class TestDataFrame(unittest.TestCase):
         )
 
     def base_test_groupby_iter_get_item_ops(self):
-        df = ta.DataFrame(
+        df = ta.dataframe(
             {"A": ["a", "b", "a", "b"], "B": [1, 2, 3, 4]}, device=self.device
         )
         for g, gf in df.groupby("A"):
@@ -849,7 +849,7 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(df.groupby("A")["B"].sum()), [4, 6])
 
     def base_test_column_overriden(self):
-        df = ta.DataFrame({"a": [1, 2, 3], "b": ["a", "b", "c"]}, device=self.device)
+        df = ta.dataframe({"a": [1, 2, 3], "b": ["a", "b", "c"]}, device=self.device)
         self.assertEqual(list(df), [(1, "a"), (2, "b"), (3, "c")])
         self.assertEqual(
             df.dtype, dt.Struct([dt.Field("a", dt.int64), dt.Field("b", dt.string)])
@@ -863,7 +863,7 @@ class TestDataFrame(unittest.TestCase):
         )
 
     def base_test_infer_func_output_dtype(self):
-        df = ta.DataFrame({"a": [1, 2, 3], "b": [11, 22, 33]}, device=self.device)
+        df = ta.dataframe({"a": [1, 2, 3], "b": [11, 22, 33]}, device=self.device)
 
         def myadd(a: int, b: int) -> str:
             return f"{a}_{b}"
@@ -900,7 +900,7 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(r.dtype, dt.int64)
 
     def base_test_in(self):
-        df = ta.DataFrame(
+        df = ta.dataframe(
             {"A": ["a", "b", "a", "b"], "B": [1, 2, 3, 4]}, device=self.device
         )
         self.assertTrue("A" in df)
