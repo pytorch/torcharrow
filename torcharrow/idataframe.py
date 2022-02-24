@@ -180,7 +180,6 @@ class IDataFrame(IColumn):
         raise self._not_supported("_set_field_data")
 
     def __contains__(self, key: str) -> bool:
-        # pyre-fixme[16]: `DType` has no attribute `fields`.
         for f in self.dtype.fields:
             if key == f.name:
                 return True
@@ -194,7 +193,6 @@ class IDataFrame(IColumn):
         else:
             col = ta.column(value)
 
-        # pyre-fixme[16]: `DType` has no attribute `fields`.
         empty_df = len(self.dtype.fields) == 0
 
         # Update dtype
