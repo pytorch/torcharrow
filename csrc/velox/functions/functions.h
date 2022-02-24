@@ -89,6 +89,31 @@ inline void registerTorchArrowFunctions() {
   velox::registerFunction<torcharrow_pow_int, int64_t, int64_t, int64_t>(
       {"torcharrow_pow"});
 
+  // Bitwise
+  // only supporting int and bool, not float or double
+  velox::registerFunction<torcharrow_bitwiseand, bool, bool, bool>(
+      {"torcharrow_bitwiseand"});
+  velox::registerFunction<torcharrow_bitwiseand, int8_t, int8_t, int8_t>(
+      {"torcharrow_bitwiseand"});
+  velox::registerFunction<torcharrow_bitwiseand, int16_t, int16_t, int16_t>(
+      {"torcharrow_bitwiseand"});
+  velox::registerFunction<torcharrow_bitwiseand, int32_t, int32_t, int32_t>(
+      {"torcharrow_bitwiseand"});
+  velox::registerFunction<torcharrow_bitwiseand, int64_t, int64_t, int64_t>(
+      {"torcharrow_bitwiseand"});
+
+  velox::registerFunction<torcharrow_bitwiseor, bool, bool, bool>(
+      {"torcharrow_bitwiseor"});
+  velox::registerFunction<torcharrow_bitwiseor, int8_t, int8_t, int8_t>(
+      {"torcharrow_bitwiseor"});
+  velox::registerFunction<torcharrow_bitwiseor, int16_t, int16_t, int16_t>(
+      {"torcharrow_bitwiseor"});
+  velox::registerFunction<torcharrow_bitwiseor, int32_t, int32_t, int32_t>(
+      {"torcharrow_bitwiseor"});
+  velox::registerFunction<torcharrow_bitwiseor, int64_t, int64_t, int64_t>(
+      {"torcharrow_bitwiseor"});
+
+
   // Round
   velox::registerFunction<torcharrow_round, float, float>({"torcharrow_round"});
   velox::registerFunction<torcharrow_round, double, double>(

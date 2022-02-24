@@ -157,4 +157,22 @@ struct torcharrow_round {
   }
 };
 
+template <typename T>
+struct torcharrow_bitwiseand {
+  template <typename TOutput, typename TInput = TOutput>
+  FOLLY_ALWAYS_INLINE bool call(TOutput& result, const TInput& a, const TInput& b) {
+    result = a & b;
+    return true;
+  }
+};
+
+template <typename T>
+struct torcharrow_bitwiseor {
+  template <typename TOutput, typename TInput = TOutput>
+  FOLLY_ALWAYS_INLINE bool call(TOutput& result, const TInput& a, const TInput& b) {
+    result = a | b;
+    return true;
+  }
+};
+
 } // namespace facebook::torcharrow::functions
