@@ -26,7 +26,7 @@ import torcharrow.dtypes as dt
 from torcharrow.dispatcher import Device
 
 from .expression import Var, eval_expression, expression
-from .icolumn import IColumn
+from .icolumn import Column
 from .scope import Scope
 from .trace import trace, traceproperty
 
@@ -159,7 +159,7 @@ def dataframe(
 DataOrDTypeOrNone = Optional[Union[Mapping, Sequence, dt.DType]]
 
 
-class IDataFrame(IColumn):
+class IDataFrame(Column):
     """Dataframe, ordered dict of typed columns of the same length"""
 
     def __init__(self, device, dtype):
@@ -172,7 +172,7 @@ class IDataFrame(IColumn):
         return [f.name for f in self.dtype.fields]
 
     @abc.abstractmethod
-    def _set_field_data(self, name: str, col: IColumn, empty_df: bool):
+    def _set_field_data(self, name: str, col: Column, empty_df: bool):
         """
         PRIVATE _set field data, append if field doesn't exist
         self._dtype is already updated upon invocation
@@ -187,7 +187,7 @@ class IDataFrame(IColumn):
 
     @trace
     def __setitem__(self, name: str, value: Any) -> None:
-        if isinstance(value, IColumn):
+        if isinstance(value, Column):
             assert self.device == value.device
             col = value
         else:
@@ -216,7 +216,7 @@ class IDataFrame(IColumn):
 
     @trace
     @expression
-    def isin(self, values: Union[list, dict, IColumn]):
+    def isin(self, values: Union[list, dict, Column]):
         """
         Check whether each element in the dataframe is contained in values.
 
@@ -498,10 +498,10 @@ class IDataFrameVar(Var, IDataFrame):
     def _getdata(self, i):
         return self._not_supported("getdata")
 
-    def _set_field_data(self, name: str, col: IColumn, empty_df: bool):
+    def _set_field_data(self, name: str, col: Column, empty_df: bool):
         raise self._not_supported("_set_field_data")
 
-    def _concat_with(self, columns: List[IColumn]):
+    def _concat_with(self, columns: List[Column]):
         """Returns concatenated columns."""
         raise self._not_supported("_concat_with")
 
