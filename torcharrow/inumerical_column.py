@@ -30,22 +30,6 @@ class INumericalColumn(IColumn):
 
     # Note all numerical column implementations inherit from INumericalColumn
 
-    def to(self, device: Device):
-        from .velox_rt import NumericalColumnCpu
-
-        if self.device == device:
-            return self
-        elif isinstance(self, NumericalColumnCpu):
-            return Scope.default._FullColumn(
-                self._data,
-                self.dtype,
-                device=device,
-                # pyre-fixme[16]: `NumericalColumnCpu` has no attribute `_mask`.
-                mask=self._mask,
-            )
-        else:
-            raise AssertionError("unexpected case")
-
     def log(self):
         """Returns a new column with the natural logarithm of the elements"""
         raise self._not_supported("log")
