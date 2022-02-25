@@ -18,7 +18,7 @@ import torcharrow.pytorch as pytorch
 from tabulate import tabulate
 from torcharrow._functional import functional
 from torcharrow.dispatcher import Dispatcher
-from torcharrow.icolumn import IColumn
+from torcharrow.icolumn import Column
 from torcharrow.imap_column import IMapColumn, IMapMethods
 from torcharrow.scope import Scope
 
@@ -60,8 +60,8 @@ class MapColumnCpu(ColumnFromVelox, IMapColumn):
     def _full(device, data, dtype=None, mask=None):
         assert isinstance(data, tuple) and len(data) == 2
         key_data, item_data = data
-        assert isinstance(key_data, IColumn)
-        assert isinstance(item_data, IColumn)
+        assert isinstance(key_data, Column)
+        assert isinstance(item_data, Column)
         assert len(item_data) == len(key_data)
 
         if dtype is None:

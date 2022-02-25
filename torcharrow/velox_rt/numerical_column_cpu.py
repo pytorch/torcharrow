@@ -18,7 +18,7 @@ import torcharrow.pytorch as pytorch
 from torcharrow._functional import functional
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
-from torcharrow.icolumn import IColumn
+from torcharrow.icolumn import Column
 from torcharrow.inumerical_column import INumericalColumn
 from torcharrow.trace import trace, traceproperty
 
@@ -134,9 +134,9 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
         if not dt.is_boolean(self.dtype):
             raise TypeError("condition must be a boolean vector")
-        if not isinstance(then_, IColumn):
+        if not isinstance(then_, Column):
             then_ = ta.column(then_)
-        if not isinstance(else_, IColumn):
+        if not isinstance(else_, Column):
             else_ = ta.column(else_)
         lub = dt.common_dtype(then_.dtype, else_.dtype)
 
@@ -307,7 +307,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def __radd__(self, other: Union[int, float]) -> INumericalColumn:
         return self._checked_arithmetic_op_call(
-            other, "radd", IColumn._swap(operator.add)
+            other, "radd", Column._swap(operator.add)
         )
 
     @trace
@@ -321,7 +321,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def __rsub__(self, other: Union[int, float]) -> INumericalColumn:
         return self._checked_arithmetic_op_call(
-            other, "rsub", IColumn._swap(operator.sub)
+            other, "rsub", Column._swap(operator.sub)
         )
 
     @trace
@@ -335,7 +335,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def __rmul__(self, other: Union[int, float]) -> INumericalColumn:
         return self._checked_arithmetic_op_call(
-            other, "rmul", IColumn._swap(operator.mul)
+            other, "rmul", Column._swap(operator.mul)
         )
 
     @trace
@@ -368,7 +368,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         """
         return self._rethrow_zero_division_error(
             lambda: self._checked_arithmetic_op_call(
-                other, "rfloordiv", IColumn._swap(operator.floordiv)
+                other, "rfloordiv", Column._swap(operator.floordiv)
             )
         )
 
@@ -405,7 +405,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         # TODO: use type cast once https://github.com/facebookresearch/torcharrow/issues/143 completed,
         # and ensure cast performance is better than current.
         return (self * 1.0)._checked_arithmetic_op_call(
-            other, "rtruediv", IColumn._swap(operator.truediv)
+            other, "rtruediv", Column._swap(operator.truediv)
         )
 
     @trace
@@ -430,7 +430,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
         """
         return self._rethrow_zero_division_error(
             lambda: self._checked_arithmetic_op_call(
-                other, "rmod", IColumn._swap(operator.mod)
+                other, "rmod", Column._swap(operator.mod)
             )
         )
 
@@ -443,7 +443,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def __rpow__(self, other):
         return self._checked_arithmetic_op_call(
-            other, "rpow", IColumn._swap(operator.pow)
+            other, "rpow", Column._swap(operator.pow)
         )
 
     @trace
@@ -499,7 +499,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def __rand__(self, other: Union[int]) -> INumericalColumn:
         return self._checked_arithmetic_op_call(
-            other, "bitwise_rand", IColumn._swap(operator.__and__)
+            other, "bitwise_rand", Column._swap(operator.__and__)
         )
 
     @trace
@@ -513,7 +513,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def __ror__(self, other: Union[int]) -> INumericalColumn:
         return self._checked_arithmetic_op_call(
-            other, "bitwise_ror", IColumn._swap(operator.__or__)
+            other, "bitwise_ror", Column._swap(operator.__or__)
         )
 
     @trace
@@ -527,7 +527,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     @expression
     def __rxor__(self, other: Union[int]) -> INumericalColumn:
         return self._checked_arithmetic_op_call(
-            other, "bitwise_rxor", IColumn._swap(operator.__xor__)
+            other, "bitwise_rxor", Column._swap(operator.__xor__)
         )
 
     @trace
@@ -614,7 +614,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
     def fill_null(self, fill_value: Union[dt.ScalarTypes, Dict]):
         self._prototype_support_warning("fill_null")
 
-        if not isinstance(fill_value, IColumn._scalar_types):
+        if not isinstance(fill_value, Column._scalar_types):
             raise TypeError(f"fill_null with {type(fill_value)} is not supported")
         if not self.is_nullable:
             return self

@@ -944,13 +944,13 @@ def dtype_from_batch_pytype(typ: ty.Type) -> DType:
     """
     Like dtype_of_type but representing type hint for the set of rows. Can be a Column or a python List of nested types
     """
-    from .icolumn import IColumn
+    from .icolumn import Column
 
     assert type is not None
 
-    if inspect.isclass(typ) and issubclass(typ, IColumn):
+    if inspect.isclass(typ) and issubclass(typ, Column):
         # TODO: we need a type annotation for Columns with statically accessible dtype
-        raise TypeError("Cannot infer dtype from IColumn")
+        raise TypeError("Cannot infer dtype from Column")
 
     if get_origin(typ) in (List, list):
         args = get_args(typ)

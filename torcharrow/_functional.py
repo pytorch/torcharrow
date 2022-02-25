@@ -7,7 +7,7 @@
 from types import ModuleType
 from typing import Dict, Set
 
-from torcharrow.icolumn import IColumn
+from torcharrow.icolumn import Column
 
 
 class _Functional(ModuleType):
@@ -35,8 +35,8 @@ class _Functional(ModuleType):
     def create_dispatch_wrapper(self, op_name: str):
         def dispatch(*args):
             # Caculate dispatch key based on input
-            col_arg: IColumn = next(
-                (arg for arg in args if isinstance(arg, IColumn)), None
+            col_arg: Column = next(
+                (arg for arg in args if isinstance(arg, Column)), None
             )
 
             if col_arg is None:
