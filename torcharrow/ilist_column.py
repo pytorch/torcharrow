@@ -14,13 +14,13 @@ from typing import Optional, Callable
 import numpy as np
 import torcharrow.dtypes as dt
 
-from .icolumn import IColumn
+from .icolumn import Column
 
 # -----------------------------------------------------------------------------
 # IListColumn
 
 
-class IListColumn(IColumn):
+class IListColumn(Column):
 
     # private constructor
     def __init__(self, device, dtype):
@@ -99,11 +99,11 @@ class IListMethods(abc.ABC):
 
         return me._vectorize(fun, me.dtype)
 
-    def vmap(self, fun: Callable[[IColumn], IColumn]):
+    def vmap(self, fun: Callable[[Column], Column]):
         """
         EXPERIMENTAL API
 
-        Vectorizing map. Expects a callable that working on a batch (represents by a IColumn).
+        Vectorizing map. Expects a callable that working on a batch (represents by a Column).
 
         Examples:
         >>> import torcharrow as ta

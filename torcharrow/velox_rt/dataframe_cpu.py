@@ -38,7 +38,7 @@ import torcharrow.pytorch as pytorch
 from tabulate import tabulate
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import eval_expression, expression
-from torcharrow.icolumn import IColumn
+from torcharrow.icolumn import Column
 from torcharrow.idataframe import IDataFrame
 from torcharrow.scope import Scope
 from torcharrow.trace import trace, traceproperty
@@ -147,7 +147,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                 for i in range(len(dtype.fields))
             }
             # pyre-fixme[6]: For 3rd param expected `Dict[str, ColumnFromVelox]` but
-            #  got `Dict[str, IColumn]`.
+            #  got `Dict[str, Column]`.
             return DataFrameCpu(device, dtype, field_data)
 
         # append-based (extremenly ineffincient) implementation
@@ -197,7 +197,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         return self
 
     def _fromdata(
-        self, field_data: OrderedDict[str, IColumn], mask: Optional[Iterable[bool]]
+        self, field_data: OrderedDict[str, Column], mask: Optional[Iterable[bool]]
     ) -> DataFrameCpu:
         dtype = dt.Struct(
             [dt.Field(n, c.dtype) for n, c in field_data.items()],
@@ -206,7 +206,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = velox.Column(get_velox_type(dtype))
         for n, c in field_data.items():
-            # pyre-fixme[16]: `IColumn` has no attribute `_data`.
+            # pyre-fixme[16]: `Column` has no attribute `_data`.
             col.set_child(col.type().get_child_idx(n), c._data)
             col.set_length(len(c._data))
 
@@ -217,7 +217,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                 if mask_list[i]:
                     col.set_null_at(i)
 
-        # pyre-fixme[7]: Expected `DataFrameCpu` but got `IColumn`.
+        # pyre-fixme[7]: Expected `DataFrameCpu` but got `Column`.
         return ColumnFromVelox._from_velox(self.device, dtype, col, True)
 
     def __len__(self):
@@ -282,7 +282,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                     )
                     child_col = child_col.append([v])
                     res[k] = child_col
-                # pyre-fixme[6]: For 1st param expected `OrderedDict[str, IColumn]`
+                # pyre-fixme[6]: For 1st param expected `OrderedDict[str, Column]`
                 #  but got `Dict[typing.Any, typing.Any]`.
                 new_data = self._fromdata(res, self._mask + [False])
 
@@ -310,7 +310,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
     # implementing abstract methods ----------------------------------------------
 
-    def _set_field_data(self, name: str, col: IColumn, empty_df: bool):
+    def _set_field_data(self, name: str, col: Column, empty_df: bool):
         if not empty_df and len(col) != len(self):
             raise TypeError("all columns/lists must have equal length")
 
@@ -318,7 +318,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         column_idx = self._dtype.get_index(name)
         # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         new_delegate = velox.Column(get_velox_type(self._dtype))
-        # pyre-fixme[16]: `IColumn` has no attribute `_data`.
+        # pyre-fixme[16]: `Column` has no attribute `_data`.
         new_delegate.set_length(len(col._data))
 
         # Set columns for new_delegate
@@ -1290,7 +1290,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
         return self._fromdata(
             {
                 self.dtype.fields[i]
-                # pyre-fixme[16]: `IColumn` has no attribute `log`.
+                # pyre-fixme[16]: `Column` has no attribute `log`.
                 .name: ColumnFromVelox._from_velox(
                     self.device,
                     self.dtype.fields[i].dtype,
@@ -1306,7 +1306,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
 
     @trace
     @expression
-    def isin(self, values: Union[list, dict, IColumn]):
+    def isin(self, values: Union[list, dict, Column]):
         if isinstance(values, list):
             return self._fromdata(
                 {
@@ -1347,7 +1347,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     def fill_null(self, fill_value: Optional[Union[dt.ScalarTypes, Dict]]):
         if fill_value is None:
             return self
-        if isinstance(fill_value, IColumn._scalar_types):
+        if isinstance(fill_value, Column._scalar_types):
             return self._fromdata(
                 {
                     self.dtype.fields[i]
@@ -1690,8 +1690,8 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     def rename(self, mapper: Dict[str, str]):
         self._check_columns(mapper.keys())
         return self._fromdata(
-            # pyre-fixme[6]: For 1st param expected `OrderedDict[str, IColumn]` but
-            #  got `Dict[str, IColumn]`.
+            # pyre-fixme[6]: For 1st param expected `OrderedDict[str, Column]` but
+            #  got `Dict[str, Column]`.
             {
                 mapper.get(
                     self.dtype.fields[i].name,
@@ -1712,8 +1712,8 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
     def reorder(self, columns: List[str]):
         self._check_columns(columns)
         return self._fromdata(
-            # pyre-fixme[6]: For 1st param expected `OrderedDict[str, IColumn]` but
-            #  got `Dict[str, IColumn]`.
+            # pyre-fixme[6]: For 1st param expected `OrderedDict[str, Column]` but
+            #  got `Dict[str, Column]`.
             {
                 col: ColumnFromVelox._from_velox(
                     self.device,
@@ -2118,7 +2118,7 @@ class GroupedDataFrame:
             yield g, df
 
     @trace
-    def _lift(self, op: str) -> IColumn:
+    def _lift(self, op: str) -> Column:
         if len(self._key_fields) > 0:
             # it is a dataframe operation:
             return self._combine(op)
@@ -2133,17 +2133,17 @@ class GroupedDataFrame:
             res[f.name] = c
         for f, c in zip(agg_fields, self._apply(op)):
             res[f.name] = c
-        # pyre-fixme[6]: For 1st param expected `OrderedDict[str, IColumn]` but got
+        # pyre-fixme[6]: For 1st param expected `OrderedDict[str, Column]` but got
         #  `Dict[typing.Any, typing.Any]`.
         return self._parent._fromdata(res, None)
 
-    def _apply(self, op: str) -> List[IColumn]:
+    def _apply(self, op: str) -> List[Column]:
         cols = []
         for f in self._item_fields:
             cols.append(self._apply1(f, op))
         return cols
 
-    def _apply1(self, f: dt.Field, op: str) -> IColumn:
+    def _apply1(self, f: dt.Field, op: str) -> Column:
         src_t = f.dtype
         dest_f, dest_t = dt.get_agg_op(op, src_t)
         res = Scope._EmptyColumn(dest_t)
@@ -2156,7 +2156,7 @@ class GroupedDataFrame:
             res._append(dest_c)
         return res._finalize()
 
-    def _unzip_group_keys(self) -> List[IColumn]:
+    def _unzip_group_keys(self) -> List[Column]:
         cols = []
         for f in self._key_fields:
             cols.append(Scope._EmptyColumn(f.dtype))

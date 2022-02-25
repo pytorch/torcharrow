@@ -202,7 +202,7 @@ class Scope:
 
         if data is not None:
             warnings.warn(
-                "Constructing column from non Python list/IColumn may result in degenerated performance"
+                "Constructing column from non Python list/Column may result in degenerated performance"
             )
 
         # dtype given, optional data
@@ -382,7 +382,7 @@ but data only provides {len(data)} fields: {data.keys()}
     # helper ------------------------------------------------------------------
     @staticmethod
     def _is_column(c):
-        # NOTE: should be isinstance(c, IColumn)
+        # NOTE: should be isinstance(c, Column)
         # But can't do tha due to cyclic reference, so we use ...
         return c is not None and hasattr(c, "_dtype") and hasattr(c, "_device")
 

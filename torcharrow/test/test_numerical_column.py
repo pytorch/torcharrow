@@ -13,7 +13,7 @@ import numpy as np
 import numpy.testing
 import torcharrow as ta
 import torcharrow.dtypes as dt
-from torcharrow.icolumn import IColumn
+from torcharrow.icolumn import Column
 from torcharrow.inumerical_column import INumericalColumn
 from torcharrow.scope import Scope
 
@@ -748,7 +748,7 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(res, [[1, 2], [3, 4], [5, 6], [7]])
         # test collate
         it = c.batch(2)
-        self.assertEqual(list(IColumn.unbatch(it)), [1, 2, 3, 4, 5, 6, 7])
+        self.assertEqual(list(Column.unbatch(it)), [1, 2, 3, 4, 5, 6, 7])
 
 
 if __name__ == "__main__":

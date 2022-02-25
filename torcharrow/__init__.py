@@ -7,7 +7,7 @@
 from . import pytorch  # noqa
 from . import velox_rt  # noqa
 from ._functional import functional
-from .icolumn import IColumn, column, concat, if_else  # noqa
+from .icolumn import Column, column, concat, if_else  # noqa
 from .idataframe import IDataFrame, dataframe, me  # noqa
 from .ilist_column import IListColumn  # noqa
 from .imap_column import IMapColumn  # noqa
@@ -30,7 +30,7 @@ __all__ = [
     "me",
     "functional",
     "IDataFrame",
-    "IColumn",
+    "Column",
     "INumericalColumn",
     "IStringColumn",
     "IListColumn",

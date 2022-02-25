@@ -16,7 +16,7 @@ import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
 from tabulate import tabulate
 from torcharrow.dispatcher import Dispatcher
-from torcharrow.icolumn import IColumn
+from torcharrow.icolumn import Column
 from torcharrow.ilist_column import IListColumn, IListMethods
 from torcharrow.scope import Scope
 
@@ -227,7 +227,7 @@ class ListMethodsCpu(IListMethods):
     def __init__(self, parent: ListColumnCpu):
         super().__init__(parent)
 
-    def vmap(self, fun: Callable[[IColumn], IColumn]):
+    def vmap(self, fun: Callable[[Column], Column]):
         elements = ColumnFromVelox._from_velox(
             self._parent.device,
             # pyre-fixme[16]: `DType` has no attribute `item_dtype`.
@@ -238,7 +238,7 @@ class ListMethodsCpu(IListMethods):
         )
         new_elements = fun(elements)
 
-        # pyre-fixme[16]: `IColumn` has no attribute `_data`.
+        # pyre-fixme[16]: `Column` has no attribute `_data`.
         new_data = self._parent._data.withElements(new_elements._data)
         return ColumnFromVelox._from_velox(
             self._parent.device, new_data.dtype(), new_data, True

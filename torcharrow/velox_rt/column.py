@@ -10,10 +10,10 @@ import typing as ty
 import torcharrow._torcharrow as velox
 from torcharrow.dispatcher import Device
 from torcharrow.dtypes import DType
-from torcharrow.icolumn import IColumn
+from torcharrow.icolumn import Column
 from torcharrow.scope import Scope
 
-# TODO: Rename this class to IColumnVelox or IColumnCpu
+# TODO: Rename this class to ColumnVelox or ColumnCpu
 # pyre-fixme[13]: Attribute `_finalized` is never initialized.
 class ColumnFromVelox:
     # pyre-fixme[11]: Annotation `BaseColumn` is not defined as a type.
@@ -26,7 +26,7 @@ class ColumnFromVelox:
         dtype: DType,
         data: velox.BaseColumn,
         finalized: bool,
-    ) -> IColumn:
+    ) -> Column:
         col = Scope._Column(dtype=dtype, device=device)
         col._data = data
         col._finalized = finalized
@@ -45,7 +45,7 @@ class ColumnFromVelox:
             True,
         )
 
-    def _concat_with(self, columns: ty.List[IColumn]):
+    def _concat_with(self, columns: ty.List[Column]):
         # pyre-fixme[16]: `ColumnFromVelox` has no attribute `to_pylist`.
         concat_list = self.to_pylist()
         for column in columns:
