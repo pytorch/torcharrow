@@ -274,21 +274,6 @@ class TestInterop(unittest.TestCase):
         self.assertTrue(torch.all(tensors.dense_float32 == expected_float_tensor))
         self.assertTrue(torch.all(tensors.dense_float64 == expected_float_tensor))
 
-        # Test unsupported conversion
-        with self.assertRaisesRegex(
-            ValueError, "Column-major Dense format with mask is not supported"
-        ):
-            tensors = df[1:4].to_tensor(
-                {
-                    "dense_int8": tap.rec.Dense(with_presence=True, batch_first=True),
-                    "dense_int16": tap.rec.Dense(),
-                    "dense_int32": tap.rec.Dense(),
-                    "dense_int64": tap.rec.Dense(),
-                    "dense_float32": tap.rec.Dense(),
-                    "dense_float64": tap.rec.Dense(),
-                }
-            )
-
     def base_test_pytorch_transform(self):
         import torch
 
@@ -302,7 +287,7 @@ class TestInterop(unittest.TestCase):
             device=self.device,
         )
 
-        from torcharrow.pytorch import WithPresence, PackedList, PackedMap
+        from torcharrow.pytorch import WithPresence, PackedList
 
         def list_plus_one(x: PackedList[WithPresence[torch.Tensor]]):
             # pyre-fixme[16]: Module `pytorch` has no attribute `PackedList`.
