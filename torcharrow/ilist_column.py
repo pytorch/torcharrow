@@ -86,18 +86,18 @@ class IListMethods(abc.ABC):
 
         return me._vectorize(fun, me.dtype.item_dtype.with_null(me.dtype.nullable))
 
-    # pyre-fixme[9]: start has type `int`; used as `None`.
-    # pyre-fixme[9]: stop has type `int`; used as `None`.
-    def slice(self, start: int = None, stop: int = None) -> IListColumn:
-        """Slice sublist from each element in the column"""
-        self._parent._prototype_support_warning("list.slice")
+    def slice(self, start: int = 0, stop: Optional[int] = None) -> IListColumn:
+        """
+        Slice sublist from each element in the column
 
-        me = self._parent
-
-        def fun(i):
-            return i[start:stop]
-
-        return me._vectorize(fun, me.dtype)
+        Parameters
+        ----------
+        start - int, default 0
+            Start position for slice operation. Negative starting position is not supported yet.
+        start - int, optional
+            Stop position for slice operation. Negative stop position is not supported yet.
+        """
+        raise NotImplementedError
 
     def vmap(self, fun: Callable[[Column], Column]):
         """
