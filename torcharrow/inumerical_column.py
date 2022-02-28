@@ -15,12 +15,12 @@ import torcharrow.dtypes as dt
 from torcharrow.dispatcher import Device
 
 from .expression import expression
-from .icolumn import IColumn
+from .icolumn import Column
 from .scope import Scope
 from .trace import trace
 
 
-class INumericalColumn(IColumn):
+class INumericalColumn(Column):
     """Abstract Numerical Column"""
 
     # private
@@ -29,22 +29,6 @@ class INumericalColumn(IColumn):
         super().__init__(device, dtype)
 
     # Note all numerical column implementations inherit from INumericalColumn
-
-    def to(self, device: Device):
-        from .velox_rt import NumericalColumnCpu
-
-        if self.device == device:
-            return self
-        elif isinstance(self, NumericalColumnCpu):
-            return Scope.default._FullColumn(
-                self._data,
-                self.dtype,
-                device=device,
-                # pyre-fixme[16]: `NumericalColumnCpu` has no attribute `_mask`.
-                mask=self._mask,
-            )
-        else:
-            raise AssertionError("unexpected case")
 
     def log(self):
         """Returns a new column with the natural logarithm of the elements"""
@@ -69,7 +53,7 @@ class INumericalColumn(IColumn):
     def __radd__(self, other):
         """Vectorized b + a."""
         self._prototype_support_warning("__radd__")
-        return self._py_arithmetic_op(other, IColumn._swap(operator.add))
+        return self._py_arithmetic_op(other, Column._swap(operator.add))
 
     @trace
     @expression
@@ -83,7 +67,7 @@ class INumericalColumn(IColumn):
     def __rsub__(self, other):
         """Vectorized b - a."""
         self._prototype_support_warning("__rsub__")
-        return self._py_arithmetic_op(other, IColumn._swap(operator.sub))
+        return self._py_arithmetic_op(other, Column._swap(operator.sub))
 
     @trace
     @expression
@@ -97,7 +81,7 @@ class INumericalColumn(IColumn):
     def __rmul__(self, other):
         """Vectorized b * a."""
         self._prototype_support_warning("__rmul__")
-        return self._py_arithmetic_op(other, IColumn._swap(operator.mul))
+        return self._py_arithmetic_op(other, Column._swap(operator.mul))
 
     @trace
     @expression
@@ -111,7 +95,7 @@ class INumericalColumn(IColumn):
     def __rfloordiv__(self, other):
         """Vectorized b // a."""
         self._prototype_support_warning("__rfloordiv__")
-        return self._py_arithmetic_op(other, IColumn._swap(operator.floordiv))
+        return self._py_arithmetic_op(other, Column._swap(operator.floordiv))
 
     @trace
     @expression
@@ -126,7 +110,7 @@ class INumericalColumn(IColumn):
         """Vectorized b / a."""
         self._prototype_support_warning("__rtruediv__")
         return self._py_arithmetic_op(
-            other, IColumn._swap(operator.truediv), div="__rtruediv__"
+            other, Column._swap(operator.truediv), div="__rtruediv__"
         )
 
     @trace
@@ -134,7 +118,7 @@ class INumericalColumn(IColumn):
     def __rmod__(self, other):
         """Vectorized b % a."""
         self._prototype_support_warning("__rmod__")
-        return self._py_arithmetic_op(other, IColumn._swap(operator.mod))
+        return self._py_arithmetic_op(other, Column._swap(operator.mod))
 
     @trace
     @expression
@@ -148,7 +132,7 @@ class INumericalColumn(IColumn):
     def __rpow__(self, other):
         """Vectorized b ** a."""
         self._prototype_support_warning("__rpow__")
-        return self._py_arithmetic_op(other, IColumn._swap(operator.pow))
+        return self._py_arithmetic_op(other, Column._swap(operator.pow))
 
     # describe ----------------------------------------------------------------
     @trace
@@ -388,7 +372,7 @@ class INumericalColumn(IColumn):
     def _py_arithmetic_op(self, other, fun, div=""):
         others = None
         other_dtype = None
-        if isinstance(other, IColumn):
+        if isinstance(other, Column):
             others = other._items()
             other_dtype = other.dtype
         else:

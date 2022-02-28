@@ -173,7 +173,7 @@ class CriteoIntegrationTest(unittest.TestCase):
         self.assertEqual(df.dtype, DTYPE)
         self.assertEqual(list(df), self.RAW_ROWS)
 
-        # pyre-fixme[6]: For 1st param expected `IDataFrame` but got `Union[IColumn,
+        # pyre-fixme[6]: For 1st param expected `IDataFrame` but got `Union[Column,
         #  IDataFrame]`.
         df = type(self).preproc(df)
 

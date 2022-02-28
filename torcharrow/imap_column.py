@@ -9,13 +9,13 @@ from dataclasses import dataclass
 
 import torcharrow.dtypes as dt
 
-from .icolumn import IColumn
+from .icolumn import Column
 
 # -----------------------------------------------------------------------------
 # IMapColumn
 
 
-class IMapColumn(IColumn):
+class IMapColumn(Column):
     def __init__(self, device, dtype):
         assert dt.is_map(dtype)
         super().__init__(device, dtype)

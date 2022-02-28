@@ -21,13 +21,13 @@ def prepare_list_int_col():
     return ta.from_pysequence(elements, dtype=dt.List(dt.int64), device="cpu")
 
 
-def list_map_int(col: ta.IColumn):
-    # pyre-fixme[16]: `IColumn` has no attribute `list`.
+def list_map_int(col: ta.Column):
+    # pyre-fixme[16]: `Column` has no attribute `list`.
     return col.list.map(lambda val: val + 1)
 
 
-def list_vmap_int(col: ta.IColumn):
-    # pyre-fixme[16]: `IColumn` has no attribute `list`.
+def list_vmap_int(col: ta.Column):
+    # pyre-fixme[16]: `Column` has no attribute `list`.
     return col.list.vmap(lambda col: col + 1)
 
 
@@ -42,13 +42,13 @@ def prepare_list_str_col():
     return ta.from_pysequence(elements, dtype=dt.List(dt.string), device="cpu")
 
 
-def list_map_str(col: ta.IColumn):
-    # pyre-fixme[16]: `IColumn` has no attribute `list`.
+def list_map_str(col: ta.Column):
+    # pyre-fixme[16]: `Column` has no attribute `list`.
     return col.list.map(lambda val: val + "_1")
 
 
-def list_vmap_str(col: ta.IColumn):
-    # pyre-fixme[16]: `IColumn` has no attribute `list`.
+def list_vmap_str(col: ta.Column):
+    # pyre-fixme[16]: `Column` has no attribute `list`.
     return col.list.vmap(lambda col: col + "_1")
 
 

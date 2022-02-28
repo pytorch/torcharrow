@@ -92,12 +92,12 @@ def column(
     return Scope._Column(data, dtype=dtype, device=device)
 
 
-def concat(columns: ty.List[IColumn]):
+def concat(columns: ty.List[Column]):
     """Returns concatenated columns."""
     return columns[0]._concat_with(columns[1:])
 
 
-def if_else(cond: IColumn, left: IColumn, right: IColumn):
+def if_else(cond: Column, left: Column, right: Column):
     """
     Return a column of elements where each of them is selected from either
     `left` column or `righ` column, depending on the value in the corresponding
@@ -120,10 +120,10 @@ def if_else(cond: IColumn, left: IColumn, right: IColumn):
 
 
 # ------------------------------------------------------------------------------
-# IColumn
+# Column
 
 
-class IColumn(ty.Sized, ty.Iterable, abc.ABC):
+class Column(ty.Sized, ty.Iterable, abc.ABC):
     """Interface for Column are n vectors (n>=1) of columns"""
 
     def __init__(self, device, dtype: dt.DType):
@@ -338,7 +338,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 return self._get_columns(arg)
             else:
                 raise TypeError("index should be list of int or list of str")
-        elif isinstance(arg, IColumn) and dt.is_boolean(arg.dtype):
+        elif isinstance(arg, Column) and dt.is_boolean(arg.dtype):
             return self.filter(arg)
         else:
             raise self._not_supported("__getitem__")
@@ -639,7 +639,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 dtype = self._dtype
             # TODO: check type annotations of inputs too in order to infer the input format
 
-        # TODO: if func is annotated, check whether its input parameter is IColumn when format="column"
+        # TODO: if func is annotated, check whether its input parameter is Column when format="column"
         raw_res = func(self._format_transform_column(self, format))
         return self._format_transform_result(raw_res, format, dtype, len(self))
 
@@ -874,7 +874,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def __ror__(self, other):
         """Vectorized reverse bitwise or operation: b | a."""
         self._prototype_support_warning("__ror__")
-        return self._py_arithmetic_op(other, IColumn._swap(operator.__or__))
+        return self._py_arithmetic_op(other, Column._swap(operator.__or__))
 
     @trace
     @expression
@@ -888,7 +888,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def __rxor__(self, other):
         """Vectorized reverse bitwise exclusive or operation: b ^ a."""
         self._prototype_support_warning("__rxor__")
-        return self._py_arithmetic_op(other, IColumn._swap(operator.__xor__))
+        return self._py_arithmetic_op(other, Column._swap(operator.__xor__))
 
     @trace
     @expression
@@ -902,7 +902,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def __rand__(self, other):
         """Vectorized reverse bitwise and operation: b & a."""
         self._prototype_support_warning("__rand__")
-        return self._py_arithmetic_op(other, IColumn._swap(operator.__and__))
+        return self._py_arithmetic_op(other, Column._swap(operator.__and__))
 
     @trace
     @expression
@@ -1008,9 +1008,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """
         self._prototype_support_warning("fill_null")
 
-        if not isinstance(fill_value, IColumn._scalar_types):
+        if not isinstance(fill_value, Column._scalar_types):
             raise TypeError(f"fill_null with {type(fill_value)} is not supported")
-        if isinstance(fill_value, IColumn._scalar_types):
+        if isinstance(fill_value, Column._scalar_types):
             res = Scope._EmptyColumn(self.dtype.constructor(nullable=False))
             for m, i in self._items():
                 if not m:
@@ -1183,7 +1183,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
             yield self[h:i]
 
     @staticmethod
-    def unbatch(iter: ty.Iterable[IColumn]):
+    def unbatch(iter: ty.Iterable[Column]):
         """
         EXPERIMENTAL API
         """
@@ -1249,7 +1249,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
     def _py_comparison_op(self, other, pred):
         others = None
         other_dtype = None
-        if isinstance(other, IColumn):
+        if isinstance(other, Column):
             if len(other) != len(self):
                 raise TypeError("columns must have equal length")
             others = other._items()
@@ -1298,7 +1298,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         return m
 
     @staticmethod
-    def _format_transform_column(c: IColumn, format: str):
+    def _format_transform_column(c: Column, format: str):
         if format == "column":
             return c
         if format == "python":
@@ -1381,7 +1381,7 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
                 yield i
 
     @abc.abstractmethod
-    def _concat_with(self, columns: ty.List[IColumn]):
+    def _concat_with(self, columns: ty.List[Column]):
         """Returns concatenated columns."""
         raise self._not_supported("_concat_with")
 
@@ -1391,9 +1391,9 @@ class IColumn(ty.Sized, ty.Iterable, abc.ABC):
         """Vectorized if-then-else"""
         if not dt.is_boolean(self.dtype):
             raise TypeError("condition must be a boolean vector")
-        if not isinstance(then_, IColumn):
+        if not isinstance(then_, Column):
             then_ = self._Column(then_)
-        if not isinstance(else_, IColumn):
+        if not isinstance(else_, Column):
             else_ = self._Column(else_)
         lub = dt.common_dtype(then_.dtype, else_.dtype)
         if lub is None or dt.is_void(lub):

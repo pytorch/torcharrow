@@ -6,7 +6,7 @@
 
 import array as ar
 import warnings
-from typing import List, Callable
+from typing import List, Callable, Optional
 
 import torcharrow as ta
 
@@ -15,8 +15,9 @@ import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
 from tabulate import tabulate
+from torcharrow._functional import functional
 from torcharrow.dispatcher import Dispatcher
-from torcharrow.icolumn import IColumn
+from torcharrow.icolumn import Column
 from torcharrow.ilist_column import IListColumn, IListMethods
 from torcharrow.scope import Scope
 
@@ -227,7 +228,28 @@ class ListMethodsCpu(IListMethods):
     def __init__(self, parent: ListColumnCpu):
         super().__init__(parent)
 
-    def vmap(self, fun: Callable[[IColumn], IColumn]):
+    def length(self):
+        return functional.cardinality(self._parent)._with_null(
+            self._parent.dtype.nullable
+        )
+
+    def slice(self, start: int = 0, stop: Optional[int] = None) -> IListColumn:
+        if start < 0:
+            raise NotImplementedError("Negative start position is not supported yet")
+
+        if stop is None:
+            return functional.slice(self._parent, start + 1, 2 ** 31 - 1)._with_null(
+                self._parent.dtype.nullable
+            )
+
+        if stop < 0:
+            raise NotImplementedError("Negative start position is not supported yet")
+
+        return functional.slice(self._parent, start + 1, stop - start)._with_null(
+            self._parent.dtype.nullable
+        )
+
+    def vmap(self, fun: Callable[[Column], Column]):
         elements = ColumnFromVelox._from_velox(
             self._parent.device,
             # pyre-fixme[16]: `DType` has no attribute `item_dtype`.
@@ -238,7 +260,7 @@ class ListMethodsCpu(IListMethods):
         )
         new_elements = fun(elements)
 
-        # pyre-fixme[16]: `IColumn` has no attribute `_data`.
+        # pyre-fixme[16]: `Column` has no attribute `_data`.
         new_data = self._parent._data.withElements(new_elements._data)
         return ColumnFromVelox._from_velox(
             self._parent.device, new_data.dtype(), new_data, True

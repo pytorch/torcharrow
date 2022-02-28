@@ -137,9 +137,9 @@ def traceproperty(fn):
         # # same code as above, except for this line...
         # fn._is_property = True
         # #find the scope::
-        # # at least one positional argument must be an IColumn
+        # # at least one positional argument must be an Column
         # for arg in args:
-        #     if isinstance(arg,IColumn):
+        #     if isinstance(arg,Column):
         #         scope = arg.scope
 
         # # existing functions

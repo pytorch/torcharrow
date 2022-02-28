@@ -238,7 +238,7 @@ class TensorConversion(abc.ABC):
     PyTorch Conversion class.
 
     For built-in PyTorch conversion class, it dispatches to the corresponding internal methods in
-    IColumn. Such as IColumn._to_tensor_default() or IColumn._to_tensor_padseq().
+    Column. Such as Column._to_tensor_default() or Column._to_tensor_padseq().
 
     Some PyTorch conversion strategy may be one way (e.g. doesn't support converting from PyTorch representation
     back to DataFrame), in that case only to_tensor needs to be implemented.

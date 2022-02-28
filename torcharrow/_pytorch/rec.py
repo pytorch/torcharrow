@@ -27,8 +27,6 @@ class Dense(Callable):
     """
 
     def __init__(self, *, batch_first=False, with_presence=False):
-        if batch_first and with_presence:
-            raise ValueError("Column-major Dense format with mask is not supported")
         self.batch_first = batch_first
         self.with_presence = with_presence
 

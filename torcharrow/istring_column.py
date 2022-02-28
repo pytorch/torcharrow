@@ -9,13 +9,13 @@ from typing import Optional
 
 import torcharrow.dtypes as dt
 
-from .icolumn import IColumn
+from .icolumn import Column
 
 # ------------------------------------------------------------------------------
 # IStringColumn
 
 
-class IStringColumn(IColumn):
+class IStringColumn(Column):
 
     # private constructor
     def __init__(self, device, dtype):  # REP offsets
