@@ -1,0 +1,54 @@
+name: Velox Nightly Build and Test
+on:
+  schedule:
+    - cron: 0 0 * * *
+
+jobs:
+  vm:
+    runs-on: ubuntu-latest
+
+  container:
+    runs-on: ubuntu-latest
+    container: prestocpp/velox-torcharrow:kpai-20220228
+    steps:
+      - name: Print CPU info
+        run: cat /proc/cpuinfo
+
+      - name: Setup Python environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
+      - name: Check out source repository
+        uses: actions/checkout@v2
+
+      - name: Update submodules
+        run: git submodule update --init --recursive
+
+      # Based on https://cristianadam.eu/20200113/speeding-up-c-plus-plus-github-actions-using-ccache/
+      - name: Prepare ccache timestamp
+        id: ccache_cache_timestamp
+        run: |
+          echo "::set-output name=timestamp::$(/bin/date -u "+%Y%m%d-%H:%M:%S")"
+        shell: bash
+
+      - name: Load ccache files
+        uses: actions/cache@v2
+        with:
+          path: .ccache
+          key: velox-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+          restore-keys: |
+              velox-ccache-      
+
+      - name: Bulid TorchArrow
+        run: |
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache python setup.py develop --user
+
+      - name: Install dependencies for test
+        run: |
+          pip3 install pytest  --user
+          pip3 install torch==1.10.0+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html --user
+
+      - name : Run TorchArrow unit tests
+        run: pytest --no-header -v torcharrow/test
