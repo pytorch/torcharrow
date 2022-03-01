@@ -39,7 +39,7 @@ from tabulate import tabulate
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import eval_expression, expression
 from torcharrow.icolumn import Column
-from torcharrow.idataframe import IDataFrame
+from torcharrow.idataframe import DataFrame
 from torcharrow.scope import Scope
 from torcharrow.trace import trace, traceproperty
 
@@ -62,12 +62,12 @@ from .typing import get_velox_type
 DataOrDTypeOrNone = Optional[Union[Mapping, Sequence, dt.DType]]
 
 
-class DataFrameCpu(ColumnFromVelox, IDataFrame):
+class DataFrameCpu(ColumnFromVelox, DataFrame):
     """Dataframe on Velox backend"""
 
     def __init__(self, device: str, dtype: dt.Struct, data: Dict[str, ColumnFromVelox]):
         assert dt.is_struct(dtype)
-        IDataFrame.__init__(self, device, dtype)
+        DataFrame.__init__(self, device, dtype)
 
         # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self._data = velox.Column(get_velox_type(dtype))
@@ -1329,7 +1329,7 @@ class DataFrameCpu(ColumnFromVelox, IDataFrame):
                 # pyre-fixme[16]: `DataFrameCpu` has no attribute `_field_data`.
                 {n: c.isin(values[n]) for n, c in self._field_data.items()}
             )
-        if isinstance(values, IDataFrame):
+        if isinstance(values, DataFrame):
             self._check_columns(values.columns)
             # pyre-fixme[20]: Argument `mask` expected.
             return self._fromdata(

@@ -12,7 +12,7 @@ import pyarrow as pa
 import torcharrow as ta
 import torcharrow.dtypes as dt
 from torcharrow._interop import _arrowtype_to_dtype, _dtype_to_arrowtype
-from torcharrow.idataframe import IDataFrame
+from torcharrow.idataframe import DataFrame
 
 
 class TestArrowInterop(unittest.TestCase):
@@ -57,7 +57,7 @@ class TestArrowInterop(unittest.TestCase):
         s = pa.array(pydata, type=arrow_type)
         # pyre-fixme[16]: `TestArrowInterop` has no attribute `device`.
         t = ta.from_arrow(s, device=self.device)
-        self.assertFalse(isinstance(t, IDataFrame))
+        self.assertFalse(isinstance(t, DataFrame))
         expected_dtype = expected_dtype.with_null(nullable=s.null_count > 0)
         self.assertEqual(t.dtype, expected_dtype)
         for pa_val, ta_val in zip(s.to_pylist(), list(t)):
@@ -87,7 +87,7 @@ class TestArrowInterop(unittest.TestCase):
             if pa.types.is_boolean(arrow_type):
                 s = pa.array(pydata, type=arrow_type)
                 t = ta.from_arrow(s, device=self.device)
-                self.assertFalse(isinstance(t, IDataFrame))
+                self.assertFalse(isinstance(t, DataFrame))
                 expected_dtype = expected_dtype.with_null(nullable=s.null_count > 0)
                 self.assertEqual(t.dtype, expected_dtype)
                 self.assertEqual(s.to_pylist(), list(t))
@@ -113,7 +113,7 @@ class TestArrowInterop(unittest.TestCase):
             if pa.types.is_string(arrow_type) or pa.types.is_large_string(arrow_type):
                 s = pa.array(pydata, type=arrow_type)
                 t = ta.from_arrow(s, device=self.device)
-                self.assertFalse(isinstance(t, IDataFrame))
+                self.assertFalse(isinstance(t, DataFrame))
                 expected_dtype = expected_dtype.with_null(nullable=s.null_count > 0)
                 self.assertEqual(t.dtype, expected_dtype)
                 self.assertEqual(s.to_pylist(), list(t))
@@ -127,7 +127,7 @@ class TestArrowInterop(unittest.TestCase):
             }
         )
         df = ta.from_arrow(pt, device=self.device)
-        self.assertTrue(isinstance(df, IDataFrame))
+        self.assertTrue(isinstance(df, DataFrame))
         self.assertTrue(dt.is_struct(df.dtype))
         self.assertEqual(len(df), len(pt))
         for (i, ta_field) in enumerate(df.dtype.fields):
@@ -160,7 +160,7 @@ class TestArrowInterop(unittest.TestCase):
             ),
         )
         df = ta.from_arrow(table)
-        self.assertTrue(isinstance(df, IDataFrame))
+        self.assertTrue(isinstance(df, DataFrame))
         self.assertEqual(df.columns, ["label", "dense_features"])
         self.assertEqual(df["dense_features"].columns, ["int_1", "int_2"])
         self.assertEquals(df["dense_features"]["int_1"].dtype, dt.Int64(nullable=False))
@@ -172,7 +172,7 @@ class TestArrowInterop(unittest.TestCase):
         chunked = pa.chunked_array([[1, 2, 3], [4, 5, 6]])
         pt = pa.table({"f1": chunked})
         df = ta.from_arrow(pt, device=self.device)
-        self.assertTrue(isinstance(df, IDataFrame))
+        self.assertTrue(isinstance(df, DataFrame))
         self.assertTrue(dt.is_struct(df.dtype))
         self.assertEqual(len(df), len(pt))
         for (i, ta_field) in enumerate(df.dtype.fields):
