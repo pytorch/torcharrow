@@ -259,11 +259,11 @@ class TestDataframeTrace(unittest.TestCase):
         # print("TRACE", cmds(Scope.default.trace.statements()))
         verdict = [
             "c0 = torcharrow.scope.Scope._DataFrame(None, dtype=None, columns=None, device='cpu')",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'a', [1, 2, 3])",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'b', [11, 22, 33])",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'c', [111, 222, 333])",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'a', [1, 2, 3])",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'b', [11, 22, 33])",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'c', [111, 222, 333])",
             "c4 = torcharrow.icolumn.Column.__getitem__(c0, 'a')",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'd', c4)",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'd', c4)",
             "c11 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.drop(c0, ['a'])",
             "c16 = torcharrow.icolumn.Column.__getitem__(c0, ['a', 'c'])",
             "c21 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.rename(c16, {'c': 'e'})",
@@ -285,7 +285,7 @@ class TestDataframeTrace(unittest.TestCase):
         df["a"] = [1, 2, 3]
         self.assertEqual(
             Scope.default.trace.statements()[-1],
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'a', [1, 2, 3])",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'a', [1, 2, 3])",
         )
 
         df["b"] = [11, 22, 33]
@@ -295,9 +295,9 @@ class TestDataframeTrace(unittest.TestCase):
         # print("TRACE", cmds(Scope.default.trace.statements()))
         verdict = [
             "c0 = torcharrow.scope.Scope._DataFrame(None, dtype=None, columns=None, device='cpu')",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'a', [1, 2, 3])",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'b', [11, 22, 33])",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'c', [111, 222, 333])",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'a', [1, 2, 3])",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'b', [11, 22, 33])",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'c', [111, 222, 333])",
             "c9 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.where(c0, torcharrow.idataframe.me.__getitem__('a').__gt__(1))",
         ]
 
