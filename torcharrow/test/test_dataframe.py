@@ -11,7 +11,7 @@ import numpy.testing
 import torcharrow as ta
 import torcharrow.dtypes as dt
 from torcharrow import me
-from torcharrow.idataframe import IDataFrame
+from torcharrow.idataframe import DataFrame
 
 # run python3 -m unittest outside this directory to run all tests
 
@@ -21,7 +21,7 @@ class TestDataFrame(unittest.TestCase):
         empty = ta.dataframe(device=self.device)
 
         # testing internals...
-        self.assertTrue(isinstance(empty, IDataFrame))
+        self.assertTrue(isinstance(empty, DataFrame))
 
         self.assertEqual(empty.length, 0)
         self.assertEqual(empty.null_count, 0)

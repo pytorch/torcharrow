@@ -1134,7 +1134,7 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
         Parameters
         ----------
         conversion : TensorConversion, or dict
-            conversion can only be a dict type for IDataFrame.to_tensor(). The dict maps from
+            conversion can only be a dict type for DataFrame.to_tensor(). The dict maps from
             column name to the conversion methods.
             For column names not contained in dict, default PyTorch conversion will be used.
 

@@ -8,7 +8,7 @@ from . import pytorch  # noqa
 from . import velox_rt  # noqa
 from ._functional import functional
 from .icolumn import Column, column, concat, if_else  # noqa
-from .idataframe import IDataFrame, dataframe, me  # noqa
+from .idataframe import DataFrame, dataframe, me  # noqa
 from .ilist_column import IListColumn  # noqa
 from .imap_column import IMapColumn  # noqa
 from .interop import from_pysequence, from_arrow  # noqa
@@ -29,7 +29,7 @@ __all__ = [
     "from_pysequence",
     "me",
     "functional",
-    "IDataFrame",
+    "DataFrame",
     "Column",
     "INumericalColumn",
     "IStringColumn",
