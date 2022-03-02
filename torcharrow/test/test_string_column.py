@@ -9,7 +9,7 @@ import unittest
 
 import torcharrow as ta
 import torcharrow.dtypes as dt
-from torcharrow.istring_column import IStringColumn
+from torcharrow.istring_column import StringColumn
 
 
 class TestStringColumn(unittest.TestCase):
@@ -24,7 +24,7 @@ class TestStringColumn(unittest.TestCase):
 
     def base_test_empty(self):
         empty = ta.column(dt.string, device=self.device)
-        self.assertTrue(isinstance(empty, IStringColumn))
+        self.assertTrue(isinstance(empty, StringColumn))
         self.assertEqual(empty.dtype, dt.string)
         self.assertEqual(empty.length, 0)
         self.assertEqual(empty.null_count, 0)

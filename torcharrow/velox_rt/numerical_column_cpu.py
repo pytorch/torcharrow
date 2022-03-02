@@ -19,7 +19,7 @@ from torcharrow._functional import functional
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
 from torcharrow.icolumn import Column
-from torcharrow.inumerical_column import INumericalColumn
+from torcharrow.inumerical_column import NumericalColumn
 from torcharrow.trace import trace, traceproperty
 
 from .column import ColumnFromVelox
@@ -28,14 +28,14 @@ from .typing import get_velox_type
 # ------------------------------------------------------------------------------
 
 
-class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
+class NumericalColumnCpu(ColumnFromVelox, NumericalColumn):
     """A Numerical Column on Velox backend"""
 
     # private
     # pyre-fixme[11]: Annotation `BaseColumn` is not defined as a type.
     def __init__(self, device, dtype, data: velox.BaseColumn):
         assert dt.is_boolean_or_numerical(dtype)
-        INumericalColumn.__init__(self, device, dtype)
+        NumericalColumn.__init__(self, device, dtype)
         self._data = data
 
         # TODO: Deprecate _finalized since Velox Column doesn't have "Builder" mode
@@ -159,7 +159,7 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
         else:
             # refer back to default handling...
-            return INumericalColumn._if_else(self, then_, else_)
+            return NumericalColumn._if_else(self, then_, else_)
 
     # sorting, top-k, unique---------------------------------------------------
 
@@ -237,8 +237,8 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     # operators ---------------------------------------------------------------
     def _checked_binary_op_call(
-        self, other: Union[INumericalColumn, int, float, bool], op_name: str
-    ) -> INumericalColumn:
+        self, other: Union[NumericalColumn, int, float, bool], op_name: str
+    ) -> NumericalColumn:
         if isinstance(other, NumericalColumnCpu):
             if len(other) != len(self):
                 raise TypeError("columns must have equal length")
@@ -262,9 +262,9 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     def _checked_comparison_op_call(
         self,
-        other: Union[INumericalColumn, List[int], List[float], int, float],
+        other: Union[NumericalColumn, List[int], List[float], int, float],
         op_name: str,
-    ) -> INumericalColumn:
+    ) -> NumericalColumn:
         if isinstance(other, list):
             # Reuse the fromlist construction path
             other = ta.column(other)
@@ -272,9 +272,9 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     def _checked_arithmetic_op_call(
         self, other: Union[int, float, bool], op_name: str, fallback_py_op: Callable
-    ) -> INumericalColumn:
+    ) -> NumericalColumn:
         def should_use_py_impl(
-            self, other: Union[INumericalColumn, int, float, bool]
+            self, other: Union[NumericalColumn, int, float, bool]
         ) -> bool:
             # Arithmetic operations and bitwise operations are not supported in Velox
             # for boolean type, so let's fall back to Pyhton implementation when both
@@ -298,42 +298,42 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     @trace
     @expression
-    def __add__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
+    def __add__(self, other: Union[NumericalColumn, int, float]) -> NumericalColumn:
         # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
-        #  `Union[INumericalColumn, float, int]`.
+        #  `Union[NumericalColumn, float, int]`.
         return self._checked_arithmetic_op_call(other, "add", operator.add)
 
     @trace
     @expression
-    def __radd__(self, other: Union[int, float]) -> INumericalColumn:
+    def __radd__(self, other: Union[int, float]) -> NumericalColumn:
         return self._checked_arithmetic_op_call(
             other, "radd", Column._swap(operator.add)
         )
 
     @trace
     @expression
-    def __sub__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
+    def __sub__(self, other: Union[NumericalColumn, int, float]) -> NumericalColumn:
         # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
-        #  `Union[INumericalColumn, float, int]`.
+        #  `Union[NumericalColumn, float, int]`.
         return self._checked_arithmetic_op_call(other, "sub", operator.sub)
 
     @trace
     @expression
-    def __rsub__(self, other: Union[int, float]) -> INumericalColumn:
+    def __rsub__(self, other: Union[int, float]) -> NumericalColumn:
         return self._checked_arithmetic_op_call(
             other, "rsub", Column._swap(operator.sub)
         )
 
     @trace
     @expression
-    def __mul__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
+    def __mul__(self, other: Union[NumericalColumn, int, float]) -> NumericalColumn:
         # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
-        #  `Union[INumericalColumn, float, int]`.
+        #  `Union[NumericalColumn, float, int]`.
         return self._checked_arithmetic_op_call(other, "mul", operator.mul)
 
     @trace
     @expression
-    def __rmul__(self, other: Union[int, float]) -> INumericalColumn:
+    def __rmul__(self, other: Union[int, float]) -> NumericalColumn:
         return self._checked_arithmetic_op_call(
             other, "rmul", Column._swap(operator.mul)
         )
@@ -410,20 +410,20 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     @trace
     @expression
-    def __mod__(self, other: Union[INumericalColumn, int, float]) -> INumericalColumn:
+    def __mod__(self, other: Union[NumericalColumn, int, float]) -> NumericalColumn:
         """
         Note: if a is integer type, a % 0 will raise ZeroDivisionError.
               if a is float type, a % 0 will be float('nan')
         """
         return self._rethrow_zero_division_error(
             # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but
-            #  got `Union[INumericalColumn, float, int]`.
+            #  got `Union[NumericalColumn, float, int]`.
             lambda: self._checked_arithmetic_op_call(other, "mod", operator.mod)
         )
 
     @trace
     @expression
-    def __rmod__(self, other: Union[int, float]) -> INumericalColumn:
+    def __rmod__(self, other: Union[int, float]) -> NumericalColumn:
         """
         Note: if a is integer type, a % 0 will raise ZeroDivisionError.
               if a is float type, a % 0 will be float('nan')
@@ -448,84 +448,72 @@ class NumericalColumnCpu(ColumnFromVelox, INumericalColumn):
 
     @trace
     @expression
-    def __eq__(
-        self, other: Union[INumericalColumn, List[int], List[float], int, float]
-    ):
+    def __eq__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
         return self._checked_comparison_op_call(other, "eq")
 
     @trace
     @expression
-    def __ne__(
-        self, other: Union[INumericalColumn, List[int], List[float], int, float]
-    ):
+    def __ne__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
         return self._checked_comparison_op_call(other, "neq")
 
     @trace
     @expression
-    def __lt__(
-        self, other: Union[INumericalColumn, List[int], List[float], int, float]
-    ):
+    def __lt__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
         return self._checked_comparison_op_call(other, "lt")
 
     @trace
     @expression
-    def __gt__(
-        self, other: Union[INumericalColumn, List[int], List[float], int, float]
-    ):
+    def __gt__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
         return self._checked_comparison_op_call(other, "gt")
 
     @trace
     @expression
-    def __le__(
-        self, other: Union[INumericalColumn, List[int], List[float], int, float]
-    ):
+    def __le__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
         return self._checked_comparison_op_call(other, "lte")
 
     @trace
     @expression
-    def __ge__(
-        self, other: Union[INumericalColumn, List[int], List[float], int, float]
-    ):
+    def __ge__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
         return self._checked_comparison_op_call(other, "gte")
 
     @trace
     @expression
-    def __and__(self, other: Union[INumericalColumn, int]) -> INumericalColumn:
+    def __and__(self, other: Union[NumericalColumn, int]) -> NumericalColumn:
         # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
-        #  `Union[INumericalColumn, int]`.
+        #  `Union[NumericalColumn, int]`.
         return self._checked_arithmetic_op_call(other, "bitwise_and", operator.__and__)
 
     @trace
     @expression
-    def __rand__(self, other: Union[int]) -> INumericalColumn:
+    def __rand__(self, other: Union[int]) -> NumericalColumn:
         return self._checked_arithmetic_op_call(
             other, "bitwise_rand", Column._swap(operator.__and__)
         )
 
     @trace
     @expression
-    def __or__(self, other: Union[INumericalColumn, int]) -> INumericalColumn:
+    def __or__(self, other: Union[NumericalColumn, int]) -> NumericalColumn:
         # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
-        #  `Union[INumericalColumn, int]`.
+        #  `Union[NumericalColumn, int]`.
         return self._checked_arithmetic_op_call(other, "bitwise_or", operator.__or__)
 
     @trace
     @expression
-    def __ror__(self, other: Union[int]) -> INumericalColumn:
+    def __ror__(self, other: Union[int]) -> NumericalColumn:
         return self._checked_arithmetic_op_call(
             other, "bitwise_ror", Column._swap(operator.__or__)
         )
 
     @trace
     @expression
-    def __xor__(self, other: Union[INumericalColumn, int]) -> INumericalColumn:
+    def __xor__(self, other: Union[NumericalColumn, int]) -> NumericalColumn:
         # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
-        #  `Union[INumericalColumn, int]`.
+        #  `Union[NumericalColumn, int]`.
         return self._checked_arithmetic_op_call(other, "bitwise_xor", operator.__xor__)
 
     @trace
     @expression
-    def __rxor__(self, other: Union[int]) -> INumericalColumn:
+    def __rxor__(self, other: Union[int]) -> NumericalColumn:
         return self._checked_arithmetic_op_call(
             other, "bitwise_rxor", Column._swap(operator.__xor__)
         )

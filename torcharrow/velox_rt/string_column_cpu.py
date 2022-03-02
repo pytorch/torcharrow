@@ -16,7 +16,7 @@ from tabulate import tabulate
 from torcharrow._functional import functional
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
-from torcharrow.istring_column import IStringColumn, IStringMethods
+from torcharrow.istring_column import StringColumn, StringMethods
 from torcharrow.trace import trace
 
 from .column import ColumnFromVelox
@@ -26,12 +26,12 @@ from .typing import get_velox_type
 # StringColumnCpu
 
 
-class StringColumnCpu(ColumnFromVelox, IStringColumn):
+class StringColumnCpu(ColumnFromVelox, StringColumn):
 
     # private constructor
     def __init__(self, device, dtype, data, mask):  # REP offsets
         assert dt.is_string(dtype)
-        IStringColumn.__init__(self, device, dtype)
+        StringColumn.__init__(self, device, dtype)
 
         self._data = velox.Column(get_velox_type(dtype))
         for m, d in zip(mask.tolist(), data):
@@ -228,8 +228,8 @@ class StringColumnCpu(ColumnFromVelox, IStringColumn):
 # StringMethodsCpu
 
 
-class StringMethodsCpu(IStringMethods):
-    """Vectorized string functions for IStringColumn"""
+class StringMethodsCpu(StringMethods):
+    """Vectorized string functions for StringColumn"""
 
     def __init__(self, parent: StringColumnCpu):
         super().__init__(parent)
@@ -239,7 +239,7 @@ class StringMethodsCpu(IStringMethods):
 
     def slice(
         self, start: Optional[int] = None, stop: Optional[int] = None
-    ) -> IStringColumn:
+    ) -> StringColumn:
         start = start or 0
         if stop is None:
             return functional.substr(self._parent, start + 1)._with_null(
@@ -261,56 +261,56 @@ class StringMethodsCpu(IStringMethods):
     def strip(self):
         return functional.trim(self._parent)._with_null(self._parent.dtype.nullable)
 
-    def lower(self) -> IStringColumn:
+    def lower(self) -> StringColumn:
         return functional.lower(self._parent)._with_null(self._parent.dtype.nullable)
 
-    def upper(self) -> IStringColumn:
+    def upper(self) -> StringColumn:
         return functional.upper(self._parent)._with_null(self._parent.dtype.nullable)
 
     # Check whether all characters in each string are  -----------------------------------------------------
     # alphabetic/numeric/digits/decimal...
 
-    def isalpha(self) -> IStringColumn:
+    def isalpha(self) -> StringColumn:
         return functional.torcharrow_isalpha(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
-    def isalnum(self) -> IStringColumn:
+    def isalnum(self) -> StringColumn:
         return functional.torcharrow_isalnum(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
-    def isdigit(self) -> IStringColumn:
+    def isdigit(self) -> StringColumn:
         return functional.torcharrow_isdigit(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
-    def isdecimal(self) -> IStringColumn:
+    def isdecimal(self) -> StringColumn:
         return functional.torcharrow_isdecimal(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
-    def islower(self) -> IStringColumn:
+    def islower(self) -> StringColumn:
         return functional.torcharrow_islower(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
-    def isupper(self) -> IStringColumn:
+    def isupper(self) -> StringColumn:
         return functional.torcharrow_isupper(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
-    def isspace(self) -> IStringColumn:
+    def isspace(self) -> StringColumn:
         return functional.torcharrow_isspace(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
-    def istitle(self) -> IStringColumn:
+    def istitle(self) -> StringColumn:
         return functional.torcharrow_istitle(self._parent)._with_null(
             self._parent.dtype.nullable
         )
 
-    def isnumeric(self) -> IStringColumn:
+    def isnumeric(self) -> StringColumn:
         return functional.torcharrow_isnumeric(self._parent)._with_null(
             self._parent.dtype.nullable
         )

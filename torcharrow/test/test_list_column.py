@@ -9,14 +9,14 @@ import unittest
 
 import torcharrow as ta
 import torcharrow.dtypes as dt
-from torcharrow.ilist_column import IListColumn
+from torcharrow.ilist_column import ListColumn
 
 
 class TestListColumn(unittest.TestCase):
     def base_test_empty(self):
         c = ta.column(dt.List(dt.int64), device=self.device)
 
-        self.assertTrue(isinstance(c, IListColumn))
+        self.assertTrue(isinstance(c, ListColumn))
         self.assertEqual(c.dtype, dt.List(dt.int64))
 
         self.assertEqual(c.length, 0)

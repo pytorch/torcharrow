@@ -17,27 +17,27 @@ import torcharrow.dtypes as dt
 from .icolumn import Column
 
 # -----------------------------------------------------------------------------
-# IListColumn
+# ListColumn
 
 
-class IListColumn(Column):
+class ListColumn(Column):
 
     # private constructor
     def __init__(self, device, dtype):
         assert dt.is_list(dtype)
         super().__init__(device, dtype)
-        self.list = IListMethods(self)
+        self.list = ListMethods(self)
 
 
 # -----------------------------------------------------------------------------
-# IListMethods
+# ListMethods
 
 
-class IListMethods(abc.ABC):
-    """Vectorized list functions for IListColumn"""
+class ListMethods(abc.ABC):
+    """Vectorized list functions for ListColumn"""
 
     def __init__(self, parent):
-        self._parent: IListColumn = parent
+        self._parent: ListColumn = parent
 
     def length(self):
         me = self._parent
@@ -86,7 +86,7 @@ class IListMethods(abc.ABC):
 
         return me._vectorize(fun, me.dtype.item_dtype.with_null(me.dtype.nullable))
 
-    def slice(self, start: int = 0, stop: Optional[int] = None) -> IListColumn:
+    def slice(self, start: int = 0, stop: Optional[int] = None) -> ListColumn:
         """
         Slice sublist from each element in the column
 

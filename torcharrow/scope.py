@@ -98,9 +98,9 @@ class Scope:
     @staticmethod
     def _require_column_constructors_to_be_registered():
         from .idataframe import dataframe
-        from .ilist_column import IListColumn
-        from .imap_column import IMapColumn
-        from .istring_column import IStringColumn
+        from .ilist_column import ListColumn
+        from .imap_column import MapColumn
+        from .istring_column import StringColumn
         from .velox_rt import NumericalColumnCpu
 
     # private column/dataframe constructors -----------------------------------

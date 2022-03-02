@@ -19,20 +19,20 @@ from tabulate import tabulate
 from torcharrow._functional import functional
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.icolumn import Column
-from torcharrow.imap_column import IMapColumn, IMapMethods
+from torcharrow.imap_column import MapColumn, MapMethods
 from torcharrow.scope import Scope
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type
 
 # -----------------------------------------------------------------------------
-# IMapColumn
+# MapColumn
 
 
-class MapColumnCpu(ColumnFromVelox, IMapColumn):
+class MapColumnCpu(ColumnFromVelox, MapColumn):
     def __init__(self, device, dtype, key_data, item_data, mask):
         assert dt.is_map(dtype)
-        IMapColumn.__init__(self, device, dtype)
+        MapColumn.__init__(self, device, dtype)
 
         self._data = velox.Column(
             velox.VeloxMapType(
@@ -77,7 +77,7 @@ class MapColumnCpu(ColumnFromVelox, IMapColumn):
         if not dt.is_map(dtype):
             raise TypeError(f"construction of columns of type {dtype} not supported")
         if mask is None:
-            mask = IMapColumn._valid_mask(len(key_data))
+            mask = MapColumn._valid_mask(len(key_data))
         elif len(key_data) != len(mask):
             raise ValueError(
                 f"data length {len(key_data)} must be the same as mask length {len(mask)}"
@@ -212,8 +212,8 @@ Dispatcher.register(
 
 
 @dataclass
-class MapMethodsCpu(IMapMethods):
-    """Vectorized list functions for IListColumn"""
+class MapMethodsCpu(MapMethods):
+    """Vectorized list functions for ListColumn"""
 
     def __init__(self, parent: MapColumnCpu):
         super().__init__(parent)
