@@ -47,10 +47,10 @@ from .column import ColumnFromVelox
 from .typing import get_velox_type
 
 # assumes that these have been imported already:
-# from .inumerical_column import INumericalColumn
-# from .istring_column import IStringColumn
-# from .imap_column import IMapColumn
-# from .ilist_column import IListColumn
+# from .inumerical_column import NumericalColumn
+# from .istring_column import StringColumn
+# from .imap_column import MapColumn
+# from .ilist_column import ListColumn
 
 # ------------------------------------------------------------------------------
 # DataFrame Factory with default scope and device

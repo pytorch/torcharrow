@@ -8,13 +8,13 @@ import unittest
 
 import torcharrow as ta
 import torcharrow.dtypes as dt
-from torcharrow.imap_column import IMapColumn
+from torcharrow.imap_column import MapColumn
 
 
 class TestMapColumn(unittest.TestCase):
     def base_test_map(self):
         c = ta.column(dt.Map(dt.string, dt.int64), device=self.device)
-        self.assertIsInstance(c, IMapColumn)
+        self.assertIsInstance(c, MapColumn)
 
         c = c.append([{"abc": 123}])
         self.assertDictEqual(c[0], {"abc": 123})
@@ -43,7 +43,7 @@ class TestMapColumn(unittest.TestCase):
             ],
             device=self.device,
         )
-        self.assertIsInstance(c, IMapColumn)
+        self.assertIsInstance(c, MapColumn)
         self.assertEqual(len(c), 3)
         self.assertEqual(c.dtype, dt.Map(dt.string, dt.List(dt.float32)))
 
