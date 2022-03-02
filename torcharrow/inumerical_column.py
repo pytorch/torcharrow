@@ -20,7 +20,7 @@ from .scope import Scope
 from .trace import trace
 
 
-class INumericalColumn(Column):
+class NumericalColumn(Column):
     """Abstract Numerical Column"""
 
     # private
@@ -28,7 +28,7 @@ class INumericalColumn(Column):
         assert dt.is_boolean_or_numerical(dtype)
         super().__init__(device, dtype)
 
-    # Note all numerical column implementations inherit from INumericalColumn
+    # Note all numerical column implementations inherit from NumericalColumn
 
     def log(self):
         """Returns a new column with the natural logarithm of the elements"""
@@ -413,7 +413,7 @@ class INumericalColumn(Column):
         ex_str = str(ex)
         return "division by zero" in ex_str or "Cannot divide by 0" in ex_str
 
-    def _rethrow_zero_division_error(self, func: Callable) -> "INumericalColumn":
+    def _rethrow_zero_division_error(self, func: Callable) -> "NumericalColumn":
         try:
             result = func()
         except Exception as ex:

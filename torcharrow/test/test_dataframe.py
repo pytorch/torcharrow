@@ -427,7 +427,7 @@ class TestDataFrame(unittest.TestCase):
         """
 
     def base_test_operators(self):
-        # Note: this is mostly testing INumericalColumn's overridden operator
+        # Note: this is mostly testing NumericalColumn's overridden operator
         # implementation.
         # TODO: move INumericalOperator tests into test_numerical_column.py
         # and add operator tests for non-velox implementation.

@@ -18,22 +18,22 @@ from tabulate import tabulate
 from torcharrow._functional import functional
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.icolumn import Column
-from torcharrow.ilist_column import IListColumn, IListMethods
+from torcharrow.ilist_column import ListColumn, ListMethods
 from torcharrow.scope import Scope
 
 from .column import ColumnFromVelox
 from .typing import get_velox_type
 
 # -----------------------------------------------------------------------------
-# IListColumn
+# ListColumn
 
 
-class ListColumnCpu(ColumnFromVelox, IListColumn):
+class ListColumnCpu(ColumnFromVelox, ListColumn):
 
     # private constructor
     def __init__(self, device, dtype, data, offsets, mask):
         assert dt.is_list(dtype)
-        IListColumn.__init__(self, device, dtype)
+        ListColumn.__init__(self, device, dtype)
 
         self._data = velox.Column(
             velox.VeloxArrayType(get_velox_type(dtype.item_dtype))
@@ -222,8 +222,8 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
 # ListMethodsCpu
 
 
-class ListMethodsCpu(IListMethods):
-    """Vectorized string functions for IStringColumn"""
+class ListMethodsCpu(ListMethods):
+    """Vectorized string functions for StringColumn"""
 
     def __init__(self, parent: ListColumnCpu):
         super().__init__(parent)
@@ -233,7 +233,7 @@ class ListMethodsCpu(IListMethods):
             self._parent.dtype.nullable
         )
 
-    def slice(self, start: int = 0, stop: Optional[int] = None) -> IListColumn:
+    def slice(self, start: int = 0, stop: Optional[int] = None) -> ListColumn:
         if start < 0:
             raise NotImplementedError("Negative start position is not supported yet")
 
@@ -254,7 +254,7 @@ class ListMethodsCpu(IListMethods):
             self._parent.device,
             # pyre-fixme[16]: `DType` has no attribute `item_dtype`.
             self._parent._dtype.item_dtype,
-            # pyre-fixme[16]: `IListColumn` has no attribute `_data`.
+            # pyre-fixme[16]: `ListColumn` has no attribute `_data`.
             self._parent._data.elements(),
             True,
         )

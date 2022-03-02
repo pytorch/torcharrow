@@ -12,26 +12,26 @@ import torcharrow.dtypes as dt
 from .icolumn import Column
 
 # -----------------------------------------------------------------------------
-# IMapColumn
+# MapColumn
 
 
-class IMapColumn(Column):
+class MapColumn(Column):
     def __init__(self, device, dtype):
         assert dt.is_map(dtype)
         super().__init__(device, dtype)
         # must be set by subclasses
-        self.maps: IMapMethods = None
+        self.maps: MapMethods = None
 
 
 # -----------------------------------------------------------------------------
 # MapMethods
 
 
-class IMapMethods(abc.ABC):
-    """Vectorized list functions for IListColumn"""
+class MapMethods(abc.ABC):
+    """Vectorized list functions for ListColumn"""
 
     def __init__(self, parent):
-        self._parent: IMapColumn = parent
+        self._parent: MapColumn = parent
 
     @abc.abstractmethod
     def keys(self):

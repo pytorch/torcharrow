@@ -33,7 +33,7 @@ class ColumnFromVelox:
         return col
 
     # Velox column returned from generic dispatch always assumes returned column is nullable
-    # This help method allows to alter it based on context (e.g. methods in IStringMethods can have better inference)
+    # This help method allows to alter it based on context (e.g. methods in StringMethods can have better inference)
     def _with_null(self, nullable: bool):
         return self._from_velox(
             # pyre-fixme[16]: `ColumnFromVelox` has no attribute `device`.

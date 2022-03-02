@@ -31,10 +31,10 @@ from .scope import Scope
 from .trace import trace, traceproperty
 
 # assumes that these have been imported already:
-# from .inumerical_column import INumericalColumn
-# from .istring_column import IStringColumn
-# from .imap_column import IMapColumn
-# from .ilist_column import IMapColumn
+# from .inumerical_column import NumericalColumn
+# from .istring_column import StringColumn
+# from .imap_column import MapColumn
+# from .ilist_column import MapColumn
 
 # ------------------------------------------------------------------------------
 # DataFrame Factory with default scope and device
