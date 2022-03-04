@@ -112,6 +112,15 @@ class StringMethods(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def isprintable(self):
+        """
+        Returns True if all the characters are printable, otherwise False.
+
+        A string is a printable if each character of the string is printable.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def isalnum(self):
         """
         Return True if all characters in the string are alphanumeric (either

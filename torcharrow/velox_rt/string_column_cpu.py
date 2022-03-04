@@ -315,6 +315,11 @@ class StringMethodsCpu(StringMethods):
             self._parent.dtype.nullable
         )
 
+    def isprintable(self) -> StringColumn:
+        return functional.torcharrow_isprintable(self._parent)._with_null(
+            self._parent.dtype.nullable
+        )
+
     # Pattern matching related methods  -----------------------------------------------------
 
     def startswith(self, pat):
