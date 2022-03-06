@@ -30,6 +30,51 @@ class TestStringColumn(unittest.TestCase):
         self.assertEqual(empty.null_count, 0)
         # self.assertEqual(empty._offsets[0], 0)
 
+    def base_test_indexing(self):
+        col = ta.column(
+            [None] * 3 + ["3", "4", "5"],
+            dtype=dt.String(nullable=True),
+            device=self.device,
+        )
+
+        # index
+        self.assertEqual(col[0], None)
+        self.assertEqual(col[-1], "5")
+
+        # slice
+
+        # continuous slice
+        # document this is broken, will fix in the next diff.
+        with self.assertRaises(AttributeError):
+            c = col[3 : len(col)]
+            self.assertEqual(len(col), 6)
+            self.assertEqual(len(c), 3)
+
+        # non continuous slice
+        # document this is broken, will fix in the next diff.
+        with self.assertRaises(AttributeError):
+            d = col[::2]
+            self.assertEqual(len(col), 6)
+            self.assertEqual(len(d), 3)
+
+        # slice has Python not Pandas semantics
+        # document this is broken, will fix in the next diff.
+        with self.assertRaises(AttributeError):
+            e = col[: len(col) - 1]
+            self.assertEqual(len(e), len(col) - 1)
+
+        # indexing via lists
+        # document this is broken, will fix in the next diff.
+        with self.assertRaises(TypeError):
+            f = col[[0, 1, 2]]
+            self.assertEqual(list(f), list(col[:3]))
+
+        # head/tail are special slices
+        # document this is broken, will fix in the next diff.
+        with self.assertRaises(AttributeError):
+            self.assertEqual(list(col.head(2)), [None, None])
+            self.assertEqual(list(col.tail(2)), [4, 5])
+
     def base_test_append_offsets(self):
         c = ta.column(dt.string, device=self.device)
         c = c.append(["abc", "de", "", "f"])
