@@ -134,17 +134,6 @@ class StringColumnCpu(ColumnFromVelox, StringColumn):
     def _valid_mask(ct):
         raise np.full((ct,), False, dtype=np.bool8)
 
-    def _gets(self, indices):
-        data = self._data[indices]
-        mask = self._mask[indices]
-        return self._scope._FullColumn(data, self.dtype, self.device, mask)
-
-    def _slice(self, start, stop, step):
-        range = slice(start, stop, step)
-        return self._scope._FullColumn(
-            self._data[range], self.dtype, self.device, self._mask[range]
-        )
-
     # operators ---------------------------------------------------------------
     def __add__(self, other):
         if isinstance(other, StringColumnCpu):
