@@ -14,7 +14,7 @@ import numpy.testing
 import torcharrow as ta
 import torcharrow.dtypes as dt
 from torcharrow.icolumn import Column
-from torcharrow.inumerical_column import INumericalColumn
+from torcharrow.inumerical_column import NumericalColumn
 from torcharrow.scope import Scope
 
 
@@ -23,7 +23,7 @@ class TestNumericalColumn(unittest.TestCase):
         empty_i64_column = ta.column(dtype=dt.int64, device=self.device)
 
         # testing internals...
-        self.assertTrue(isinstance(empty_i64_column, INumericalColumn))
+        self.assertTrue(isinstance(empty_i64_column, NumericalColumn))
         self.assertEqual(empty_i64_column.dtype, dt.int64)
         self.assertEqual(len(empty_i64_column), 0)
         self.assertEqual(empty_i64_column.null_count, 0)
@@ -101,7 +101,7 @@ class TestNumericalColumn(unittest.TestCase):
     def base_test_boolean_column(self):
 
         col = ta.column(dt.boolean, device=self.device)
-        self.assertIsInstance(col, INumericalColumn)
+        self.assertIsInstance(col, NumericalColumn)
 
         col = col.append([True, False, False])
         self.assertEqual(list(col), [True, False, False])

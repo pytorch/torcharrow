@@ -23,52 +23,54 @@ jobs:
             submodules: true
 
       - name: Update submodules
-        run: git submodule update --init --recursive
+        run: |
+          git submodule update --init --recursive
+          cd csrc/velox/velox/
+          git submodule update --remote --merge
 
       - name: Setup conda environment
         run: | 
           source /opt/conda/etc/profile.d/conda.sh
           conda create --name ta_python37 python=3.7 -y
+          echo "/opt/conda/condabin" >> $GITHUB_PATH
+          echo "/opt/conda/envs/ta_python37/bin" >> $GITHUB_PATH
 
       - name: Bulid TorchArrow
         run: |
-          source /opt/conda/etc/profile.d/conda.sh
-          conda activate ta_python37
-          python setup.py develop --user
+          python3 setup.py develop --user
 
       - name: Install dependencies for test
         run: |
-          source /opt/conda/etc/profile.d/conda.sh
-          conda activate ta_python37
           pip3 install pytest  --user
           pip3 install torch==1.10.0+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html --user
 
       - name : Run TorchArrow unit tests
         run: |
-          source /opt/conda/etc/profile.d/conda.sh
-          conda activate ta_python37
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
           python3 -m pytest --no-header -v torcharrow/test
 
       - name: Build the wheel
         run: |
-          source /opt/conda/etc/profile.d/conda.sh
-          conda activate ta_python37
           PYTHON_VERSION=3.7 packaging/build_wheel.sh
           pip install auditwheel
           auditwheel repair dist/*.whl -w fixed_dist --plat manylinux2014_x86_64
 
       - name: Upload wheel to S3 Storage
         env:
-          AWS_ACCESS_KEY_ID: ${ AWS_PYTORCH_UPLOADER_ACCESS_KEY_ID }
-          AWS_SECRET_ACCESS_KEY: ${ AWS_PYTORCH_UPLOADER_SECRET_ACCESS_KEY }
+          AWS_ACCESS_KEY_ID: ${ { secret.AWS_PYTORCH_UPLOADER_ACCESS_KEY_ID } }
+          AWS_SECRET_ACCESS_KEY: ${ { secret.AWS_PYTORCH_UPLOADER_SECRET_ACCESS_KEY } }
+          S3_PATH: "s3://pytorch/whl/nightly"
         run: |
           source /opt/conda/etc/profile.d/conda.sh
           conda activate ta_python37
           pip3 install --user awscli
           set -x
-          for pkg in dist/torchdata*.whl; do
-              aws s3 cp "$pkg" "$S3_PATH" --acl public-read
+          if [[ -z "${AWS_ACCESS_KEY_ID}" ]]; then
+            echo "AWS_ACCESS_KEY_ID is not set, exiting upload"
+            exit 1
+          fi
+          for pkg in fixed_dist/torcharrow*.whl; do
+              ~/.local/bin/aws s3 cp "$pkg" "$S3_PATH" --acl public-read
           done
           
       

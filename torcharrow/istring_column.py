@@ -12,28 +12,28 @@ import torcharrow.dtypes as dt
 from .icolumn import Column
 
 # ------------------------------------------------------------------------------
-# IStringColumn
+# StringColumn
 
 
-class IStringColumn(Column):
+class StringColumn(Column):
 
     # private constructor
     def __init__(self, device, dtype):  # REP offsets
         assert dt.is_string(dtype)
         super().__init__(device, dtype)
         # must be set by subclass
-        self.str: IStringMethods = None
+        self.str: StringMethods = None
 
 
 # ------------------------------------------------------------------------------
-# IStringMethods
+# StringMethods
 
 
-class IStringMethods(ABC):
-    """Vectorized string functions for IStringColumn"""
+class StringMethods(ABC):
+    """Vectorized string functions for StringColumn"""
 
     def __init__(self, parent):
-        self._parent: IStringColumn = parent
+        self._parent: StringColumn = parent
 
     @abstractmethod
     def length(self):
@@ -42,7 +42,7 @@ class IStringMethods(ABC):
     @abstractmethod
     def slice(
         self, start: Optional[int] = None, stop: Optional[int] = None
-    ) -> IStringColumn:
+    ) -> StringColumn:
         """Slice substrings from each element in the Column."""
         raise NotImplementedError
 
@@ -112,6 +112,15 @@ class IStringMethods(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def isprintable(self):
+        """
+        Returns True if all the characters are printable, otherwise False.
+
+        A string is a printable if each character of the string is printable.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def isalnum(self):
         """
         Return True if all characters in the string are alphanumeric (either
@@ -169,7 +178,7 @@ class IStringMethods(ABC):
     # Convert strings in the Column -----------------------------------------------------
 
     @abstractmethod
-    def lower(self) -> IStringColumn:
+    def lower(self) -> StringColumn:
         """
         Convert strings in the Column to lowercase.
         Equivalent to :meth:`str.lower`.
@@ -177,7 +186,7 @@ class IStringMethods(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def upper(self) -> IStringColumn:
+    def upper(self) -> StringColumn:
         """
         Convert strings in the Column to uppercase.
         Equivalent to :meth:`str.upper`.
@@ -230,6 +239,6 @@ class IStringMethods(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def cat(self, col: IStringColumn):
+    def cat(self, col: StringColumn):
         # TODO: docstring
         raise NotImplementedError

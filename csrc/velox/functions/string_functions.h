@@ -54,6 +54,14 @@ class Utf8CatUtils {
         category == UTF8PROC_CATEGORY_ZL /** Separator, line **/ ||
         category == UTF8PROC_CATEGORY_ZP /** Separator, paragraph **/;
   }
+
+  static inline bool isOther(utf8proc_category_t category) {
+    return category == UTF8PROC_CATEGORY_CC /** Other, control **/ ||
+           category == UTF8PROC_CATEGORY_CF /** Other, format **/ ||
+           category == UTF8PROC_CATEGORY_CS /** Other, surrogate **/ ||
+           category == UTF8PROC_CATEGORY_CO /** Other, private use **/;
+  }
+
 };
 
 } // namespace internal
@@ -460,6 +468,48 @@ struct torcharrow_isnumeric {
           static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
 
       if (!Utf8CatUtils::isNumber(category)) {
+        result = false;
+        return true;
+      }
+
+      index += codePointSize;
+    }
+    result = true;
+    return true;
+  }
+};
+
+/**
+ * torcharrow_isprintable(string) → bool
+ * returns True if all the characters are printable, otherwise False.
+ *
+ * A string is a printable if each character of the string is printable
+ **/
+template <typename T>
+struct torcharrow_isprintable {
+  VELOX_DEFINE_FUNCTION_TYPES(T);
+
+  FOLLY_ALWAYS_INLINE
+  bool call(bool& result, const arg_type<velox::Varchar>& input) {
+    using namespace velox::functions;
+    using namespace internal;
+    const utf8proc_int32_t SPACE = 0x20;
+
+    size_t size = input.size();
+    if (size == 0) {
+      result = true;
+      return true;
+    }
+
+    size_t index = 0;
+    while (index < size) {
+      int codePointSize;
+      utf8proc_int32_t codePoint =
+          utf8proc_codepoint(input.data() + index, codePointSize);
+      utf8proc_category_t category =
+          static_cast<utf8proc_category_t>(utf8proc_category(codePoint));
+
+      if (codePoint != SPACE and (Utf8CatUtils::isSpace(category) or Utf8CatUtils::isOther(category))) {
         result = false;
         return true;
       }

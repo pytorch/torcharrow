@@ -9,14 +9,14 @@ from typing import Optional, Sequence, Union
 import torcharrow.dtypes as dt
 
 from .icolumn import Column
-from .idataframe import IDataFrame
+from .idataframe import DataFrame
 from .interop_arrow import _from_arrow_array, _from_arrow_table
 from .scope import Scope
 
 
 def from_arrow(
     data, dtype: Optional[dt.DType] = None, device: str = ""
-) -> Union[Column, IDataFrame]:
+) -> Union[Column, DataFrame]:
     """
     Convert arrow array/table to a TorchArrow Column/DataFrame.
     """

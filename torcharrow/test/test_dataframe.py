@@ -11,7 +11,7 @@ import numpy.testing
 import torcharrow as ta
 import torcharrow.dtypes as dt
 from torcharrow import me
-from torcharrow.idataframe import IDataFrame
+from torcharrow.idataframe import DataFrame
 
 # run python3 -m unittest outside this directory to run all tests
 
@@ -21,7 +21,7 @@ class TestDataFrame(unittest.TestCase):
         empty = ta.dataframe(device=self.device)
 
         # testing internals...
-        self.assertTrue(isinstance(empty, IDataFrame))
+        self.assertTrue(isinstance(empty, DataFrame))
 
         self.assertEqual(empty.length, 0)
         self.assertEqual(empty.null_count, 0)
@@ -427,7 +427,7 @@ class TestDataFrame(unittest.TestCase):
         """
 
     def base_test_operators(self):
-        # Note: this is mostly testing INumericalColumn's overridden operator
+        # Note: this is mostly testing NumericalColumn's overridden operator
         # implementation.
         # TODO: move INumericalOperator tests into test_numerical_column.py
         # and add operator tests for non-velox implementation.

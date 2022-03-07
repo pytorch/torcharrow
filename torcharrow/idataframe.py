@@ -31,10 +31,10 @@ from .scope import Scope
 from .trace import trace, traceproperty
 
 # assumes that these have been imported already:
-# from .inumerical_column import INumericalColumn
-# from .istring_column import IStringColumn
-# from .imap_column import IMapColumn
-# from .ilist_column import IMapColumn
+# from .inumerical_column import NumericalColumn
+# from .istring_column import StringColumn
+# from .imap_column import MapColumn
+# from .ilist_column import MapColumn
 
 # ------------------------------------------------------------------------------
 # DataFrame Factory with default scope and device
@@ -159,7 +159,7 @@ def dataframe(
 DataOrDTypeOrNone = Optional[Union[Mapping, Sequence, dt.DType]]
 
 
-class IDataFrame(Column):
+class DataFrame(Column):
     """Dataframe, ordered dict of typed columns of the same length"""
 
     def __init__(self, device, dtype):
@@ -245,7 +245,7 @@ class IDataFrame(Column):
         """
         raise self._not_supported("isin")
 
-    def log(self) -> IDataFrame:
+    def log(self) -> DataFrame:
         raise self._not_supported("log")
 
     # aggregation
@@ -470,7 +470,7 @@ class IDataFrame(Column):
 # DataFrameVariable me
 
 
-class IDataFrameVar(Var, IDataFrame):
+class DataFrameVar(Var, DataFrame):
     # A dataframe variable is purely symbolic,
     # It should only appear as part of a relational expression
 
@@ -511,4 +511,4 @@ class IDataFrameVar(Var, IDataFrame):
 
 
 # The super variable...
-me = IDataFrameVar("me", "torcharrow.idataframe.me")
+me = DataFrameVar("me", "torcharrow.idataframe.me")
