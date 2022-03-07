@@ -285,6 +285,20 @@ class Struct(DType):
         # pyre-fixme[7]: Expected `int` but got `None`.
         return None
 
+    def __getstate__(self):
+        # _py_type is NamedTuple which is not pickle-able, skip it
+        return (self.fields, self.nullable, self.is_dataframe, self.metadata)
+
+    def __setstate__(self, state):
+        # Restore state, __setattr__ hack is needed due to the frozen dataclass
+        object.__setattr__(self, "fields", state[0])
+        object.__setattr__(self, "nullable", state[1])
+        object.__setattr__(self, "is_dataframe", state[2])
+        object.__setattr__(self, "metadata", state[3])
+
+        # reconstruct _py_type
+        self.__post_init__()
+
     def __post_init__(self):
         if self.nullable:
             for f in self.fields:
