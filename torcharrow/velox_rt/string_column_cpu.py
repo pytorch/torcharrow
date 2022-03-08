@@ -19,14 +19,14 @@ from torcharrow.expression import expression
 from torcharrow.istring_column import StringColumn, StringMethods
 from torcharrow.trace import trace
 
-from .column import ColumnFromVelox
+from .column import ColumnCpuMixin
 from .typing import get_velox_type
 
 # ------------------------------------------------------------------------------
 # StringColumnCpu
 
 
-class StringColumnCpu(ColumnFromVelox, StringColumn):
+class StringColumnCpu(ColumnCpuMixin, StringColumn):
 
     # private constructor
     def __init__(self, device, dtype, data, mask):  # REP offsets
@@ -78,7 +78,7 @@ class StringColumnCpu(ColumnFromVelox, StringColumn):
     def _from_pysequence(device: str, data: Sequence[str], dtype: dt.DType):
         # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         velox_column = velox.Column(get_velox_type(dtype), data)
-        return ColumnFromVelox._from_velox(
+        return ColumnCpuMixin._from_velox(
             device,
             dtype,
             velox_column,

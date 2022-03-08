@@ -10,7 +10,7 @@ import types
 import torcharrow._torcharrow as ta
 from torcharrow._functional import functional as global_functional
 
-from .column import ColumnFromVelox
+from .column import ColumnCpuMixin
 
 
 class VeloxFunctional(types.ModuleType):
@@ -24,14 +24,14 @@ class VeloxFunctional(types.ModuleType):
             wrapped_args = []
 
             first_col = next(
-                (arg for arg in args if isinstance(arg, ColumnFromVelox)), None
+                (arg for arg in args if isinstance(arg, ColumnCpuMixin)), None
             )
             if first_col is None:
                 raise AssertionError("None of the argument is Column")
             length = len(first_col)
 
             for arg in args:
-                if isinstance(arg, ColumnFromVelox):
+                if isinstance(arg, ColumnCpuMixin):
                     wrapped_args.append(arg._data)
                 else:
                     # constant value
@@ -41,7 +41,7 @@ class VeloxFunctional(types.ModuleType):
             # Generic dispatch always assumes nullable
             result_dtype = result_col.dtype().with_null(True)
 
-            return ColumnFromVelox._from_velox(
+            return ColumnCpuMixin._from_velox(
                 first_col.device, result_dtype, result_col, True
             )
 
@@ -61,7 +61,7 @@ class VeloxFunctional(types.ModuleType):
             # Generic dispatch always assumes nullable
             result_dtype = result_col.dtype().with_null(True)
 
-            return ColumnFromVelox._from_velox(device, result_dtype, result_col, True)
+            return ColumnCpuMixin._from_velox(device, result_dtype, result_col, True)
 
         if op_name in global_functional._factory_methods:
             return factory_dispatch

@@ -43,7 +43,7 @@ from torcharrow.idataframe import DataFrame
 from torcharrow.scope import Scope
 from torcharrow.trace import trace, traceproperty
 
-from .column import ColumnFromVelox
+from .column import ColumnCpuMixin
 from .typing import get_velox_type
 
 # assumes that these have been imported already:
@@ -62,10 +62,10 @@ from .typing import get_velox_type
 DataOrDTypeOrNone = Optional[Union[Mapping, Sequence, dt.DType]]
 
 
-class DataFrameCpu(ColumnFromVelox, DataFrame):
+class DataFrameCpu(ColumnCpuMixin, DataFrame):
     """Dataframe on Velox backend"""
 
-    def __init__(self, device: str, dtype: dt.Struct, data: Dict[str, ColumnFromVelox]):
+    def __init__(self, device: str, dtype: dt.Struct, data: Dict[str, ColumnCpuMixin]):
         assert dt.is_struct(dtype)
         DataFrame.__init__(self, device, dtype)
 
@@ -74,12 +74,12 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         assert isinstance(data, Dict)
 
         if len(data) != 0:
-            # pyre-fixme[6]: For 1st param expected `Sized` but got `ColumnFromVelox`.
+            # pyre-fixme[6]: For 1st param expected `Sized` but got `ColumnCpuMixin`.
             length = len(next(iter(data.values())))
             for idx, (_, col) in enumerate(data.items()):
-                assert isinstance(col, ColumnFromVelox)
+                assert isinstance(col, ColumnCpuMixin)
                 # pyre-fixme[6]: For 1st param expected `Sized` but got
-                #  `ColumnFromVelox`.
+                #  `ColumnCpuMixin`.
                 assert len(col) == length
                 self._data.set_child(idx, col._data)
             self._data.set_length(length)
@@ -94,21 +94,21 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
     @staticmethod
     def _full(
         device: str,
-        data: Dict[str, ColumnFromVelox],
+        data: Dict[str, ColumnCpuMixin],
         dtype: Optional[dt.Struct] = None,
         mask=None,
     ):
         assert mask is None  # TODO: remove mask parameter in _FullColumn
         cols = data.values()  # TODO: also allow data to be a single Velox RowColumn
-        assert all(isinstance(c, ColumnFromVelox) for c in data.values())
+        assert all(isinstance(c, ColumnCpuMixin) for c in data.values())
         ct = 0
         if len(data) > 0:
-            # pyre-fixme[6]: For 1st param expected `Sized` but got `ColumnFromVelox`.
+            # pyre-fixme[6]: For 1st param expected `Sized` but got `ColumnCpuMixin`.
             ct = len(list(cols)[0])
-            # pyre-fixme[6]: For 1st param expected `Sized` but got `ColumnFromVelox`.
+            # pyre-fixme[6]: For 1st param expected `Sized` but got `ColumnCpuMixin`.
             if not all(len(c) == ct for c in cols):
                 ValueError(f"length of all columns must be the same (e.g {ct})")
-        # pyre-fixme[16]: `ColumnFromVelox` has no attribute `dtype`.
+        # pyre-fixme[16]: `ColumnCpuMixin` has no attribute `dtype`.
         inferred_dtype = dt.Struct([dt.Field(n, c.dtype) for n, c in data.items()])
         if dtype is None:
             dtype = inferred_dtype
@@ -146,7 +146,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
                 )
                 for i in range(len(dtype.fields))
             }
-            # pyre-fixme[6]: For 3rd param expected `Dict[str, ColumnFromVelox]` but
+            # pyre-fixme[6]: For 3rd param expected `Dict[str, ColumnCpuMixin]` but
             #  got `Dict[str, Column]`.
             return DataFrameCpu(device, dtype, field_data)
 
@@ -218,7 +218,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
                     col.set_null_at(i)
 
         # pyre-fixme[7]: Expected `DataFrameCpu` but got `Column`.
-        return ColumnFromVelox._from_velox(self.device, dtype, col, True)
+        return ColumnCpuMixin._from_velox(self.device, dtype, col, True)
 
     def __len__(self):
         return len(self._data)
@@ -237,7 +237,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             i += len(self._data)
         if not self._getmask(i):
             return tuple(
-                ColumnFromVelox._from_velox(
+                ColumnCpuMixin._from_velox(
                     self.device,
                     self.dtype.fields[j].dtype,
                     self._data.child_at(j),
@@ -253,7 +253,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         return np.full((ct,), False, dtype=np.bool8)
 
     def copy(self):
-        return ColumnFromVelox._from_velox(self.device, self.dtype, self._data, True)
+        return ColumnCpuMixin._from_velox(self.device, self.dtype, self._data, True)
 
     def append(self, values: Iterable[Union[None, dict, tuple]]):
         it = iter(values)
@@ -277,7 +277,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
                     idx = self._data.type().get_child_idx(k)
                     child = self._data.child_at(idx)
                     dtype = self.dtype.fields[idx].dtype
-                    child_col = ColumnFromVelox._from_velox(
+                    child_col = ColumnCpuMixin._from_velox(
                         self.device, dtype, child, True
                     )
                     child_col = child_col.append([v])
@@ -364,7 +364,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         return self._fromdata(
             {
                 self.dtype.fields[i]
-                .name: ColumnFromVelox._from_velox(
+                .name: ColumnCpuMixin._from_velox(
                     self.device,
                     self.dtype.fields[i].dtype,
                     self._data.child_at(i),
@@ -378,7 +378,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
 
     def _get_column(self, column):
         idx = self._data.type().get_child_idx(column)
-        return ColumnFromVelox._from_velox(
+        return ColumnCpuMixin._from_velox(
             self.device,
             self.dtype.fields[idx].dtype,
             self._data.child_at(idx),
@@ -399,7 +399,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         res = {}
         for i in range(_start, _stop):
             m = self.columns[i]
-            res[m] = ColumnFromVelox._from_velox(
+            res[m] = ColumnCpuMixin._from_velox(
                 self.device,
                 self.dtype.fields[i].dtype,
                 self._data.child_at(i),
@@ -419,13 +419,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         columns: Optional[List[str]] = None,
     ):
         if columns is None:
-            # pyre-fixme[16]: `ColumnFromVelox` has no attribute `map`.
+            # pyre-fixme[16]: `ColumnCpuMixin` has no attribute `map`.
             return super().map(arg, na_action, dtype)
         self._check_columns(columns)
 
         if len(columns) == 1:
             idx = self._data.type().get_child_idx(columns[0])
-            return ColumnFromVelox._from_velox(
+            return ColumnCpuMixin._from_velox(
                 self.device,
                 self.dtype.fields[idx].dtype,
                 self._data.child_at(idx),
@@ -440,7 +440,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         for n in columns:
             idx = self._data.type().get_child_idx(n)
             cols.append(
-                ColumnFromVelox._from_velox(
+                ColumnCpuMixin._from_velox(
                     self.device,
                     self.dtype.fields[idx].dtype,
                     self._data.child_at(idx),
@@ -486,7 +486,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         columns: Optional[List[str]] = None,
     ):
         if columns is None:
-            # pyre-fixme[16]: `ColumnFromVelox` has no attribute `flatmap`.
+            # pyre-fixme[16]: `ColumnCpuMixin` has no attribute `flatmap`.
             return super().flatmap(arg, na_action, dtype)
         self._check_columns(columns)
 
@@ -521,7 +521,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         self, predicate: Union[Callable, Iterable], columns: Optional[List[str]] = None
     ):
         if columns is None:
-            # pyre-fixme[16]: `ColumnFromVelox` has no attribute `filter`.
+            # pyre-fixme[16]: `ColumnCpuMixin` has no attribute `filter`.
             return super().filter(predicate)
 
         self._check_columns(columns)
@@ -536,7 +536,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         for n in columns:
             idx = self._data.type().get_child_idx(n)
             cols.append(
-                ColumnFromVelox._from_velox(
+                ColumnCpuMixin._from_velox(
                     self.device,
                     self.dtype.fields[idx].dtype,
                     self._data.child_at(idx),
@@ -619,13 +619,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             assert len(self) == len(other)
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
                         True,
                     )
-                    + ColumnFromVelox._from_velox(
+                    + ColumnCpuMixin._from_velox(
                         other.device,
                         other.dtype.fields[i].dtype,
                         other._data.child_at(i),
@@ -638,7 +638,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         else:
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -660,7 +660,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             return self._fromdata(
                 {
                     self.dtype.fields[i].name: other
-                    + ColumnFromVelox._from_velox(
+                    + ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -677,13 +677,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             assert len(self) == len(other)
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
                         True,
                     )
-                    - ColumnFromVelox._from_velox(
+                    - ColumnCpuMixin._from_velox(
                         other.device,
                         other.dtype.fields[i].dtype,
                         other._data.child_at(i),
@@ -696,7 +696,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         else:
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -714,13 +714,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             assert len(self) == len(other)
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         other.device,
                         other.dtype.fields[i].dtype,
                         other._data.child_at(i),
                         True,
                     )
-                    - ColumnFromVelox._from_velox(
+                    - ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -734,7 +734,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             return self._fromdata(
                 {
                     self.dtype.fields[i].name: other
-                    - ColumnFromVelox._from_velox(
+                    - ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -751,13 +751,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             assert len(self) == len(other)
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
                         True,
                     )
-                    * ColumnFromVelox._from_velox(
+                    * ColumnCpuMixin._from_velox(
                         other.device,
                         other.dtype.fields[i].dtype,
                         other._data.child_at(i),
@@ -770,7 +770,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         else:
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -788,13 +788,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             assert len(self) == len(other)
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         other.device,
                         other.dtype.fields[i].dtype,
                         other._data.child_at(i),
                         True,
                     )
-                    * ColumnFromVelox._from_velox(
+                    * ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -808,7 +808,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             return self._fromdata(
                 {
                     self.dtype.fields[i].name: other
-                    * ColumnFromVelox._from_velox(
+                    * ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -825,13 +825,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             assert len(self) == len(other)
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
                         True,
                     )
-                    // ColumnFromVelox._from_velox(
+                    // ColumnCpuMixin._from_velox(
                         other.device,
                         other.dtype.fields[i].dtype,
                         other._data.child_at(i),
@@ -844,7 +844,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         else:
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -862,13 +862,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             assert len(self) == len(other)
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         other.device,
                         other.dtype.fields[i].dtype,
                         other._data.child_at(i),
                         True,
                     )
-                    // ColumnFromVelox._from_velox(
+                    // ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -882,7 +882,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             return self._fromdata(
                 {
                     self.dtype.fields[i].name: other
-                    // ColumnFromVelox._from_velox(
+                    // ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -899,13 +899,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             assert len(self) == len(other)
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
                         True,
                     )
-                    / ColumnFromVelox._from_velox(
+                    / ColumnCpuMixin._from_velox(
                         other.device,
                         other.dtype.fields[i].dtype,
                         other._data.child_at(i),
@@ -918,7 +918,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         else:
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -948,7 +948,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         else:
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -975,13 +975,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             assert len(self) == len(other)
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
                         True,
                     )
-                    ** ColumnFromVelox._from_velox(
+                    ** ColumnCpuMixin._from_velox(
                         other.device,
                         other.dtype.fields[i].dtype,
                         other._data.child_at(i),
@@ -994,7 +994,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         else:
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -1012,13 +1012,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             assert len(self) == len(other)
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         other.device,
                         other.dtype.fields[i].dtype,
                         other._data.child_at(i),
                         True,
                     )
-                    ** ColumnFromVelox._from_velox(
+                    ** ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -1032,7 +1032,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             return self._fromdata(
                 {
                     self.dtype.fields[i].name: other
-                    ** ColumnFromVelox._from_velox(
+                    ** ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -1049,13 +1049,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             assert len(self) == len(other)
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
                         True,
                     )
-                    == ColumnFromVelox._from_velox(
+                    == ColumnCpuMixin._from_velox(
                         other.device,
                         other.dtype.fields[i].dtype,
                         other._data.child_at(i),
@@ -1068,7 +1068,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         else:
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -1097,13 +1097,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             assert len(self) == len(other)
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
                         True,
                     )
-                    < ColumnFromVelox._from_velox(
+                    < ColumnCpuMixin._from_velox(
                         other.device,
                         other.dtype.fields[i].dtype,
                         other._data.child_at(i),
@@ -1116,7 +1116,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         else:
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -1134,13 +1134,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             assert len(self) == len(other)
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
                         True,
                     )
-                    > ColumnFromVelox._from_velox(
+                    > ColumnCpuMixin._from_velox(
                         other.device,
                         other.dtype.fields[i].dtype,
                         other._data.child_at(i),
@@ -1153,7 +1153,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         else:
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -1173,7 +1173,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         else:
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -1190,13 +1190,13 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             assert len(self) == len(other)
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
                         True,
                     )
-                    >= ColumnFromVelox._from_velox(
+                    >= ColumnCpuMixin._from_velox(
                         other.device,
                         other.dtype.fields[i].dtype,
                         other._data.child_at(i),
@@ -1219,7 +1219,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         else:
             return self._fromdata(
                 {
-                    self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -1261,7 +1261,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
     def __neg__(self):
         return self._fromdata(
             {
-                self.dtype.fields[i].name: -ColumnFromVelox._from_velox(
+                self.dtype.fields[i].name: -ColumnCpuMixin._from_velox(
                     self.device,
                     self.dtype.fields[i].dtype,
                     self._data.child_at(i),
@@ -1275,7 +1275,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
     def __pos__(self):
         return self._fromdata(
             {
-                self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                     self.device,
                     self.dtype.fields[i].dtype,
                     self._data.child_at(i),
@@ -1291,7 +1291,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             {
                 self.dtype.fields[i]
                 # pyre-fixme[16]: `Column` has no attribute `log`.
-                .name: ColumnFromVelox._from_velox(
+                .name: ColumnCpuMixin._from_velox(
                     self.device,
                     self.dtype.fields[i].dtype,
                     self._data.child_at(i),
@@ -1311,7 +1311,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             return self._fromdata(
                 {
                     self.dtype.fields[i]
-                    .name: ColumnFromVelox._from_velox(
+                    .name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -1351,7 +1351,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             return self._fromdata(
                 {
                     self.dtype.fields[i]
-                    .name: ColumnFromVelox._from_velox(
+                    .name: ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -1533,7 +1533,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         res["column"] = ta.column([f.name for f in self.dtype.fields], dt.string)
         res["unique"] = ta.column(
             [
-                ColumnFromVelox._from_velox(
+                ColumnCpuMixin._from_velox(
                     self.device,
                     f.dtype,
                     self._data.child_at(self._data.type().get_child_idx(f.name)),
@@ -1550,7 +1550,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
 
         for i in range(self._data.children_size()):
             result = func(
-                ColumnFromVelox._from_velox(
+                ColumnCpuMixin._from_velox(
                     self.device,
                     self.dtype.fields[i].dtype,
                     self._data.child_at(i),
@@ -1571,7 +1571,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
 
             for i in range(self._data.children_size()):
                 child = func(
-                    ColumnFromVelox._from_velox(
+                    ColumnCpuMixin._from_velox(
                         self.device,
                         self.dtype.fields[i].dtype,
                         self._data.child_at(i),
@@ -1583,7 +1583,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
                     child._data,
                 )
             res.set_length(len(self._data))
-            return ColumnFromVelox._from_velox(self.device, self.dtype, res, True)
+            return ColumnCpuMixin._from_velox(self.device, self.dtype, res, True)
         raise NotImplementedError("Dataframe row is not allowed to have nulls")
 
     # describe ----------------------------------------------------------------
@@ -1631,7 +1631,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         )
         for s in selected:
             idx = self._data.type().get_child_idx(s)
-            c = ColumnFromVelox._from_velox(
+            c = ColumnCpuMixin._from_velox(
                 self.device,
                 self.dtype.fields[idx].dtype,
                 self._data.child_at(idx),
@@ -1652,7 +1652,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         self._check_columns(columns)
         return self._fromdata(
             {
-                self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                     self.device,
                     self.dtype.fields[i].dtype,
                     self._data.child_at(i),
@@ -1673,7 +1673,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         self._check_columns(columns)
         return self._fromdata(
             {
-                self.dtype.fields[i].name: ColumnFromVelox._from_velox(
+                self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                     self.device,
                     self.dtype.fields[i].dtype,
                     self._data.child_at(i),
@@ -1696,7 +1696,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
                 mapper.get(
                     self.dtype.fields[i].name,
                     self.dtype.fields[i].name,
-                ): ColumnFromVelox._from_velox(
+                ): ColumnCpuMixin._from_velox(
                     self.device,
                     self.dtype.fields[i].dtype,
                     self._data.child_at(i),
@@ -1715,7 +1715,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
             # pyre-fixme[6]: For 1st param expected `OrderedDict[str, Column]` but
             #  got `Dict[str, Column]`.
             {
-                col: ColumnFromVelox._from_velox(
+                col: ColumnCpuMixin._from_velox(
                     self.device,
                     self.dtype.fields[self._data.type().get_child_idx(col)].dtype,
                     self._data.child_at(self._data.type().get_child_idx(col)),
@@ -1750,7 +1750,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         for i in range(0, self._data.children_size()):
             name = self.dtype.fields[i].name
             column_dtype = self.dtype.fields[i].dtype
-            column = ColumnFromVelox._from_velox(
+            column = ColumnCpuMixin._from_velox(
                 self.device,
                 column_dtype,
                 self._data.child_at(i),
@@ -1945,7 +1945,7 @@ class DataFrameCpu(ColumnFromVelox, DataFrame):
         for i in range(self._data.children_size()):
             n = self.dtype.fields[i].name
             if n in output_columns:
-                res[n] = ColumnFromVelox._from_velox(
+                res[n] = ColumnCpuMixin._from_velox(
                     self.device,
                     self.dtype.fields[i].dtype,
                     self._data.child_at(i),
