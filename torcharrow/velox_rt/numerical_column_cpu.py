@@ -22,13 +22,13 @@ from torcharrow.icolumn import Column
 from torcharrow.inumerical_column import NumericalColumn
 from torcharrow.trace import trace, traceproperty
 
-from .column import ColumnFromVelox
+from .column import ColumnCpuMixin
 from .typing import get_velox_type
 
 # ------------------------------------------------------------------------------
 
 
-class NumericalColumnCpu(ColumnFromVelox, NumericalColumn):
+class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
     """A Numerical Column on Velox backend"""
 
     # private
@@ -52,7 +52,7 @@ class NumericalColumnCpu(ColumnFromVelox, NumericalColumn):
     ):
         # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         velox_column = velox.Column(get_velox_type(dtype), data)
-        return ColumnFromVelox._from_velox(
+        return ColumnCpuMixin._from_velox(
             device,
             dtype,
             velox_column,
@@ -82,7 +82,7 @@ class NumericalColumnCpu(ColumnFromVelox, NumericalColumn):
         # to velox_column
         assert c_schema.release == ffi.NULL and c_array.release == ffi.NULL
 
-        return ColumnFromVelox._from_velox(
+        return ColumnCpuMixin._from_velox(
             device,
             dtype,
             velox_column,
@@ -155,7 +155,7 @@ class NumericalColumnCpu(ColumnFromVelox, NumericalColumn):
                     col.append(
                         then_._getdata(i) if self._getdata(i) else else_._getdata(i)
                     )
-            return ColumnFromVelox._from_velox(self.device, lub, col, True)
+            return ColumnCpuMixin._from_velox(self.device, lub, col, True)
 
         else:
             # refer back to default handling...
@@ -195,7 +195,7 @@ class NumericalColumnCpu(ColumnFromVelox, NumericalColumn):
             for i in range(none_count):
                 col.append_null()
 
-        return ColumnFromVelox._from_velox(self.device, self.dtype, col, True)
+        return ColumnCpuMixin._from_velox(self.device, self.dtype, col, True)
 
     @trace
     @expression
@@ -521,14 +521,14 @@ class NumericalColumnCpu(ColumnFromVelox, NumericalColumn):
     @trace
     @expression
     def __invert__(self):
-        return ColumnFromVelox._from_velox(
+        return ColumnCpuMixin._from_velox(
             self.device, self.dtype, self._data.invert(), True
         )
 
     @trace
     @expression
     def __neg__(self):
-        return ColumnFromVelox._from_velox(
+        return ColumnCpuMixin._from_velox(
             self.device, self.dtype, self._data.neg(), True
         )
 
@@ -548,14 +548,14 @@ class NumericalColumnCpu(ColumnFromVelox, NumericalColumn):
                 col.append(False)
             else:
                 col.append(self._getdata(i) in values)
-        return ColumnFromVelox._from_velox(
+        return ColumnCpuMixin._from_velox(
             self.device, dt.Boolean(self.dtype.nullable), col, True
         )
 
     @trace
     @expression
     def abs(self):
-        return ColumnFromVelox._from_velox(
+        return ColumnCpuMixin._from_velox(
             self.device, self.dtype, self._data.abs(), True
         )
 
@@ -565,21 +565,21 @@ class NumericalColumnCpu(ColumnFromVelox, NumericalColumn):
         if self.null_count != 0 and not dtype.nullable:
             raise ValueError("Cannot cast a column with nulls to a non-nullable type")
 
-        return ColumnFromVelox._from_velox(
+        return ColumnCpuMixin._from_velox(
             self.device, dtype, self._data.cast(get_velox_type(dtype).kind()), True
         )
 
     @trace
     @expression
     def ceil(self):
-        return ColumnFromVelox._from_velox(
+        return ColumnCpuMixin._from_velox(
             self.device, self.dtype, self._data.ceil(), True
         )
 
     @trace
     @expression
     def floor(self):
-        return ColumnFromVelox._from_velox(
+        return ColumnCpuMixin._from_velox(
             self.device, self.dtype, self._data.floor(), True
         )
 
@@ -617,7 +617,7 @@ class NumericalColumnCpu(ColumnFromVelox, NumericalColumn):
                         col.append(fill_value)
                 else:
                     col.append(self._getdata(i))
-            return ColumnFromVelox._from_velox(self.device, self.dtype, col, True)
+            return ColumnCpuMixin._from_velox(self.device, self.dtype, col, True)
 
     @trace
     @expression
@@ -633,7 +633,7 @@ class NumericalColumnCpu(ColumnFromVelox, NumericalColumn):
                     pass
                 else:
                     col.append(self._getdata(i))
-            return ColumnFromVelox._from_velox(self.device, self.dtype, col, True)
+            return ColumnCpuMixin._from_velox(self.device, self.dtype, col, True)
 
     @trace
     @expression
@@ -656,7 +656,7 @@ class NumericalColumnCpu(ColumnFromVelox, NumericalColumn):
                 if current not in seen:
                     col.append(current)
                     seen.add(current)
-        return ColumnFromVelox._from_velox(self.device, self.dtype, col, True)
+        return ColumnCpuMixin._from_velox(self.device, self.dtype, col, True)
 
     # universal  ---------------------------------------------------------------
 
