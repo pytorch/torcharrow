@@ -22,14 +22,14 @@ from torcharrow.icolumn import Column
 from torcharrow.imap_column import MapColumn, MapMethods
 from torcharrow.scope import Scope
 
-from .column import ColumnFromVelox
+from .column import ColumnCpuMixin
 from .typing import get_velox_type
 
 # -----------------------------------------------------------------------------
 # MapColumn
 
 
-class MapColumnCpu(ColumnFromVelox, MapColumn):
+class MapColumnCpu(ColumnCpuMixin, MapColumn):
     def __init__(self, device, dtype, key_data, item_data, mask):
         assert dt.is_map(dtype)
         MapColumn.__init__(self, device, dtype)
@@ -132,13 +132,13 @@ class MapColumnCpu(ColumnFromVelox, MapColumn):
         if self._data.is_null_at(i):
             return self.dtype.default_value()
         else:
-            key_col = ColumnFromVelox._from_velox(
+            key_col = ColumnCpuMixin._from_velox(
                 self.device,
                 self._dtype.key_dtype,
                 self._data.keys()[i],
                 True,
             )
-            value_col = ColumnFromVelox._from_velox(
+            value_col = ColumnCpuMixin._from_velox(
                 self.device,
                 self._dtype.item_dtype,
                 self._data.values()[i],
@@ -174,10 +174,10 @@ class MapColumnCpu(ColumnFromVelox, MapColumn):
         # FIXME: https://github.com/facebookresearch/torcharrow/issues/62 to_arrow doesn't work as expected for map
         # arrow_array = self.to_arrow()
 
-        keys = ColumnFromVelox._from_velox(
+        keys = ColumnCpuMixin._from_velox(
             self.device, dt.List(self._dtype.key_dtype), self._data.keys(), True
         )._to_tensor_default(_propagate_py_list=False)
-        values = ColumnFromVelox._from_velox(
+        values = ColumnCpuMixin._from_velox(
             self.device, dt.List(self._dtype.item_dtype), self._data.values(), True
         )._to_tensor_default(_propagate_py_list=False)
 

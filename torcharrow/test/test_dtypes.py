@@ -4,10 +4,12 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
+import pickle
 import unittest
 
 # pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow as velox
+import torcharrow.dtypes as dt
 from torcharrow.dtypes import (
     Field,
     Int64,
@@ -58,6 +60,53 @@ class TestTypes(unittest.TestCase):
             "Struct([Field('a', int64), Field('b', string)])",
         )
         self.assertEqual(Struct([Field("a", int64), Field("b", string)]).typecode, "+s")
+
+    def test_serialization(self):
+        # simple types
+        for nullable in [True, False]:
+            for dtype in [
+                dt.Int8(nullable),
+                dt.Int16(nullable),
+                dt.Int32(nullable),
+                dt.Int64(nullable),
+                dt.Float32(nullable),
+                dt.Float64(nullable),
+                dt.String(nullable),
+            ]:
+                serialized_dtype = pickle.dumps(dtype)
+                deserialized_dtype = pickle.loads(serialized_dtype)
+                self.assertEqual(dtype, deserialized_dtype)
+
+        # list/map
+        for nullable in [True, False]:
+            for dtype in [
+                dt.List(dt.int64, nullable),
+                dt.List(dt.List(dt.string, nullable)),
+                dt.Map(dt.string, dt.Int64(nullable)),
+                dt.Map(dt.string, dt.List(dt.Int64, nullable)),
+            ]:
+                serialized_dtype = pickle.dumps(dtype)
+                deserialized_dtype = pickle.loads(serialized_dtype)
+                self.assertEqual(dtype, deserialized_dtype)
+
+        # nested struct
+        dtype = dt.Struct(
+            [
+                dt.Field("label", dt.int8),
+                dt.Field(
+                    "dense_features",
+                    dt.Struct(
+                        [
+                            dt.Field(int_name, dt.Int32(nullable=True))
+                            for int_name in ["int_1", "int_2", "int_3"]
+                        ]
+                    ),
+                ),
+            ]
+        )
+        serialized_dtype = pickle.dumps(dtype)
+        deserialized_dtype = pickle.loads(serialized_dtype)
+        self.assertEqual(dtype, deserialized_dtype)
 
     def test_convert_velox_type_array(self):
         vType = velox.VeloxArrayType(velox.VeloxArrayType(velox.VeloxType_VARCHAR()))
