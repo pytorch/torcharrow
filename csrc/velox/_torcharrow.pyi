@@ -2266,6 +2266,9 @@ def _import_from_arrow(arg0: VeloxType_BIGINT, arg1: int, arg2: int) -> SimpleCo
 @overload
 def _import_from_arrow(arg0: VeloxType_REAL, arg1: int, arg2: int) -> SimpleColumnREAL:
     pass
+@overload
+def _import_from_arrow(arg0: VeloxRowType, arg1: int, arg2: int) -> RowColumn:
+    pass
 def _populate_dense_features_nopresence(arg0: RowColumn, arg1: int) -> None:
     pass
 def factory_udf_dispatch(arg0: str, arg1: int) -> BaseColumn:

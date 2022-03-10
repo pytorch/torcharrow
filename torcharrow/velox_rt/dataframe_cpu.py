@@ -162,23 +162,33 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
 
     @staticmethod
     def _from_arrow(device: str, array: pa.StructArray, dtype: dt.Struct):
-        # TODO: use native Arrow StructArray -> Velox RowVector conversion
         # pyre-fixme[16]: `StructArray` has no attribute `type`.
         assert array.type.num_fields == len(dtype.fields)
 
-        if array.null_count != 0:
-            # This means the whole "struct" is null, rather than individual field is null
-            # Note: We can support this case with native Arrow StructArray -> Velox RowVector conversion
-            raise NotImplementedError
+        from pyarrow.cffi import ffi
 
-        data = {}
-        for idx in range(array.type.num_fields):
-            child_array: pa.Array = array.field(idx)
-            data[dtype.fields[idx].name] = ta.from_arrow(
-                child_array, dtype.fields[idx].dtype
-            )
+        c_schema = ffi.new("struct ArrowSchema*")
+        ptr_schema = int(ffi.cast("uintptr_t", c_schema))
+        c_array = ffi.new("struct ArrowArray*")
+        ptr_array = int(ffi.cast("uintptr_t", c_array))
+        # pyre-fixme[16]: `Array` has no attribute `_export_to_c`.
+        array._export_to_c(ptr_array, ptr_schema)
 
-        return DataFrameCpu(device, dtype, data)._finalize()
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+        velox_column = velox._import_from_arrow(
+            get_velox_type(dtype), ptr_array, ptr_schema
+        )
+
+        # Make sure the ownership of c_schema and c_array have been transferred
+        # to velox_column
+        assert c_schema.release == ffi.NULL and c_array.release == ffi.NULL
+
+        return ColumnCpuMixin._from_velox(
+            device,
+            dtype,
+            velox_column,
+            True,
+        )
 
     def _append_null(self):
         if self._finalized:
