@@ -28,6 +28,9 @@ class TestArrowInteropCpu(TestArrowInterop):
     def test_from_arrow_array_string(self):
         return self.base_test_from_arrow_array_string()
 
+    def test_from_arrow_struct_array_having_nulls(self):
+        return self.base_test_from_arrow_struct_array_having_nulls()
+
     def test_from_arrow_table(self):
         return self.base_test_from_arrow_table()
 

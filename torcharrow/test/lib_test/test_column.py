@@ -11,9 +11,12 @@ import unittest
 from dataclasses import dataclass
 from typing import Union, List, Any
 
+import pyarrow as pa  # @manual=@/third-party:apache-arrow:apache-arrow-py
+
 # pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 # @manual=//pytorch/torcharrow/csrc/velox:_torcharrow
 import torcharrow._torcharrow as ta
+from pyarrow.cffi import ffi  # @manual=@/third-party:python-cffi:python-cffi-py
 
 
 class BaseTestColumns(unittest.TestCase):
@@ -454,8 +457,6 @@ class TestSimpleColumns(BaseTestColumns):
         self.assertEqual(col.get_null_count(), 2)
 
     def test_ToArrow(self) -> None:
-        from pyarrow.cffi import ffi  # @manual=@/third-party:python-cffi:python-cffi-py
-
         c_array = ffi.new("struct ArrowArray*")
         ptr_array = int(ffi.cast("uintptr_t", c_array))
 
@@ -484,10 +485,7 @@ class TestSimpleColumns(BaseTestColumns):
         self.assertEqual(c_array_slice.n_children, 0)
         self.assertNotEqual(c_array_slice.release, ffi.NULL)
 
-    def test_FromArrow(self) -> None:
-        import pyarrow as pa  # @manual=@/third-party:apache-arrow:apache-arrow-py
-        from pyarrow.cffi import ffi  # @manual=@/third-party:python-cffi:python-cffi-py
-
+    def test_FromArrow_Numerical(self) -> None:
         c_schema = ffi.new("struct ArrowSchema*")
         ptr_schema = int(ffi.cast("uintptr_t", c_schema))
         c_array = ffi.new("struct ArrowArray*")
@@ -505,6 +503,50 @@ class TestSimpleColumns(BaseTestColumns):
         self.assertEqual(col[1], 1)
         self.assertEqual(col[2], 2)
         self.assertTrue(col.is_null_at(3))
+        self.assertEqual(c_array.release, ffi.NULL)
+        self.assertEqual(c_schema.release, ffi.NULL)
+
+    def test_FromArrow_Struct(self) -> None:
+        c_schema = ffi.new("struct ArrowSchema*")
+        ptr_schema = int(ffi.cast("uintptr_t", c_schema))
+        c_array = ffi.new("struct ArrowArray*")
+        ptr_array = int(ffi.cast("uintptr_t", c_array))
+
+        f1 = pa.array([1, 2, 3], type=pa.int64())
+        f2 = pa.array([True, False, None], type=pa.bool_())
+        s = pa.StructArray.from_arrays(
+            # pyre-fixme[6]: In call `pa.StructArray.from_arrays`, for 1st positional only parameter expected `Iterable[Array[typing.Any]]` but got `Iterable[Union[Array[typing.Any], ChunkedArray]]`
+            [f1, f2],
+            fields=[
+                # pyre-fixme[16]: Item `pa.Array` of `typing.Union[pa.Array[typing.Any], pa.ChunkedArray]` has no attribute `type`.
+                pa.field("f1", f1.type, nullable=False),
+                # pyre-fixme[16]: Item `pa.Array` of `typing.Union[pa.Array[typing.Any], pa.ChunkedArray]` has no attribute `type`.
+                pa.field("f2", f2.type, nullable=True),
+            ],
+        )
+
+        # pyre-fixme[16]: Item `Array` of `Union[Array[typing.Any], ChunkedArray]`
+        #  has no attribute `_export_to_c`.
+        s._export_to_c(ptr_array, ptr_schema)
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+        col = ta._import_from_arrow(
+            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+            ta.VeloxRowType(
+                ["f1", "f2"],
+                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+                [ta.VeloxType_INTEGER(), ta.VeloxType_BOOLEAN()],
+            ),
+            ptr_array,
+            ptr_schema,
+        )
+        self.assertEqual(len(col), 3)
+        self.assertEqual(col.get_null_count(), 0)
+        self.assertEqual(col.child_at(0).get_null_count(), 0)
+        self.assertEqual(col.child_at(1).get_null_count(), 1)
+        self.assertEqual(col.type().name_of(0), "f1")
+        self.assertEqual(col.type().name_of(1), "f2")
+        self.assert_Column(col.child_at(0), [1, 2, 3])
+        self.assert_Column(col.child_at(1), [True, False, None])
         self.assertEqual(c_array.release, ffi.NULL)
         self.assertEqual(c_schema.release, ffi.NULL)
 
