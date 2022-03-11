@@ -456,7 +456,7 @@ class TestSimpleColumns(BaseTestColumns):
         self.assertEqual(colSlice.get_null_count(), 0)
         self.assertEqual(col.get_null_count(), 2)
 
-    def test_ToArrow(self) -> None:
+    def test_ToArrow_Numerical(self) -> None:
         c_array = ffi.new("struct ArrowArray*")
         ptr_array = int(ffi.cast("uintptr_t", c_array))
 
@@ -484,6 +484,49 @@ class TestSimpleColumns(BaseTestColumns):
         self.assertEqual(vals_slice[1], 2)
         self.assertEqual(c_array_slice.n_children, 0)
         self.assertNotEqual(c_array_slice.release, ffi.NULL)
+
+    def test_ToArrow_Struct(self) -> None:
+        c_array = ffi.new("struct ArrowArray*")
+        ptr_array = int(ffi.cast("uintptr_t", c_array))
+
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+        col = ta.Column(
+            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+            ta.VeloxRowType(
+                ["f1", "f2"],
+                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+                [ta.VeloxType_INTEGER(), ta.VeloxType_INTEGER()],
+            )
+        )
+        col.child_at(0).append(1)
+        col.child_at(1).append(10)
+        col.set_length(1)
+        col.child_at(0).append(2)
+        col.child_at(1).append(20)
+        col.set_length(2)
+
+        col._export_to_arrow(ptr_array)
+        self.assertEqual(c_array.length, 2)
+        self.assertEqual(c_array.null_count, 0)
+        self.assertEqual(c_array.n_buffers, 1)
+        self.assertEqual(c_array.n_children, 2)
+        self.assertNotEqual(c_array.release, ffi.NULL)
+
+        # pyre-fixme[16]: `pa.StructArray` has no attribute `_import_from_c`.
+        s = pa.StructArray._import_from_c(
+            ptr_array,
+            pa.struct(
+                [
+                    pa.field("f1", pa.int32(), nullable=False),
+                    pa.field("f2", pa.int32(), nullable=False),
+                ]
+            ),
+        )
+
+        self.assertTrue(isinstance(s, pa.StructArray))
+        self.assertEqual(len(s), len(col))
+        self.assertEqual(pa.StructArray.field(s, 0).to_pylist(), [1, 2])
+        self.assertEqual(pa.StructArray.field(s, 1).to_pylist(), [10, 20])
 
     def test_FromArrow_Numerical(self) -> None:
         c_schema = ffi.new("struct ArrowSchema*")
