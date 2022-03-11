@@ -1748,39 +1748,45 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
             data[n] = c.to_pandas()
         return pd.DataFrame(data)
 
-    def to_arrow(self, *, _convert_to_struct_array=False):
-        # TODO: use native Velox RowVector -> Arrow StructArray conversion when _convert_to_struct_array is True
+    def to_arrow(self):
+        return self._to_arrow_table()
 
+    def _to_arrow_array(self):
+        import pyarrow as pa
+        from pyarrow.cffi import ffi
+        from torcharrow._interop import _dtype_to_arrowtype
+
+        c_array = ffi.new("struct ArrowArray*")
+        ptr_array = int(ffi.cast("uintptr_t", c_array))
+        self._data._export_to_arrow(ptr_array)
+
+        return pa.StructArray._import_from_c(ptr_array, _dtype_to_arrowtype(self.dtype))
+
+    def _to_arrow_table(self):
         # TODO Add type translation
         import pyarrow as pa  # type: ignore
 
+        data = {}
         fields = []
-        arrays = []
-        field_names = []
         for i in range(0, self._data.children_size()):
             name = self.dtype.fields[i].name
-            column_dtype = self.dtype.fields[i].dtype
             column = ColumnCpuMixin._from_velox(
                 self.device,
-                column_dtype,
+                self.dtype.fields[i].dtype,
                 self._data.child_at(i),
                 True,
             )
-            if dt.is_struct(column_dtype):
-                arrow_array = column.to_arrow(_convert_to_struct_array=True)
+
+            if dt.is_struct(column.dtype):
+                arrow_array = column._to_arrow_array()
             else:
                 arrow_array = column.to_arrow()
-
-            arrays.append(arrow_array)
-            field_names.append(name)
+            data[name] = arrow_array
             fields.append(
-                pa.field(name, arrow_array.type, nullable=column_dtype.nullable)
+                pa.field(name, arrow_array.type, nullable=column.dtype.nullable)
             )
 
-        if _convert_to_struct_array:
-            return pa.StructArray.from_arrays(arrays, fields=fields)
-        else:
-            return pa.table(dict(zip(field_names, arrays)), schema=pa.schema(fields))
+        return pa.table(data, schema=pa.schema(fields))
 
     def to_tensor(self, conversion=None):
         pytorch.ensure_available()
