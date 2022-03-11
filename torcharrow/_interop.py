@@ -223,4 +223,13 @@ def _dtype_to_arrowtype(t: dt.DType) -> pa.DataType:
         return pa.float64()
     elif underlying_dtype == dt.string:
         return pa.string()
+    elif dt.is_struct(underlying_dtype):
+        return pa.struct(
+            [
+                pa.field(
+                    f.name, _dtype_to_arrowtype(f.dtype), nullable=f.dtype.nullable
+                )
+                for f in t.fields
+            ]
+        )
     raise NotImplementedError(f"Unsupported DType to Arrow type: {str(t)}")
