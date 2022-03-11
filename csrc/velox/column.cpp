@@ -10,16 +10,15 @@
 #include <memory>
 #include "bindings.h"
 
-#include "velox/common/memory/Memory.h"
-#include "velox/type/Type.h"
-#include "velox/vector/ComplexVector.h"
 #include "velox/common/base/Exceptions.h"
+#include "velox/common/memory/Memory.h"
 #include "velox/core/Expressions.h"
 #include "velox/core/ITypedExpr.h"
 #include "velox/expression/Expr.h"
+#include "velox/functions/FunctionRegistry.h"
 #include "velox/type/Type.h"
 #include "velox/vector/BaseVector.h"
-#include "velox/functions/FunctionRegistry.h"
+#include "velox/vector/ComplexVector.h"
 
 namespace py = pybind11;
 
@@ -212,6 +211,19 @@ OperatorHandle* BaseColumn::getOrCreateBinaryOperatorHandle(
   return ops[c0TypeId][c1TypeId][commonTypeId][opCodeId].get();
 }
 
+void BaseColumn::exportToArrow(ArrowArray* output) {
+  if (getOffset() != 0 || getLength() < getUnderlyingVeloxVector()->size()) {
+    // This is a slice. Make a copy of the slice and then export the
+    // slice to Arrow
+    velox::VectorPtr temp = vectorSlice(
+        *getUnderlyingVeloxVector(), getOffset(), getOffset() + getLength());
+    temp->setNullCount(getNullCount());
+    velox::exportToArrow(temp, *output);
+  } else {
+    velox::exportToArrow(getUnderlyingVeloxVector(), *output);
+  }
+}
+
 std::shared_ptr<velox::exec::ExprSet> BaseColumn::genBinaryExprSet(
     std::shared_ptr<const velox::RowType> inputRowType,
     std::shared_ptr<const velox::Type> commonType,
@@ -229,8 +241,7 @@ std::shared_ptr<velox::exec::ExprSet> BaseColumn::genBinaryExprSet(
   for (int i = 0; i < 2; i++) {
     auto fieldAccessTypedExpr =
         std::make_shared<velox::core::FieldAccessTypedExpr>(
-            inputRowType->childAt(i),
-            inputRowType->nameOf(i));
+            inputRowType->childAt(i), inputRowType->nameOf(i));
 
     if (*inputRowType->childAt(i) == *commonType) {
       // no need to cast
@@ -266,9 +277,9 @@ std::unique_ptr<BaseColumn> BaseColumn::genericUnaryUDF(
 
   auto iter = dispatchTable.find(key);
   if (iter == dispatchTable.end()) {
-    iter = dispatchTable
-               .insert({key, OperatorHandle::fromUDF(rowType, udfName)})
-               .first;
+    iter =
+        dispatchTable.insert({key, OperatorHandle::fromUDF(rowType, udfName)})
+            .first;
   }
   return iter->second->call({col1.getUnderlyingVeloxVector()});
 }
@@ -289,9 +300,9 @@ std::unique_ptr<BaseColumn> BaseColumn::genericBinaryUDF(
 
   auto iter = dispatchTable.find(key);
   if (iter == dispatchTable.end()) {
-    iter = dispatchTable
-               .insert({key, OperatorHandle::fromUDF(rowType, udfName)})
-               .first;
+    iter =
+        dispatchTable.insert({key, OperatorHandle::fromUDF(rowType, udfName)})
+            .first;
   }
   return iter->second->call(
       {col1.getUnderlyingVeloxVector(), col2.getUnderlyingVeloxVector()});
@@ -315,9 +326,9 @@ std::unique_ptr<BaseColumn> BaseColumn::genericTrinaryUDF(
 
   auto iter = dispatchTable.find(key);
   if (iter == dispatchTable.end()) {
-    iter = dispatchTable
-               .insert({key, OperatorHandle::fromUDF(rowType, udfName)})
-               .first;
+    iter =
+        dispatchTable.insert({key, OperatorHandle::fromUDF(rowType, udfName)})
+            .first;
   }
   return iter->second->call(
       {col1.getUnderlyingVeloxVector(),
@@ -337,9 +348,9 @@ std::unique_ptr<BaseColumn> BaseColumn::factoryNullaryUDF(
 
   auto iter = dispatchTable.find(key);
   if (iter == dispatchTable.end()) {
-    iter = dispatchTable
-               .insert({key, OperatorHandle::fromUDF(rowType, udfName)})
-               .first;
+    iter =
+        dispatchTable.insert({key, OperatorHandle::fromUDF(rowType, udfName)})
+            .first;
   }
   return iter->second->call(size);
 }
@@ -357,8 +368,7 @@ std::unique_ptr<OperatorHandle> OperatorHandle::fromCall(
   for (int i = 0; i < inputRowType->size(); i++) {
     auto fieldAccessTypedExpr =
         std::make_shared<velox::core::FieldAccessTypedExpr>(
-            inputRowType->childAt(i),
-            inputRowType->nameOf(i));
+            inputRowType->childAt(i), inputRowType->nameOf(i));
 
     fieldAccessTypedExprs.push_back(fieldAccessTypedExpr);
   }
@@ -375,7 +385,8 @@ std::unique_ptr<OperatorHandle> OperatorHandle::fromCall(
 std::unique_ptr<OperatorHandle> OperatorHandle::fromUDF(
     velox::RowTypePtr inputRowType,
     const std::string& udfName) {
-  velox::TypePtr outputType = velox::resolveFunction(udfName, inputRowType->children());
+  velox::TypePtr outputType =
+      velox::resolveFunction(udfName, inputRowType->children());
   if (outputType == nullptr) {
     throw std::runtime_error("Request for unknown Velox UDF: " + udfName);
   }
@@ -389,8 +400,7 @@ std::unique_ptr<OperatorHandle> OperatorHandle::fromCast(
       std::vector<std::shared_ptr<const velox::core::ITypedExpr>>;
   InputExprList fieldAccessTypedExprs{
       std::make_shared<velox::core::FieldAccessTypedExpr>(
-          inputRowType->childAt(0),
-          inputRowType->nameOf(0))};
+          inputRowType->childAt(0), inputRowType->nameOf(0))};
 
   InputExprList castTypedExprs{std::make_shared<velox::core::CastTypedExpr>(
       outputType, std::move(fieldAccessTypedExprs), false /* nullOnFailure */)};
@@ -398,10 +408,12 @@ std::unique_ptr<OperatorHandle> OperatorHandle::fromCast(
   return std::make_unique<OperatorHandle>(
       inputRowType,
       std::make_shared<velox::exec::ExprSet>(
-        std::move(castTypedExprs), &TorchArrowGlobalStatic::execContext()));
+          std::move(castTypedExprs), &TorchArrowGlobalStatic::execContext()));
 }
 
-std::unique_ptr<BaseColumn> OperatorHandle::call(velox::RowVectorPtr inputRows, velox::vector_size_t size) {
+std::unique_ptr<BaseColumn> OperatorHandle::call(
+    velox::RowVectorPtr inputRows,
+    velox::vector_size_t size) {
   velox::exec::EvalCtx evalCtx(
       &TorchArrowGlobalStatic::execContext(), exprSet_.get(), inputRows.get());
   velox::SelectivityVector select(size);
@@ -423,8 +435,7 @@ std::unique_ptr<BaseColumn> OperatorHandle::call(velox::vector_size_t size) {
   return call(inputRows, size);
 }
 
-std::unique_ptr<BaseColumn> OperatorHandle::call(
-    velox::VectorPtr a) {
+std::unique_ptr<BaseColumn> OperatorHandle::call(velox::VectorPtr a) {
   velox::RowVectorPtr inputRows = wrapRowVector({a}, inputRowType_);
   return call(inputRows, a->size());
 }
@@ -510,8 +521,7 @@ velox::core::QueryCtx& TorchArrowGlobalStatic::queryContext() {
 velox::core::ExecCtx& TorchArrowGlobalStatic::execContext() {
   static auto pool = velox::memory::getDefaultScopedMemoryPool();
   static velox::core::ExecCtx execContext(
-      pool.get(),
-      &TorchArrowGlobalStatic::queryContext());
+      pool.get(), &TorchArrowGlobalStatic::queryContext());
   return execContext;
 }
 

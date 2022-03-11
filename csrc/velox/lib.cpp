@@ -101,22 +101,6 @@ velox::FlatVectorPtr<T> flatVectorFromPySequence(const PySequence& data) {
   return flatVector;
 }
 
-void exportColumnToArrow(BaseColumn& self, ArrowArray* castedArray) {
-  if (self.getOffset() != 0 ||
-      self.getLength() < self.getUnderlyingVeloxVector()->size()) {
-    // This is a slice. Make a copy of the slice and then export the
-    // slice to Arrow
-    velox::VectorPtr temp = vectorSlice(
-        *self.getUnderlyingVeloxVector(),
-        self.getOffset(),
-        self.getOffset() + self.getLength());
-    temp->setNullCount(self.getNullCount());
-    velox::exportToArrow(temp, *castedArray);
-  } else {
-    velox::exportToArrow(self.getUnderlyingVeloxVector(), *castedArray);
-  }
-}
-
 template <
     velox::TypeKind kind,
     typename D,
@@ -213,7 +197,7 @@ py::class_<SimpleColumn<T>, BaseColumn> declareSimpleType(
           ArrowArray* castedArray = reinterpret_cast<ArrowArray*>(ptrArray);
           VELOX_CHECK_NOT_NULL(castedArray);
 
-          exportColumnToArrow(self, castedArray);
+          self.exportToArrow(castedArray);
         });
   }
 
@@ -753,7 +737,7 @@ void declareRowType(py::module& m) {
         ArrowArray* castedArray = reinterpret_cast<ArrowArray*>(ptrArray);
         VELOX_CHECK_NOT_NULL(castedArray);
 
-        exportColumnToArrow(self, castedArray);
+        self.exportToArrow(castedArray);
       });
 
   using I = typename velox::TypeTraits<velox::TypeKind::ROW>::ImplType;
