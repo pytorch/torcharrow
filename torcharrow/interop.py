@@ -46,8 +46,12 @@ def from_pysequence(
 ) -> Column:
     """
     Convert Python sequence of scalars or containers to a TorchArrow Column/DataFrame.
+    If dtype is None, it will be automatically inferred from data when possible.
     """
-    # TODO(https://github.com/facebookresearch/torcharrow/issues/80) Infer dtype
+
+    if not dtype:
+        dtype = dt.infer_dtype_from_prefix(data)
+
     device = device or Scope.default.device
 
     # pyre-fixme[6]: For 2nd param expected `DType` but got `Optional[DType]`.
