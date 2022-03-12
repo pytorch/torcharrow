@@ -9,7 +9,10 @@
 #include "column.h"
 #include <memory>
 #include "bindings.h"
+#include "VariantToVector.h"
 
+#include "pybind11/numpy.h"
+#include "pybind11/stl.h"
 #include "velox/common/base/Exceptions.h"
 #include "velox/common/memory/Memory.h"
 #include "velox/core/Expressions.h"
@@ -88,8 +91,22 @@ std::unique_ptr<BaseColumn> BaseColumn::createConstantColumn(
   // However, at some point we also want to revisit whether
   // SimpleColumn/ConstantColumn needs to be templated and thus we could
   // remove the first dispatch.
-  return VELOX_DYNAMIC_SCALAR_TYPE_DISPATCH_ALL(
-      doCreateConstantColumn, value.kind(), value, size);
+  auto kind = value.kind();
+
+  switch (kind) {
+    case velox::TypeKind::ARRAY: {
+      return std::make_unique<ConstantColumn<velox::ComplexType>>(
+          // Convert array variant value into a single-element ArrayVector
+          variantArrayToVector(
+              value.value<velox::TypeKind::ARRAY>(),
+              TorchArrowGlobalStatic::rootMemoryPool()),
+          0,
+          size);
+    }
+    default:
+      return VELOX_DYNAMIC_SCALAR_TYPE_DISPATCH_ALL(
+          doCreateConstantColumn, value.kind(), value, size);
+  }
 }
 
 std::unique_ptr<BaseColumn> ArrayColumn::valueAt(velox::vector_size_t i) {
@@ -529,6 +546,63 @@ velox::core::ExecCtx& TorchArrowGlobalStatic::execContext() {
 // conversion to minimize code duplication.
 // TODO: Open source some part of utility codes in Koski (PyVelox?)
 velox::variant pyToVariant(const pybind11::handle& obj) {
+  // Numpy compatibility
+  //
+  // This check comes before primitive values, because np.float64() will
+  // evaluate as True for both of the following:
+  //    py::isinstance<py::float_>(obj)
+  //    py::isinstance<py::buffer>(obj)
+  //
+  // Thus, if we check primitive values first, pyToVariant(np.float64(1.0))
+  //    will return a variant with REAL type, although
+  //    the value is annoated as float64.
+  //
+  // py::buffer comes with explicit dtype information, so check this before
+  // primitive values.
+  if (py::isinstance<py::buffer>(obj)) {
+    auto buf = py::cast<py::buffer>(obj);
+    auto info = buf.request();
+    // Only scalars are supported for now, proper ndarrays can be added later
+    // We don't handle default cases in `switch` because fall through code
+    // at the end of the function generates a good error message anyway.
+    if (info.size == 1 && info.ndim == 0) {
+      auto dtype = py::dtype(info);
+      // https://numpy.org/doc/stable/reference/generated/numpy.dtype.kind.html
+      switch (dtype.kind()) {
+        case 'i': {
+          switch (dtype.itemsize()) {
+            case 1:
+              return velox::variant::create<velox::TypeKind::TINYINT>(
+                  py::array_t<int8_t>::ensure(obj).at());
+            case 2:
+              return velox::variant::create<velox::TypeKind::SMALLINT>(
+                  py::array_t<int16_t>::ensure(obj).at());
+            case 4:
+              return velox::variant::create<velox::TypeKind::INTEGER>(
+                  py::array_t<int32_t>::ensure(obj).at());
+            case 8:
+              return velox::variant::create<velox::TypeKind::BIGINT>(
+                  py::array_t<int64_t>::ensure(obj).at());
+          }
+        } break;
+        case 'f': {
+          switch (dtype.itemsize()) {
+            case 4:
+              return velox::variant::create<velox::TypeKind::REAL>(
+                  py::array_t<float>::ensure(obj).at());
+            case 8:
+              return velox::variant::create<velox::TypeKind::DOUBLE>(
+                  py::array_t<double>::ensure(obj).at());
+          }
+        } break;
+        case 'b':
+          return velox::variant::create<velox::TypeKind::BOOLEAN>(
+              py::array_t<bool>::ensure(obj).at());
+      }
+    }
+  }
+
+  // Base cases: primitives can be simply returned
   if (py::isinstance<py::bool_>(obj)) {
     return velox::variant::create<velox::TypeKind::BOOLEAN>(
         py::cast<bool>(obj));
@@ -543,9 +617,22 @@ velox::variant pyToVariant(const pybind11::handle& obj) {
     return velox::variant();
   }
 
+  // Check opaque types before containers because some of them might be iterable
   velox::variant out;
-  if (userDefinedPyToVariant(obj, out)) {
+  if (userDefinedPyToOpaque(obj, out)) {
     return out;
+  }
+
+  // Recursively allocate lists
+  if (py::isinstance<py::list>(obj)) {
+    auto casted = py::cast<py::list>(obj);
+    using List = typename velox::detail::VariantTypeTraits<
+        velox::TypeKind::ARRAY>::stored_type;
+    List variantList;
+    for (const auto& item : casted) {
+      variantList.push_back(pyToVariant(item));
+    }
+    return velox::variant::create<velox::TypeKind::ARRAY>(variantList);
   }
 
   VELOX_CHECK(

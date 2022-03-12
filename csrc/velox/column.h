@@ -596,11 +596,17 @@ class FlatColumn : public SimpleColumn<T> {};
 template <typename T>
 class ConstantColumn : public SimpleColumn<T> {
  public:
+  // For scalar type that ConstantVector can be created from variant
   ConstantColumn(velox::variant value, velox::vector_size_t size)
       : SimpleColumn<T>(velox::BaseVector::createConstant(
             value,
             size,
             TorchArrowGlobalStatic::rootMemoryPool())) {}
+
+  // Create from a Vector position
+  ConstantColumn(velox::VectorPtr vector, int index, velox::vector_size_t size)
+      : SimpleColumn<T>(
+            velox::BaseVector::wrapInConstant(size, index, vector)) {}
 };
 
 class ArrayColumn : public BaseColumn {
