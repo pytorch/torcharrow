@@ -44,6 +44,20 @@ class MapColumnCpu(ColumnCpuMixin, MapColumn):
 
         self.maps = MapMethodsCpu(self)
 
+    # Override ColumCpuMixin optimized implementation of _slice to use the
+    # basic Column implementation, as the fast version doesn't work yet or map.
+    # See https://github.com/facebookresearch/torcharrow/issues/62.
+    # TODO: remove this once `to_arrow` works on Map.
+    def _gets(self, indices):
+        return Column._gets(self, indices)
+
+    # Override ColumCpuMixin optimized implementation of _slice to use the
+    # basic Column implementation, as the fast version doesn't work yet or map.
+    # See https://github.com/facebookresearch/torcharrow/issues/62.
+    # TODO: remove this once `to_arrow` works on Map.
+    def _slice(self, start, stop, step):
+        return Column._slice(self, start, stop, step)
+
     # Lifecycle: _empty -> _append* -> _finalize; no other ops are allowed during this time
 
     @staticmethod
