@@ -288,9 +288,9 @@ class TestArrowInterop(unittest.TestCase):
     def base_test_to_arrow_table_with_struct(self):
         df = ta.dataframe(
             [
-                (1, (10, 11)),
-                (2, (20, 21)),
-                (3, (30, None)),
+                (1, (10, 11, "a")),
+                (2, (20, 21, "b")),
+                (3, (30, None, None)),
             ],
             dtype=dt.Struct(
                 [
@@ -301,6 +301,7 @@ class TestArrowInterop(unittest.TestCase):
                             [
                                 dt.Field("int_1", dt.int32),
                                 dt.Field("int_2", dt.Int32(nullable=True)),
+                                dt.Field("string_1", dt.String(nullable=True)),
                             ]
                         ),
                     ),
@@ -323,9 +324,9 @@ class TestArrowInterop(unittest.TestCase):
         self.assertEqual(
             pt[1].to_pylist(),
             [
-                {"int_1": 10, "int_2": 11},
-                {"int_1": 20, "int_2": 21},
-                {"int_1": 30, "int_2": None},
+                {"int_1": 10, "int_2": 11, "string_1": "a"},
+                {"int_1": 20, "int_2": 21, "string_1": "b"},
+                {"int_1": 30, "int_2": None, "string_1": None},
             ],
         )
 

@@ -23,6 +23,9 @@ class TestInteropCpu(TestInterop):
     def test_pad_sequence(self):
         return self.base_test_pad_sequence()
 
+    def test_from_pysequence(self):
+        return self.base_test_from_pysequence()
+
     @unittest.skipUnless(tap.available, "Requires PyTorch")
     def test_pytorch_transform(self):
         return self.base_test_pytorch_transform()

@@ -63,6 +63,8 @@ pybind11_add_module(
   column.cpp
   tensor_conversion.h
   tensor_conversion.cpp
+  VariantToVector.h
+  VariantToVector.cpp
 )
 
 # TODO(linb): Need this to match with velox, however pybind11 requires "hidden" visibility

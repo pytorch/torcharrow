@@ -15,7 +15,7 @@ namespace facebook::torcharrow {
 
 void declareUserDefinedBindings(py::module& m) {}
 
-bool userDefinedPyToVariant(const pybind11::handle& obj, velox::variant& out) {
+bool userDefinedPyToOpaque(const pybind11::handle& obj, velox::variant& out) {
   return false;
 }
 

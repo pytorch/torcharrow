@@ -167,50 +167,39 @@ py::class_<SimpleColumn<T>, BaseColumn> declareSimpleType(
       kind == velox::TypeKind::SMALLINT || kind == velox::TypeKind::INTEGER ||
       kind == velox::TypeKind::BIGINT || kind == velox::TypeKind::REAL ||
       kind == velox::TypeKind::DOUBLE) {
-  // _torcharrow._import_from_arrow
-  m.def(
-      "_import_from_arrow",
-      [](std::shared_ptr<I> type, uintptr_t ptrArray, uintptr_t ptrSchema) {
-        ArrowArray* castedArray = reinterpret_cast<ArrowArray*>(ptrArray);
-        ArrowSchema* castedSchema = reinterpret_cast<ArrowSchema*>(ptrSchema);
-        VELOX_CHECK_NOT_NULL(castedArray);
-        VELOX_CHECK_NOT_NULL(castedSchema);
+    // _torcharrow._import_from_arrow
+    m.def(
+        "_import_from_arrow",
+        [](std::shared_ptr<I> type, uintptr_t ptrArray, uintptr_t ptrSchema) {
+          ArrowArray* castedArray = reinterpret_cast<ArrowArray*>(ptrArray);
+          ArrowSchema* castedSchema = reinterpret_cast<ArrowSchema*>(ptrSchema);
+          VELOX_CHECK_NOT_NULL(castedArray);
+          VELOX_CHECK_NOT_NULL(castedSchema);
 
-        auto column =
-            std::make_unique<SimpleColumn<T>>(velox::importFromArrowAsOwner(
-                *castedSchema,
-                *castedArray,
-                TorchArrowGlobalStatic::rootMemoryPool()));
+          auto column =
+              std::make_unique<SimpleColumn<T>>(velox::importFromArrowAsOwner(
+                  *castedSchema,
+                  *castedArray,
+                  TorchArrowGlobalStatic::rootMemoryPool()));
 
-        VELOX_CHECK(
-            column->type()->kind() == kind,
-            "Expected TypeKind is {} but Velox created {}",
-            velox::TypeTraits<kind>::name,
-            column->type()->kindName());
+          VELOX_CHECK(
+              column->type()->kind() == kind,
+              "Expected TypeKind is {} but Velox created {}",
+              velox::TypeTraits<kind>::name,
+              column->type()->kindName());
 
-        return column;
-      });
+          return column;
+        });
 
-  // _torcharrow.SimpleColumn<Type>._export_to_arrow
-  result.def("_export_to_arrow", [](SimpleColumn<T>& self, uintptr_t ptrArray) {
-    ArrowArray* castedArray = reinterpret_cast<ArrowArray*>(ptrArray);
-    VELOX_CHECK_NOT_NULL(castedArray);
+    // _torcharrow.SimpleColumn<Type>._export_to_arrow
+    result.def(
+        "_export_to_arrow", [](SimpleColumn<T>& self, uintptr_t ptrArray) {
+          ArrowArray* castedArray = reinterpret_cast<ArrowArray*>(ptrArray);
+          VELOX_CHECK_NOT_NULL(castedArray);
 
-    if (self.getOffset() != 0 ||
-        self.getLength() < self.getUnderlyingVeloxVector()->size()) {
-      // This is a slice. Make a copy of the slice and then export the
-      // slice to Arrow
-      velox::VectorPtr temp = vectorSlice(
-          *self.getUnderlyingVeloxVector(),
-          self.getOffset(),
-          self.getOffset() + self.getLength());
-      temp->setNullCount(self.getNullCount());
-      velox::exportToArrow(temp, *castedArray);
-    } else {
-      velox::exportToArrow(self.getUnderlyingVeloxVector(), *castedArray);
-    }
-  });
-      }
+          self.exportToArrow(castedArray);
+        });
+  }
 
   return result;
 };
@@ -743,7 +732,13 @@ void declareRowType(py::module& m) {
       .def("slice", &RowColumn::slice)
       .def("set_length", &RowColumn::setLength)
       .def("set_null_at", &RowColumn::setNullAt)
-      .def("copy", &RowColumn::copy);
+      .def("copy", &RowColumn::copy)
+      .def("_export_to_arrow", [](RowColumn& self, uintptr_t ptrArray) {
+        ArrowArray* castedArray = reinterpret_cast<ArrowArray*>(ptrArray);
+        VELOX_CHECK_NOT_NULL(castedArray);
+
+        self.exportToArrow(castedArray);
+      });
 
   using I = typename velox::TypeTraits<velox::TypeKind::ROW>::ImplType;
   py::class_<I, velox::Type, std::shared_ptr<I>>(

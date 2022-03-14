@@ -114,6 +114,37 @@ class TestInterop(unittest.TestCase):
         self.assertEqual(df.dtype, df3.dtype)
         self.assertEqual(list(df), list(df3))
 
+    def base_test_from_pysequence(self):
+        ## test with no dtype, to infer
+        ## for input of list and/or tuple
+        col = ta.from_pysequence(data=[None, None, 5], device=self.device)
+        self.assertEqual(list(col), [None, None, 5])
+        self.assertEqual(col.dtype, dt.Int64(nullable=True))
+
+        col = ta.from_pysequence(data=[3, 4, 5], device=self.device)
+        self.assertEqual(list(col), [3, 4, 5])
+        self.assertEqual(col.dtype, dt.int64)
+
+        col = ta.from_pysequence(data=(3, 4, 5), device=self.device)
+        self.assertEqual(list(col), [3, 4, 5])
+        self.assertEqual(col.dtype, dt.int64)
+
+        # test with dtype
+        # for input of list and/or tuple
+        col = ta.from_pysequence(
+            data=[None, None, 5], dtype=dt.Int32(nullable=True), device=self.device
+        )
+        self.assertEqual(list(col), [None, None, 5])
+        self.assertEqual(col.dtype, dt.Int32(nullable=True))
+
+        col = ta.from_pysequence(data=[3, 4, 5], dtype=dt.int32, device=self.device)
+        self.assertEqual(list(col), [3, 4, 5])
+        self.assertEqual(col.dtype, dt.int32)
+
+        col = ta.from_pysequence(data=(3, 4, 5), dtype=dt.int32, device=self.device)
+        self.assertEqual(list(col), [3, 4, 5])
+        self.assertEqual(col.dtype, dt.int32)
+
     def base_test_pad_sequence(self):
         import torch
 

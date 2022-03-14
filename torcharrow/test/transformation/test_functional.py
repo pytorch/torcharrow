@@ -6,7 +6,9 @@
 
 import unittest
 
+import numpy as np
 import torcharrow as ta
+import torcharrow.dtypes as dt
 from torcharrow import functional
 
 
@@ -15,7 +17,16 @@ class _TestFunctionalBase(unittest.TestCase):
     def setUpClass(cls):
         # Prepare input data as CPU dataframe
         cls.base_df1 = ta.dataframe(
-            {"a": [[11, 12, 13], [21, 22, 23, 24, 25, 26], [31, 32]]}
+            {
+                "int64_list": [[11, 12, 13], [21, 22, 23, 24, 25, 26], [31, 32]],
+                "int32_list": [[11, 12, 13], [21, 22, 23, 24, 25, 26], [31, 32]],
+            },
+            dtype=dt.Struct(
+                [
+                    dt.Field("int64_list", dt.List(dt.int64)),
+                    dt.Field("int32_list", dt.List(dt.int32)),
+                ]
+            ),
         )
 
         cls.setUpTestCaseData()
@@ -29,8 +40,29 @@ class _TestFunctionalBase(unittest.TestCase):
 
     def test_slice(self):
         self.assertEqual(
-            list(functional.slice(type(self).df1["a"], 2, 3)),
+            list(functional.slice(type(self).df1["int64_list"], 2, 3)),
             [[12, 13], [22, 23, 24], [32]],
+        )
+
+    def test_intersect_constant_aray(self):
+        self.assertEqual(
+            list(
+                functional.array_intersect(
+                    type(self).df1["int64_list"], [12, 22, 23, 32]
+                )
+            ),
+            [[12], [22, 23], [32]],
+        )
+
+        int32_list_intersect = functional.array_intersect(
+            type(self).df1["int32_list"],
+            [np.int32(12), np.int32(22), np.int32(23), np.int32(32)],
+        )
+        self.assertTrue(dt.is_list(int32_list_intersect.dtype))
+        self.assertTrue(dt.is_int32(int32_list_intersect.dtype.item_dtype))
+        self.assertEqual(
+            list(int32_list_intersect),
+            [[12], [22, 23], [32]],
         )
 
 

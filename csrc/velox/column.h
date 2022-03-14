@@ -93,7 +93,6 @@ class OperatorHandle {
       velox::RowTypePtr inputRowType,
       velox::TypePtr outputType);
 
-
   static velox::RowVectorPtr wrapRowVector(
       const std::vector<velox::VectorPtr>& children,
       std::shared_ptr<const velox::RowType> rowType) {
@@ -113,18 +112,13 @@ class OperatorHandle {
       velox::RowVectorPtr inputRows,
       velox::vector_size_t size);
 
-  std::unique_ptr<BaseColumn> call(
-      velox::vector_size_t size);
+  std::unique_ptr<BaseColumn> call(velox::vector_size_t size);
 
-  std::unique_ptr<BaseColumn> call(
-      velox::VectorPtr a);
+  std::unique_ptr<BaseColumn> call(velox::VectorPtr a);
 
-  std::unique_ptr<BaseColumn> call(
-      velox::VectorPtr a,
-      velox::VectorPtr b);
+  std::unique_ptr<BaseColumn> call(velox::VectorPtr a, velox::VectorPtr b);
 
-  std::unique_ptr<BaseColumn> call(
-      const std::vector<velox::VectorPtr>& args);
+  std::unique_ptr<BaseColumn> call(const std::vector<velox::VectorPtr>& args);
 
  private:
   velox::RowTypePtr inputRowType_;
@@ -353,6 +347,8 @@ class BaseColumn {
     return _delegate;
   }
 
+  void exportToArrow(ArrowArray* output);
+
   static std::shared_ptr<velox::exec::ExprSet> genBinaryExprSet(
       std::shared_ptr<const velox::RowType> inputRowType,
       std::shared_ptr<const velox::Type> commonType,
@@ -518,17 +514,17 @@ class SimpleColumn : public BaseColumn {
   //
   std::unique_ptr<BaseColumn> cast(velox::TypeKind toKind) {
     constexpr auto num_numeric_types =
-      static_cast<int>(velox::TypeKind::DOUBLE) + 1;
+        static_cast<int>(velox::TypeKind::DOUBLE) + 1;
     static std::array<
-      std::unique_ptr<OperatorHandle>,
-      num_numeric_types> /* library-local */ opHandles;
+        std::unique_ptr<OperatorHandle>,
+        num_numeric_types> /* library-local */ opHandles;
 
     int id = static_cast<int>(toKind);
     if (opHandles[id] == nullptr) {
       const static auto inputRowType =
           velox::ROW({"c0"}, {velox::CppToType<T>::create()});
       velox::TypePtr toType =
-        VELOX_DYNAMIC_SCALAR_TYPE_DISPATCH(kind2type, toKind);
+          VELOX_DYNAMIC_SCALAR_TYPE_DISPATCH(kind2type, toKind);
       opHandles[id] = OperatorHandle::fromCast(inputRowType, toType);
     }
 
@@ -600,11 +596,17 @@ class FlatColumn : public SimpleColumn<T> {};
 template <typename T>
 class ConstantColumn : public SimpleColumn<T> {
  public:
+  // For scalar type that ConstantVector can be created from variant
   ConstantColumn(velox::variant value, velox::vector_size_t size)
       : SimpleColumn<T>(velox::BaseVector::createConstant(
             value,
             size,
             TorchArrowGlobalStatic::rootMemoryPool())) {}
+
+  // Create from a Vector position
+  ConstantColumn(velox::VectorPtr vector, int index, velox::vector_size_t size)
+      : SimpleColumn<T>(
+            velox::BaseVector::wrapInConstant(size, index, vector)) {}
 };
 
 class ArrayColumn : public BaseColumn {
