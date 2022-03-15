@@ -18,7 +18,7 @@ import torcharrow.pytorch as tap
 from torcharrow import functional
 
 try:
-    # @manual=//configerator/structs/fblearner/interface:features-py
+    # @manual=@/third-party:apache-arrow:apache-arrow-py
     import pyarrow.parquet as pq
 
     HAS_PYARROW_PARQUET = True
