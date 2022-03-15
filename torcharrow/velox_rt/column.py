@@ -9,6 +9,7 @@ from abc import ABC
 
 # pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow as velox
+import torcharrow.interop
 from torcharrow.dispatcher import Device
 from torcharrow.dtypes import DType
 from torcharrow.icolumn import Column
@@ -31,6 +32,24 @@ class ColumnCpuMixin(ABC):
         col._data = data
         col._finalized = finalized
         return col
+
+    def _gets(self, indices):
+        arrow_array = self.to_arrow()
+        project = arrow_array.take(indices)
+        return torcharrow.interop.from_arrow(project, self.dtype, self.device)
+
+    def _slice(self, start, stop, step):
+        arrow_array = self.to_arrow()
+        project = arrow_array[start:stop:step]
+        # Velox library Bridge.cpp:importFromArrayImpl() fails:
+        # "Offsets are not supported during arrow conversion yet."
+        #
+        # TODO: when Velox supports importing arrow data with offsets,
+        # we can use the following zero copy line.
+        #   return torcharrow.interop.from_arrow(z, self.dtype, self.device)
+        # For now we flatten the data instead.
+        flat = project.to_pylist()
+        return Scope._Column(data=flat, dtype=self.dtype, device=self.device)
 
     # Velox column returned from generic dispatch always assumes returned column is nullable
     # This help method allows to alter it based on context (e.g. methods in StringMethods can have better inference)
