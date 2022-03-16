@@ -5,3 +5,6 @@
 	path = csrc/velox/velox
 	url = https://github.com/facebookincubator/velox.git
 
+[submodule "csrc/velox/re2"]
+	path = csrc/velox/re2
+	url = https://github.com/google/re2.git

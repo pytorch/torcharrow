@@ -1,12 +1,13 @@
-#include "gpt2_bpe_tokenizer.h"
-#include <regex.h> // @manual
+#include "gpt2_bpe_tokenizer_pybind.h"
+#include "regex.h" // @manual
 
+#include <stdexcept>
 #include <algorithm>
 #include <sstream>
 #include <unordered_set>
 #include <utility>
 
-namespace torchtext
+namespace facebook::torcharrow
 {
   const Regex kGPT2Regex(
       "(\\'s|\\'t|\\'re|\\'ve|\\'m|\\'ll|\\'d| ?\\pL+|"
@@ -25,20 +26,20 @@ namespace torchtext
   }
 
   template <class Key_, class Value_>
-  c10::Dict<Key_, Value_> _map_to_c10_dict(std::unordered_map<Key_, Value_> m)
+  py::dict _map_to_c10_dict(std::unordered_map<Key_, Value_> m)
   {
-    c10::Dict<Key_, Value_> d;
+    py::dict d;
     for (const auto &item : m)
-      d.insert(item.first, item.second);
+      d[item.first] = item.second;
     return d;
   }
 
   template <class Key_, class Value_>
-  std::unordered_map<Key_, Value_> _c10_dict_to_map(c10::Dict<Key_, Value_> d)
+  std::unordered_map<Key_, Value_> _c10_dict_to_map(py::dict d)
   {
     std::unordered_map<Key_, Value_> m;
     for (const auto &item : d)
-      m[item.key()] = item.value();
+      m[item.first] = item.second;
     return m;
   }
 
@@ -113,7 +114,10 @@ namespace torchtext
       std::string delimiter)
   {
     auto pos = s.find(delimiter);
-    TORCH_CHECK(pos != std::string::npos, "Expected `s`to contain `delimiter`");
+    if (pos != std::string::npos)
+    {
+      throw std::runtime_error("Expected `s`to contain `delimiter`");
+    };
     return std::make_pair(s.substr(0, pos), s.substr(pos + delimiter.length()));
   }
 
@@ -164,10 +168,10 @@ namespace torchtext
   }
 
   GPT2BPEEncoder::GPT2BPEEncoder(
-      const c10::Dict<std::string, int64_t> &bpe_encoder,
-      const c10::Dict<std::string, int64_t> &bpe_merge_ranks,
+      const py::dict &bpe_encoder,
+      const py::dict &bpe_merge_ranks,
       const std::string &seperator,
-      const c10::Dict<int64_t, std::string> &byte_encoder,
+      const py::dict &byte_encoder,
       bool caching_enabled)
       : inf_(bpe_merge_ranks.size() + 1),
         bpe_encoder_(std::move(bpe_encoder)),
@@ -195,7 +199,7 @@ namespace torchtext
     std::vector<std::string> encoded;
     for (auto &ch : token)
     {
-      encoded.push_back(byte_encoder_.at((unsigned char)ch));
+      encoded.push_back(byte_encoder_[(unsigned char)ch]);
     }
     return encoded;
   }
@@ -204,7 +208,7 @@ namespace torchtext
   {
     if (bpe_merge_ranks_.contains(pair))
     {
-      return bpe_merge_ranks_.at(pair);
+      return bpe_merge_ranks_[pair];
     }
     return inf_;
   }
@@ -240,7 +244,7 @@ namespace torchtext
     auto concatenated = concatenate_strings(token_list);
     if (caching_enabled_ && cache_.contains(concatenated))
     {
-      return cache_.at(concatenated);
+      return cache_[concatenated];
     }
 
     std::vector<std::string> tok_list = token_list;
@@ -308,7 +312,7 @@ namespace torchtext
     }
 
     if (caching_enabled_)
-      cache_.insert(concatenated, tok_list);
+      cache_[concatenated] = tok_list;
     return tok_list;
   }
 
@@ -325,7 +329,7 @@ namespace torchtext
       auto byte_encoded_token = ByteEncode_(token);
       for (const auto &bpe_token : BPE_(byte_encoded_token))
       {
-        bpe_token_ids.push_back(bpe_encoder_.at(bpe_token));
+        bpe_token_ids.push_back(bpe_encoder_[bpe_token]);
       }
     }
     return bpe_token_ids;
@@ -346,60 +350,6 @@ namespace torchtext
       const
   {
     return _c10_dict_to_map(byte_encoder_);
-  }
-
-  GPT2BPEEncoderStatesPybind _serialize_gpt2_bpe_encoder_pybind(
-      const c10::intrusive_ptr<GPT2BPEEncoder> &self)
-  {
-    return std::make_tuple(
-        self->GetBPEEncoder(),
-        self->GetBPEMergeRanks(),
-        self->seperator_,
-        self->GetByteEncoder(),
-        self->caching_enabled_);
-  }
-
-  GPT2BPEEncoderStatesTorchbind _serialize_gpt2_bpe_encoder_torchbind(
-      const c10::intrusive_ptr<GPT2BPEEncoder> &self)
-  {
-    return std::make_tuple(
-        self->bpe_encoder_,
-        self->bpe_merge_ranks_,
-        self->seperator_,
-        self->byte_encoder_,
-        self->caching_enabled_);
-  }
-
-  c10::intrusive_ptr<GPT2BPEEncoder> _deserialize_gpt2_bpe_encoder_pybind(
-      GPT2BPEEncoderStatesPybind states)
-  {
-    auto state_size = std::tuple_size<decltype(states)>::value;
-    TORCH_CHECK(
-        state_size == 5,
-        "Expected deserialized GPT2BPEEncoder to have 5 states but found " +
-            std::to_string(state_size) + " states");
-    return c10::make_intrusive<GPT2BPEEncoder>(
-        std::move(std::get<0>(states)),
-        std::move(std::get<1>(states)),
-        std::get<2>(states),
-        std::move(std::get<3>(states)),
-        std::get<4>(states));
-  }
-
-  c10::intrusive_ptr<GPT2BPEEncoder> _deserialize_gpt2_bpe_encoder_torchbind(
-      GPT2BPEEncoderStatesTorchbind states)
-  {
-    auto state_size = std::tuple_size<decltype(states)>::value;
-    TORCH_CHECK(
-        state_size == 5,
-        "Expected deserialized GPT2BPEEncoder to have 5 states but found " +
-            std::to_string(state_size) + " states");
-    return c10::make_intrusive<GPT2BPEEncoder>(
-        std::move(std::get<0>(states)),
-        std::move(std::get<1>(states)),
-        std::get<2>(states),
-        std::move(std::get<3>(states)),
-        std::get<4>(states));
   }
 
 } // namespace torchtext

@@ -1,15 +1,18 @@
 #ifndef GPT2_BPE_TOKENIZER_H_
 #define GPT2_BPE_TOKENIZER_H_
 
-#include <torch/script.h>
+// #include <torch/script.h>
 
 #include <cstdint>
 #include <string>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+#include <pybind11/pybind11.h>
 
-namespace torchtext
+namespace py = pybind11;
+
+namespace facebook::torcharrow
 {
 
     typedef std::tuple<
@@ -21,10 +24,10 @@ namespace torchtext
         GPT2BPEEncoderStatesPybind;
 
     typedef std::tuple<
-        c10::Dict<std::string, int64_t>,
-        c10::Dict<std::string, int64_t>,
+        py::dict,
+        py::dict,
         std::string,
-        c10::Dict<int64_t, std::string>,
+        py::dict,
         bool>
         GPT2BPEEncoderStatesTorchbind;
 
@@ -51,7 +54,7 @@ namespace torchtext
         std::string element,
         int start);
 
-    struct GPT2BPEEncoder : torch::CustomClassHolder
+    struct GPT2BPEEncoder
     {
     private:
         const int64_t inf_;
@@ -60,7 +63,7 @@ namespace torchtext
         int64_t GetBPEMergeRank_(std::string pair);
 
     protected:
-        c10::Dict<std::string, std::vector<std::string> > cache_;
+        py::dict cache_;
         virtual std::vector<std::string> PreTokenize_(std::string input);
         // Return a list of bpe tokens.
         virtual std::vector<std::string> BPE_(
@@ -69,16 +72,16 @@ namespace torchtext
         std::string FindBestPair_(std::vector<std::string> pairs);
 
     public:
-        const c10::Dict<std::string, int64_t> bpe_encoder_;
-        const c10::Dict<std::string, int64_t> bpe_merge_ranks_;
-        const c10::Dict<int64_t, std::string> byte_encoder_;
+        const py::dict bpe_encoder_;
+        const py::dict bpe_merge_ranks_;
+        const py::dict byte_encoder_;
         const std::string seperator_;
         const bool caching_enabled_;
         explicit GPT2BPEEncoder(
-            const c10::Dict<std::string, int64_t> &bpe_encoder,
-            const c10::Dict<std::string, int64_t> &bpe_merge_ranks,
+            const py::dict &bpe_encoder,
+            const py::dict &bpe_merge_ranks,
             const std::string &seperator,
-            const c10::Dict<int64_t, std::string> &byte_encoder,
+            const py::dict &byte_encoder,
             bool caching_enabled = false);
 
         explicit GPT2BPEEncoder(
@@ -105,15 +108,6 @@ namespace torchtext
         std::unordered_map<std::string, int64_t> GetBPEMergeRanks() const;
         std::unordered_map<int64_t, std::string> GetByteEncoder() const;
     };
-
-    GPT2BPEEncoderStatesPybind _serialize_gpt2_bpe_encoder_pybind(
-        const c10::intrusive_ptr<GPT2BPEEncoder> &self);
-    GPT2BPEEncoderStatesTorchbind _serialize_gpt2_bpe_encoder_torchbind(
-        const c10::intrusive_ptr<GPT2BPEEncoder> &self);
-    c10::intrusive_ptr<GPT2BPEEncoder> _deserialize_gpt2_bpe_encoder_pybind(
-        GPT2BPEEncoderStatesPybind states);
-    c10::intrusive_ptr<GPT2BPEEncoder> _deserialize_gpt2_bpe_encoder_torchbind(
-        GPT2BPEEncoderStatesTorchbind states);
 } // namespace torchtext
 
 #endif // GPT2_BPE_TOKENIZER_H_
