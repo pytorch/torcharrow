@@ -9,6 +9,7 @@ add_library(
   functions.h
   string_functions.h
   numeric_functions.h
+  rec/bucketize.h
   register_udf.cpp
 )
 
