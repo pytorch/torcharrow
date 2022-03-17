@@ -13,6 +13,7 @@ add_library(
   string_functions.h
   numeric_functions.h
   register_udf.cpp
+  regex.h
   gpt2_bpe_tokenizer.h
   gpt2_bpe_tokenizer.cpp
 )
