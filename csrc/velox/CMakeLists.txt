@@ -80,15 +80,15 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
 # Link with Velox:
 target_link_libraries(_torcharrow PRIVATE
-velox_vector
-velox_memory
-velox_buffer
-velox_core
-velox_functions_prestosql
-velox_function_registry
-velox_arrow_bridge
-torcharrow_udfs
-"${TORCH_LIBRARIES}"
+  velox_vector
+  velox_memory
+  velox_buffer
+  velox_core
+  velox_functions_prestosql
+  velox_function_registry
+  velox_arrow_bridge
+  torcharrow_udfs
+  "${TORCH_LIBRARIES}"
 )
 
 #target_compile_definitions(_torcharrow PRIVATE)
@@ -98,4 +98,4 @@ torcharrow_udfs
 install(
   TARGETS _torcharrow
   LIBRARY DESTINATION .
-  )
+)
