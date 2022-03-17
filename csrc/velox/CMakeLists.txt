@@ -67,16 +67,17 @@ pybind11_add_module(
   VariantToVector.cpp
 )
 
+
+
 # TODO(linb): Need this to match with velox, however pybind11 requires "hidden" visibility
 # set_target_properties(_torcharrow PROPERTIES CXX_VISIBILITY_PRESET default)
 
 add_subdirectory(velox)
-add_subdirectory(functions)
 
 # set(CMAKE_PREFIX_PATH deps/libtorch)
 find_package(Torch REQUIRED)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
+add_subdirectory(functions)
 
 # Link with Velox:
 target_link_libraries(_torcharrow PRIVATE
@@ -88,8 +89,8 @@ velox_functions_prestosql
 velox_function_registry
 velox_arrow_bridge
 torcharrow_udfs
-"${TORCH_LIBRARIES}"
 )
+
 
 #target_compile_definitions(_torcharrow PRIVATE)
 

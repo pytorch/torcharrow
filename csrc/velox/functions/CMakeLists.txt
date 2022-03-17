@@ -5,6 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+
 add_library(
   torcharrow_udfs OBJECT
   functions.h
@@ -19,4 +21,5 @@ target_link_libraries(
   torcharrow_udfs
   velox_functions_string
   velox_functions_prestosql
+  "${TORCH_LIBRARIES}"
 )
