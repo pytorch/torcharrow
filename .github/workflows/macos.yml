@@ -56,7 +56,7 @@ jobs:
           CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz -M 5G
 
       - name: Build and install other dependencies
-        run: CMAKE_C_COMPILER_LAUNCHER=ccache CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache scripts/build_mac_dep.sh ranges_v3 googletest fmt double_conversion folly re2
+        run: CMAKE_C_COMPILER_LAUNCHER=ccache CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache scripts/build_mac_dep.sh ranges_v3 fmt double_conversion folly re2
 
       - name: Bulid TorchArrow
         run: |
