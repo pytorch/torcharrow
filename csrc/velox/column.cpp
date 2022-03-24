@@ -641,4 +641,50 @@ velox::variant pyToVariant(const pybind11::handle& obj) {
       py::str(py::type::of(obj)).cast<std::string>());
 }
 
+velox::variant pyToVariantTyped(
+    const py::handle& obj,
+    const std::shared_ptr<const velox::Type>& type) {
+  auto typeKind = type->kind();
+  // Handle nulls
+  if (obj.is_none()) {
+    return velox::variant::null(typeKind);
+  }
+  if (py::isinstance<velox::variant>(obj)) {
+    return velox::variant(py::cast<velox::variant>(obj));
+  }
+  switch (typeKind) {
+    // Base cases: primitives can be simply returned
+    case velox::TypeKind::BOOLEAN:
+      return velox::variant::create<velox::TypeKind::BOOLEAN>(
+          py::cast<bool>(obj));
+    case velox::TypeKind::TINYINT:
+      return velox::variant::create<velox::TypeKind::TINYINT>(
+          py::cast<int8_t>(obj));
+    case velox::TypeKind::SMALLINT:
+      return velox::variant::create<velox::TypeKind::SMALLINT>(
+          py::cast<int16_t>(obj));
+    case velox::TypeKind::INTEGER:
+      return velox::variant::create<velox::TypeKind::INTEGER>(
+          py::cast<int32_t>(obj));
+    case velox::TypeKind::BIGINT:
+      return velox::variant::create<velox::TypeKind::BIGINT>(
+          py::cast<int64_t>(obj));
+    case velox::TypeKind::REAL:
+      return velox::variant::create<velox::TypeKind::REAL>(
+          py::cast<float>(obj));
+    case velox::TypeKind::DOUBLE:
+      return velox::variant::create<velox::TypeKind::DOUBLE>(
+          py::cast<double>(obj));
+    default: {
+      std::string typeName = py::str(obj.get_type());
+      VELOX_CHECK(
+          false,
+          fmt::format(
+              "Inputted type conversion from {} to {} not implemented",
+              typeName,
+              typeKind));
+    }
+  }
+}
+
 } // namespace facebook::torcharrow

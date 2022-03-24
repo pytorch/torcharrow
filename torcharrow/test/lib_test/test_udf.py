@@ -136,6 +136,33 @@ class TestSimpleColumns(unittest.TestCase):
         for i in range(len(splits)):
             self.assert_SimpleColumn(splits[i], expected[i])
 
+    def test_coalesce(self) -> None:
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+        col1 = self.construct_simple_column(ta.VeloxType_BIGINT(), [1, 2, None, 3])
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+        result = ta.generic_udf_dispatch(
+            "coalesce",
+            col1,
+            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+            ta.ConstantColumn(42, len(col1)),
+        )
+        self.assert_SimpleColumn(result, [1, 2, 42, 3])
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+        self.assertTrue(isinstance(result.type(), ta.VeloxType_BIGINT))
+
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+        col2 = self.construct_simple_column(ta.VeloxType_INTEGER(), [1, 2, None, 3])
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+        result = ta.generic_udf_dispatch(
+            "coalesce",
+            col2,
+            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+            ta.ConstantColumn(42, len(col2), ta.VeloxType_INTEGER()),
+        )
+        self.assert_SimpleColumn(result, [1, 2, 42, 3])
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+        self.assertTrue(isinstance(result.type(), ta.VeloxType_INTEGER))
+
     def test_regex(self) -> None:
         # test some regex UDF
         data = ["abc", "a1", "b2", "c3", "___d4___", None]
