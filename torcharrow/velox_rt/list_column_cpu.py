@@ -9,8 +9,6 @@ import warnings
 from typing import List, Callable, Optional
 
 import torcharrow as ta
-
-# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
@@ -58,7 +56,6 @@ class ListColumnCpu(ColumnCpuMixin, ListColumn):
     @staticmethod
     def _from_pysequence(device: str, data: List[List], dtype: dt.List):
         if dt.is_primitive(dtype.item_dtype):
-            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
             velox_column = velox.Column(get_velox_type(dtype), data)
             return ColumnCpuMixin._from_velox(
                 device,
