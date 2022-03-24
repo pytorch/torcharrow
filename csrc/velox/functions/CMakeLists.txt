@@ -17,11 +17,15 @@ add_library(
   regex.cpp
 )
 
+# find_library(RE2 re2 REQUIRED)
+# add_subdirectory(re2)
+# add_subdirectory($<TARGET_PROPERTY:re2,INCLUDE_DIRECTORIES>)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
 target_link_libraries(
   torcharrow_udfs
   velox_functions_string
   velox_functions_prestosql
+  re2
   "${TORCH_LIBRARIES}"
 )
