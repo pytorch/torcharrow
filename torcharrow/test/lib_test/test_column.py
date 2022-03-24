@@ -12,9 +12,6 @@ from dataclasses import dataclass
 from typing import Union, List, Any
 
 import pyarrow as pa  # @manual=@/third-party:apache-arrow:apache-arrow-py
-
-# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
-# @manual=//pytorch/torcharrow/csrc/velox:_torcharrow
 import torcharrow._torcharrow as ta
 from pyarrow.cffi import ffi  # @manual=@/third-party:python-cffi:python-cffi-py
 
@@ -74,27 +71,22 @@ class TestSimpleColumns(BaseTestColumns):
     def test_SimpleColumnInt64_unary(self) -> None:
         data = [1, -2, None, 3, -4, None]
         col = infer_column(data)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(col.type().kind(), ta.TypeKind.BIGINT)
 
         neg_col = col.neg()
         self.assert_Column(neg_col, [-1, 2, None, -3, 4, None])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(neg_col.type().kind(), ta.TypeKind.BIGINT)
 
         neg_col2 = neg_col.neg()
         self.assert_Column(neg_col2, [1, -2, None, 3, -4, None])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(neg_col2.type().kind(), ta.TypeKind.BIGINT)
 
         neg_col3 = neg_col2.neg()
         self.assert_Column(neg_col3, [-1, 2, None, -3, 4, None])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(neg_col3.type().kind(), ta.TypeKind.BIGINT)
 
         abs_col = col.abs()
         self.assert_Column(abs_col, [1, 2, None, 3, 4, None])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(abs_col.type().kind(), ta.TypeKind.BIGINT)
 
     def test_SimpleColumnInt64_binary(self) -> None:
@@ -106,7 +98,6 @@ class TestSimpleColumns(BaseTestColumns):
         # column ops
         sum_col = col1.add(col2)
         self.assert_Column(sum_col, [None, -1, None, 6, 0, None])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(sum_col.type().kind(), ta.TypeKind.BIGINT)
 
         self.assert_Column(col1.sub(col2), [None, -3, None, 0, -8, None])
@@ -116,126 +107,102 @@ class TestSimpleColumns(BaseTestColumns):
         # type promotion
         data3 = [None, 1.0, 2.0, 3.0, 4.0, 5.0]
         col3 = infer_column(data3)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(col3.type().kind(), ta.TypeKind.REAL)
 
         sum_col = col1.add(col3)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(sum_col.type().kind(), ta.TypeKind.REAL)
         self.assert_Column(sum_col, [None, -1.0, None, 6.0, 0.0, None])
 
         sum_col2 = col3.add(col1)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(sum_col2.type().kind(), ta.TypeKind.REAL)
         self.assert_Column(sum_col2, [None, -1.0, None, 6.0, 0.0, None])
 
         # scalar ops
         add_scalar = col1.add(1)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(add_scalar.type().kind(), ta.TypeKind.BIGINT)
         self.assert_Column(add_scalar, [2, -1, None, 4, -3, None])
 
         add_scalar = col1.add(0.1)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(add_scalar.type().kind(), ta.TypeKind.REAL)
         self.assert_Column(add_scalar, [1.1, -1.9, None, 3.1, -3.9, None])
 
         add_scalar = col1.radd(1)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(add_scalar.type().kind(), ta.TypeKind.BIGINT)
         self.assert_Column(add_scalar, [2, -1, None, 4, -3, None])
 
         add_scalar = col1.radd(0.1)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(add_scalar.type().kind(), ta.TypeKind.REAL)
         self.assert_Column(add_scalar, [1.1, -1.9, None, 3.1, -3.9, None])
 
         sub_scalar = col1.sub(2)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(sub_scalar.type().kind(), ta.TypeKind.BIGINT)
         self.assert_Column(sub_scalar, [-1, -4, None, 1, -6, None])
 
         sub_scalar = col1.sub(0.1)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(sub_scalar.type().kind(), ta.TypeKind.REAL)
         self.assert_Column(sub_scalar, [0.9, -2.1, None, 2.9, -4.1, None])
 
         sub_scalar = col1.rsub(2)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(sub_scalar.type().kind(), ta.TypeKind.BIGINT)
         self.assert_Column(sub_scalar, [1, 4, None, -1, 6, None])
 
         sub_scalar = col1.rsub(0.1)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(sub_scalar.type().kind(), ta.TypeKind.REAL)
         self.assert_Column(sub_scalar, [-0.9, 2.1, None, -2.9, 4.1, None])
 
         mul_scalar = col1.mul(2)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(mul_scalar.type().kind(), ta.TypeKind.BIGINT)
         self.assert_Column(mul_scalar, [2, -4, None, 6, -8, None])
 
         mul_scalar = col1.mul(-2.0)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(mul_scalar.type().kind(), ta.TypeKind.REAL)
         self.assert_Column(mul_scalar, [-2.0, 4.0, None, -6.0, 8.0, None])
 
         mul_scalar = col1.rmul(2)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(mul_scalar.type().kind(), ta.TypeKind.BIGINT)
         self.assert_Column(mul_scalar, [2, -4, None, 6, -8, None])
 
         mul_scalar = col1.rmul(-2.0)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(mul_scalar.type().kind(), ta.TypeKind.REAL)
         self.assert_Column(mul_scalar, [-2.0, 4.0, None, -6.0, 8.0, None])
 
         mod_scalar = col1.mod(3)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(mod_scalar.type().kind(), ta.TypeKind.BIGINT)
         self.assert_Column(mod_scalar, [1, 1, None, 0, 2, None])
 
         mod_scalar = col1.mod(-3.0)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(mod_scalar.type().kind(), ta.TypeKind.REAL)
         self.assert_Column(mod_scalar, [-2.0, -2.0, None, 0.0, -1.0, None])
 
         mod_scalar = col1.rmod(3)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(mod_scalar.type().kind(), ta.TypeKind.BIGINT)
         self.assert_Column(mod_scalar, [0, -1, None, 0, -1, None])
 
         mod_scalar = col1.rmod(-3.0)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(mod_scalar.type().kind(), ta.TypeKind.REAL)
         self.assert_Column(mod_scalar, [0.0, -1.0, None, 0.0, -3.0, None])
 
         # It's debatable whether this (add BIGINT with BOOLEAN) should be supported.
         # But since PyTorch supports it for NumPy compatbility, TorchArrow also supports this.
         add_scalar = col1.add(True)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(add_scalar.type().kind(), ta.TypeKind.BIGINT)
         self.assert_Column(add_scalar, [2, -1, None, 4, -3, None])
 
     def test_SimpleColumnFloat32_unary(self) -> None:
         data = [1.2, -2.3, None, 3.4, -4.6, None]
         col = infer_column(data)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(col.type().kind(), ta.TypeKind.REAL)
 
         neg_col = col.neg()
         self.assert_Column(neg_col, [-1.2, 2.3, None, -3.4, 4.6, None])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(neg_col.type().kind(), ta.TypeKind.REAL)
 
         abs_col = col.abs()
         self.assert_Column(abs_col, [1.2, 2.3, None, 3.4, 4.6, None])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(abs_col.type().kind(), ta.TypeKind.REAL)
 
         round_col = col.round()
         self.assert_Column(round_col, [1.0, -2.0, None, 3.0, -5.0, None])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(round_col.type().kind(), ta.TypeKind.REAL)
 
     def test_SimpleColumnBoolean(self) -> None:
@@ -265,11 +232,9 @@ class TestSimpleColumns(BaseTestColumns):
     def test_SimpleColumnBoolean_unary(self) -> None:
         data = [True, False, None, True, False, None]
         col = infer_column(data)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(col.type().kind(), ta.TypeKind.BOOLEAN)
 
         inv_col = col.invert()
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertEqual(inv_col.type().kind(), ta.TypeKind.BOOLEAN)
         self.assert_Column(inv_col, [False, True, None, False, True, None])
 
@@ -307,17 +272,13 @@ class TestSimpleColumns(BaseTestColumns):
 
     def test_ConstantColumn(self) -> None:
         # INTEGER
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.ConstantColumn(42, 6, ta.VeloxType_INTEGER())
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(col.type(), ta.VeloxType_INTEGER))
         self.assert_Column(col, [42] * 6)
 
         ###########
         #  BIGINT
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.ConstantColumn(42, 6)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(col.type(), ta.VeloxType_BIGINT))
         self.assert_Column(col, [42] * 6)
 
@@ -325,20 +286,16 @@ class TestSimpleColumns(BaseTestColumns):
         data = [1, -2, None, 3, -4, None]
         num_column = infer_column(data)
         add_result = num_column.add(col)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(add_result.type(), ta.VeloxType_BIGINT))
         self.assert_Column(add_result, [43, 40, None, 45, 38, None])
 
         add_result = col.add(num_column)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(add_result.type(), ta.VeloxType_BIGINT))
         self.assert_Column(add_result, [43, 40, None, 45, 38, None])
 
         ###########
         #  REAL
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.ConstantColumn(4.2, 6)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(col.type(), ta.VeloxType_REAL))
         self.assert_Column(col, [4.2] * 6)
 
@@ -346,90 +303,66 @@ class TestSimpleColumns(BaseTestColumns):
         data = [1.2, -2.3, None, 3.4, -4.6, None]
         num_column = infer_column(data)
         add_result = num_column.add(col)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(add_result.type(), ta.VeloxType_REAL))
         self.assert_Column(add_result, [5.4, 1.9, None, 7.6, -0.4, None])
 
         add_result = col.add(num_column)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(add_result.type(), ta.VeloxType_REAL))
         self.assert_Column(add_result, [5.4, 1.9, None, 7.6, -0.4, None])
 
         ###########
         #  VARCHAR
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.ConstantColumn("abc", 6)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(col.type(), ta.VeloxType_VARCHAR))
         self.assert_Column(col, ["abc"] * 6)
 
     def test_FromPyList(self) -> None:
         #  BIGINT
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(ta.VeloxType_BIGINT(), [1, 2, None, 4])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(col.type(), ta.VeloxType_BIGINT))
         self.assert_Column(col, [1, 2, None, 4])
 
         #  INTEGER
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(ta.VeloxType_INTEGER(), [1, 2, None, 4])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(col.type(), ta.VeloxType_INTEGER))
         self.assert_Column(col, [1, 2, None, 4])
 
         #  SMALLINT
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(ta.VeloxType_SMALLINT(), [1, 2, None, 4])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(col.type(), ta.VeloxType_SMALLINT))
         self.assert_Column(col, [1, 2, None, 4])
 
         #  TINYINT
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(ta.VeloxType_TINYINT(), [1, 2, None, 4])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(col.type(), ta.VeloxType_TINYINT))
         self.assert_Column(col, [1, 2, None, 4])
 
         #  REAL
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(ta.VeloxType_REAL(), [1, 2, None, 4])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(col.type(), ta.VeloxType_REAL))
         self.assert_Column(col, [1.0, 2.0, None, 4.0])
 
         #  DOUBLE
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(ta.VeloxType_DOUBLE(), [1, 2, None, 4])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(col.type(), ta.VeloxType_DOUBLE))
         self.assert_Column(col, [1.0, 2.0, None, 4.0])
 
         #  BOOLEAN
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(ta.VeloxType_BOOLEAN(), [True, False, None, True])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(col.type(), ta.VeloxType_BOOLEAN))
         self.assert_Column(col, [True, False, None, True])
 
         #  VARCHAR
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(ta.VeloxType_VARCHAR(), ["foo", "bar", None, "abc"])
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(col.type(), ta.VeloxType_VARCHAR))
         self.assert_Column(col, ["foo", "bar", None, "abc"])
 
         #  ARRAY of scalar element
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(
-            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
             ta.VeloxArrayType(ta.VeloxType_VARCHAR()),
             [["foo", "bar"], None, ["abc", None]],
         )
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(col.type(), ta.VeloxArrayType))
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(isinstance(col.type().element_type(), ta.VeloxType_VARCHAR))
         self.assert_Column(col, [["foo", "bar"], None, ["abc", None]])
 
@@ -496,12 +429,9 @@ class TestSimpleColumns(BaseTestColumns):
         c_array = ffi.new("struct ArrowArray*")
         ptr_array = int(ffi.cast("uintptr_t", c_array))
 
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(
-            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
             ta.VeloxRowType(
                 ["f1", "f2"],
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 [ta.VeloxType_INTEGER(), ta.VeloxType_INTEGER()],
             )
         )
@@ -545,7 +475,6 @@ class TestSimpleColumns(BaseTestColumns):
         # pyre-fixme[16]: Item `Array` of `Union[Array[typing.Any], ChunkedArray]`
         #  has no attribute `_export_to_c`.
         a._export_to_c(ptr_array, ptr_schema)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta._import_from_arrow(ta.VeloxType_BIGINT(), ptr_array, ptr_schema)
         self.assertEqual(len(col), 4)
         self.assertEqual(col.get_null_count(), 2)
@@ -578,12 +507,9 @@ class TestSimpleColumns(BaseTestColumns):
         # pyre-fixme[16]: Item `Array` of `Union[Array[typing.Any], ChunkedArray]`
         #  has no attribute `_export_to_c`.
         s._export_to_c(ptr_array, ptr_schema)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta._import_from_arrow(
-            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
             ta.VeloxRowType(
                 ["f1", "f2"],
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 [ta.VeloxType_INTEGER(), ta.VeloxType_BOOLEAN()],
             ),
             ptr_array,
@@ -602,21 +528,13 @@ class TestSimpleColumns(BaseTestColumns):
 
 
 def is_same_type(a, b) -> bool:
-    # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
     if isinstance(a, ta.VeloxType_BIGINT):
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         return isinstance(b, ta.VeloxType_BIGINT)
-    # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
     if isinstance(a, ta.VeloxType_VARCHAR):
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         return isinstance(b, ta.VeloxType_VARCHAR)
-    # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
     if isinstance(a, ta.VeloxType_BOOLEAN):
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         return isinstance(b, ta.VeloxType_BOOLEAN)
-    # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
     if isinstance(a, ta.VeloxArrayType):
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         return isinstance(b, ta.VeloxArrayType) and is_same_type(
             a.element_type(), b.element_type()
         )
@@ -646,12 +564,10 @@ def infer_column(data) -> ta.BaseColumn:
 def resolve_column_with_arbitrary_type(unresolved: Unresolved) -> ta.BaseColumn:
     if isinstance(unresolved, UnresolvedArray):
         element = resolve_column_with_arbitrary_type(unresolved.element_type)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(ta.VeloxArrayType(element.type()))
         col.append(element)
         return col
     else:
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         return ta.Column(ta.VeloxType_BIGINT())
 
 
@@ -699,7 +615,6 @@ def _infer_column(data) -> Union[ta.BaseColumn, Unresolved, None]:
                 return UnresolvedArray(union_type)
             else:
                 resolved_item_type = union_type
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 col = ta.Column(ta.VeloxArrayType(resolved_item_type))
                 for item_col, item in zip(inferred_columns, data):
                     if item is None:
@@ -733,16 +648,11 @@ def _infer_column(data) -> Union[ta.BaseColumn, Unresolved, None]:
             keys_array_type = inferred_keys_array_columns.type()
             values_array_type = inferred_values_array_columns.type()
 
-            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
             if isinstance(keys_array_type, ta.VeloxArrayType) and isinstance(
                 values_array_type,
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 ta.VeloxArrayType,
             ):
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 col = ta.Column(
-                    # pyre-fixme[16]: Module `torcharrow` has no attribute
-                    #  `_torcharrow`.
                     ta.VeloxMapType(
                         keys_array_type.element_type(), values_array_type.element_type()
                     )
@@ -751,11 +661,7 @@ def _infer_column(data) -> Union[ta.BaseColumn, Unresolved, None]:
                     if item is None:
                         col.append_null()
                     else:
-                        # pyre-fixme[16]: Module `torcharrow` has no attribute
-                        #  `_torcharrow`.
                         key_col = ta.Column(keys_array_type.element_type())
-                        # pyre-fixme[16]: Module `torcharrow` has no attribute
-                        #  `_torcharrow`.
                         value_col = ta.Column(values_array_type.element_type())
                         for key, value in item.items():
                             key_col.append(key)
@@ -770,19 +676,14 @@ def _infer_column(data) -> Union[ta.BaseColumn, Unresolved, None]:
 
         else:
             type_ = {
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 int: ta.VeloxType_BIGINT(),
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 float: ta.VeloxType_REAL(),
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 str: ta.VeloxType_VARCHAR(),
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 bool: ta.VeloxType_BOOLEAN(),
             }.get(type(non_null_item))
             if type_ is None:
                 raise NotImplementedError(f"Cannot infer {type(non_null_item)}")
             else:
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 col = ta.Column(type_)
                 for item in data:
                     if item is None:
@@ -793,22 +694,17 @@ def _infer_column(data) -> Union[ta.BaseColumn, Unresolved, None]:
 
 
 def resolve_column(item, type_) -> ta.BaseColumn:
-    # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
     col = ta.Column(type_)
     for value in item:
         if value is None:
             col.append_null()
         else:
             if type(type_) in (
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 ta.VeloxType_INTEGER,
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 ta.VeloxType_VARCHAR,
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 ta.VeloxType_BOOLEAN,
             ):
                 col.append(value)
-            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
             elif type(type_) == ta.VeloxArrayType:
                 col.append(resolve_column(value, type_.element_type()))
             else:
@@ -820,13 +716,11 @@ class TestInferColumn(unittest.TestCase):
     def test_infer_simple(self) -> None:
         data = [1, 2, 3]
         type_ = infer_column(data).type()
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(is_same_type(type_, ta.VeloxType_BIGINT()))
 
     def test_infer_array(self) -> None:
         data = [[1], [2], [3]]
         type_ = infer_column(data).type()
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(is_same_type(type_, ta.VeloxArrayType(ta.VeloxType_BIGINT())))
 
     def test_infer_nested_array(self) -> None:
@@ -835,7 +729,6 @@ class TestInferColumn(unittest.TestCase):
         self.assertTrue(
             is_same_type(
                 type_,
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 ta.VeloxArrayType(ta.VeloxArrayType(ta.VeloxType_BIGINT())),
             )
         )
@@ -843,31 +736,26 @@ class TestInferColumn(unittest.TestCase):
     def test_unresolved(self) -> None:
         data = []
         type_ = infer_column(data).type()
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(is_same_type(type_, ta.VeloxType_BIGINT()))
 
     def test_nested_unresolved1(self) -> None:
         data = [[]]
         type_ = infer_column(data).type()
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(is_same_type(type_, ta.VeloxArrayType(ta.VeloxType_BIGINT())))
 
     def test_nested_unresolved2(self) -> None:
         data = [None]
         type_ = infer_column(data).type()
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(is_same_type(type_, ta.VeloxType_BIGINT()))
 
     def test_nested_unresolved3(self) -> None:
         data = [[None]]
         type_ = infer_column(data).type()
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(is_same_type(type_, ta.VeloxArrayType(ta.VeloxType_BIGINT())))
 
     def test_propagate_unresolved(self) -> None:
         data = [None, [], [1], [1, None, 2], None]
         type_ = infer_column(data).type()
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self.assertTrue(is_same_type(type_, ta.VeloxArrayType(ta.VeloxType_BIGINT())))
 
 
@@ -1005,12 +893,9 @@ class TestMapColumns(unittest.TestCase):
 
 class TestRowColumns(unittest.TestCase):
     def test_RowColumn1(self) -> None:
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(
-            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
             ta.VeloxRowType(
                 ["a", "b"],
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 [ta.VeloxType_INTEGER(), ta.VeloxType_VARCHAR()],
             )
         )
@@ -1037,12 +922,9 @@ class TestRowColumns(unittest.TestCase):
         )
 
     def test_set_child(self) -> None:
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(
-            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
             ta.VeloxRowType(
                 ["a", "b"],
-                # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
                 [ta.VeloxType_INTEGER(), ta.VeloxType_VARCHAR()],
             )
         )
@@ -1064,21 +946,13 @@ class TestRowColumns(unittest.TestCase):
         self.assertEqual(col.child_at(col.type().get_child_idx("b"))[1], "y")
 
     def test_nested_row(self) -> None:
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = ta.Column(
-            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
             ta.VeloxRowType(
                 ["a", "b"],
                 [
-                    # pyre-fixme[16]: Module `torcharrow` has no attribute
-                    #  `_torcharrow`.
                     ta.VeloxType_INTEGER(),
-                    # pyre-fixme[16]: Module `torcharrow` has no attribute
-                    #  `_torcharrow`.
                     ta.VeloxRowType(
                         ["b1", "b2"],
-                        # pyre-fixme[16]: Module `torcharrow` has no attribute
-                        #  `_torcharrow`.
                         [ta.VeloxType_VARCHAR(), ta.VeloxType_INTEGER()],
                     ),
                 ],
