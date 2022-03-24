@@ -879,6 +879,15 @@ PYBIND11_MODULE(_torcharrow, m) {
     return BaseColumn::createConstantColumn(
         pyToVariant(value), py::cast<velox::vector_size_t>(size));
   });
+  m.def(
+      "ConstantColumn",
+      [](const py::handle& value,
+         py::int_ size,
+         std::shared_ptr<velox::Type> type) {
+        return BaseColumn::createConstantColumn(
+            pyToVariantTyped(value, type),
+            py::cast<velox::vector_size_t>(size));
+      });
 
   declareUserDefinedBindings(m);
 
