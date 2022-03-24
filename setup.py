@@ -16,6 +16,8 @@ from setuptools import Extension
 from setuptools import find_packages, setup
 from setuptools.command.build_ext import build_ext
 
+import torch
+
 ROOT_DIR = Path(__file__).parent.resolve()
 
 
@@ -97,7 +99,7 @@ class CMakeBuild(build_ext):
         cmake_args = [
             f"-DCMAKE_BUILD_TYPE={cfg}",
             # f"-DCMAKE_PREFIX_PATH=/Users/nayef211/opt/miniconda3/envs/torchtext/lib/python3.9/site-packages/torch/share/cmake",
-            # f"-DCMAKE_PREFIX_PATH=/Users/nayef211/dev/dev_files/libtorch/share/cmake",
+            # f"-DCMAKE_PREFIX_PATH={torch.utils.cmake_prefix_path}",
             f"-DCMAKE_INSTALL_PREFIX={extdir}",
             # "-DCMAKE_VERBOSE_MAKEFILE=ON",
             # f"-DPython_INCLUDE_DIR={distutils.sysconfig.get_python_inc()}",

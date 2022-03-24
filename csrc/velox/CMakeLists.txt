@@ -69,20 +69,9 @@ pybind11_add_module(
 
 # TODO(linb): Need this to match with velox, however pybind11 requires "hidden" visibility
 # set_target_properties(_torcharrow PROPERTIES CXX_VISIBILITY_PRESET default)
-
+find_package(Torch REQUIRED)
 add_subdirectory(velox)
 add_subdirectory(functions)
-
-# add re2 lib
-add_subdirectory(re2)
-
-
-
-# set(CMAKE_PREFIX_PATH /Users/nayef211/opt/miniconda3/envs/torchtext/lib/python3.9/site-packages/torch/share/cmake)
-# find_package(Torch REQUIRED)
-# message(STATUS ${TORCH_LIBRARIES})
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
-# message(FATAL_ERROR "[DEBUG] ${CMAKE_BINARY_DIR}")
 
 
 # Link with Velox:
@@ -95,7 +84,6 @@ velox_functions_prestosql
 velox_function_registry
 velox_arrow_bridge
 torcharrow_udfs
-# "${TORCH_LIBRARIES}"
 )
 
 #target_compile_definitions(_torcharrow PRIVATE)
