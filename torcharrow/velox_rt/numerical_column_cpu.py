@@ -606,18 +606,8 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
             raise TypeError(f"fill_null with {type(fill_value)} is not supported")
         if not self.is_nullable:
             return self
-        else:
-            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
-            col = velox.Column(get_velox_type(self.dtype))
-            for i in range(len(self)):
-                if self._getmask(i):
-                    if isinstance(fill_value, Dict):
-                        raise NotImplementedError()
-                    else:
-                        col.append(fill_value)
-                else:
-                    col.append(self._getdata(i))
-            return ColumnCpuMixin._from_velox(self.device, self.dtype, col, True)
+
+        return functional.coalesce(self, fill_value)
 
     @trace
     @expression
