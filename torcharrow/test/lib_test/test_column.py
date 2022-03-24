@@ -306,6 +306,13 @@ class TestSimpleColumns(BaseTestColumns):
         self.assertEqual(len(col), 4)
 
     def test_ConstantColumn(self) -> None:
+        # INTEGER
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+        col = ta.ConstantColumn(42, 6, ta.VeloxType_INTEGER())
+        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
+        self.assertTrue(isinstance(col.type(), ta.VeloxType_INTEGER))
+        self.assert_Column(col, [42] * 6)
+
         ###########
         #  BIGINT
         # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.

@@ -64,6 +64,9 @@ inline bool operator==(
 }
 
 velox::variant pyToVariant(const pybind11::handle& obj);
+velox::variant pyToVariantTyped(
+    const pybind11::handle& obj,
+    const std::shared_ptr<const velox::Type>& type);
 
 class BaseColumn;
 
