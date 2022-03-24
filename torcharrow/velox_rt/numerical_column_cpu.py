@@ -10,8 +10,6 @@ from typing import Callable, Dict, List, Optional, Sequence, Union
 
 import numpy as np
 import torcharrow as ta
-
-# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
@@ -50,7 +48,6 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
     def _from_pysequence(
         device: str, data: Sequence[Union[int, float, bool]], dtype: dt.DType
     ):
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         velox_column = velox.Column(get_velox_type(dtype), data)
         return ColumnCpuMixin._from_velox(
             device,
@@ -73,7 +70,6 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
         # pyre-fixme[16]: `Array` has no attribute `_export_to_c`.
         array._export_to_c(ptr_array, ptr_schema)
 
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         velox_column = velox._import_from_arrow(
             get_velox_type(dtype), ptr_array, ptr_schema
         )
@@ -184,7 +180,6 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
                 res.append(self._getdata(i))
         res.sort(reverse=not ascending)
 
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = velox.Column(get_velox_type(self.dtype))
         if na_position == "first":
             for i in range(none_count):
@@ -607,7 +602,6 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
         if not self.is_nullable:
             return self
         else:
-            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
             col = velox.Column(get_velox_type(self.dtype))
             for i in range(len(self)):
                 if self._getmask(i):
@@ -646,7 +640,6 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
         if subset is not None:
             raise TypeError(f"subset parameter for numerical columns not supported")
         seen = set()
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = velox.Column(get_velox_type(self.dtype))
         for i in range(len(self)):
             if self._getmask(i):

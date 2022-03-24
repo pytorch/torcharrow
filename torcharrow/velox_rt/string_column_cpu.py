@@ -8,8 +8,6 @@ import array as ar
 from typing import Optional, Sequence
 
 import numpy as np
-
-# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 from tabulate import tabulate
@@ -76,7 +74,6 @@ class StringColumnCpu(ColumnCpuMixin, StringColumn):
 
     @staticmethod
     def _from_pysequence(device: str, data: Sequence[str], dtype: dt.DType):
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         velox_column = velox.Column(get_velox_type(dtype), data)
         return ColumnCpuMixin._from_velox(
             device,
