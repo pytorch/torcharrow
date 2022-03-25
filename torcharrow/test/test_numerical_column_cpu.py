@@ -53,6 +53,9 @@ class TestNumericalColumnCpu(TestNumericalColumn):
     def test_na_handling(self):
         return self.base_test_na_handling()
 
+    def test_fill_null_type_promotion_rules(self):
+        return self.base_test_fill_null_type_promotion_rules()
+
     def test_agg_handling(self):
         return self.base_test_agg_handling()
 
