@@ -7,8 +7,6 @@
 from typing import Callable
 
 import torch
-
-# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow as _torcharrow
 import torcharrow.dtypes as dt
 from typing_extensions import final
