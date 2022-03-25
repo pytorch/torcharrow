@@ -7,7 +7,6 @@
 import typing as ty
 from abc import ABC
 
-# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow as velox
 import torcharrow.interop
 from torcharrow.dispatcher import Device

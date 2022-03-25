@@ -6,7 +6,6 @@
 
 import types
 
-# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow as ta
 from torcharrow._functional import functional as global_functional
 
