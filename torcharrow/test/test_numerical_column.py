@@ -418,6 +418,7 @@ class TestNumericalColumn(unittest.TestCase):
         c = ta.column([None, 2, 17.0], device=self.device)
 
         self.assertEqual(list(c.fill_null(99.0)), [99.0, 2, 17.0])
+        self.assertEqual(c.fill_null(99.0).dtype, dt.float32)
         self.assertEqual(list(c.drop_null()), [2.0, 17.0])
 
         c = c.append([2])
