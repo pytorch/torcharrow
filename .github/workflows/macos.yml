@@ -47,7 +47,7 @@ jobs:
 
       - name: Install dependencies from Brew
         run: |
-          brew install --formula ninja cmake ccache protobuf icu4c boost gflags glog libevent lz4 lzo snappy xz zstd
+          brew install --formula ninja cmake ccache icu4c boost gflags glog libevent
 
       # Based on https://github.com/facebookincubator/velox/blob/99429407c3d524e07b32b8b19a03aa7382f819cf/.circleci/config.yml#L114-L116
       - name: Configure ccache
