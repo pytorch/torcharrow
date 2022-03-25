@@ -418,11 +418,16 @@ class TestNumericalColumn(unittest.TestCase):
         c = ta.column([None, 2, 17.0], device=self.device)
 
         self.assertEqual(list(c.fill_null(99.0)), [99.0, 2, 17.0])
-        self.assertEqual(c.fill_null(99.0).dtype, dt.float32)
         self.assertEqual(list(c.drop_null()), [2.0, 17.0])
 
         c = c.append([2])
         self.assertEqual(set(c.drop_duplicates()), {None, 2, 17.0})
+
+    def base_test_fill_null_type_promotion_rules(self):
+        c = ta.column([1, 2, 3.0, None], dtype = dt.Float64(nullable=True))
+        self.assertEqual(c.fill_null(4).dtype, dt.float64)
+        c = ta.column([1, 2, 3.0, None], dtype = dt.Int32(nullable=True))
+        self.assertEqual(c.fill_null(4).dtype, dt.int32)
 
     def base_test_agg_handling(self):
         import functools

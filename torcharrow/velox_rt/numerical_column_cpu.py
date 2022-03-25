@@ -600,6 +600,7 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
         if not self.is_nullable:
             return self
 
+        # functional doesn't support type promotion yet. Cast to column dtype manually (represented by numpy literal)
         fill_value_casted = dt.np_typeof_dtype(self.dtype)(fill_value)
         return functional.coalesce(self, fill_value_casted)._with_null(False)
 
