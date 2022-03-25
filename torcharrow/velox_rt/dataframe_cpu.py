@@ -30,8 +30,6 @@ from typing import (
 import numpy as np
 import pyarrow as pa
 import torcharrow as ta
-
-# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
@@ -69,7 +67,6 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
         assert dt.is_struct(dtype)
         DataFrame.__init__(self, device, dtype)
 
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         self._data = velox.Column(get_velox_type(dtype))
         assert isinstance(data, Dict)
 
@@ -174,7 +171,6 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
         # pyre-fixme[16]: `Array` has no attribute `_export_to_c`.
         array._export_to_c(ptr_array, ptr_schema)
 
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         velox_column = velox._import_from_arrow(
             get_velox_type(dtype), ptr_array, ptr_schema
         )
@@ -213,7 +209,6 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
             [dt.Field(n, c.dtype) for n, c in field_data.items()],
             nullable=self.dtype.nullable,
         )
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         col = velox.Column(get_velox_type(dtype))
         for n, c in field_data.items():
             # pyre-fixme[16]: `Column` has no attribute `_data`.
@@ -326,7 +321,6 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
 
         # pyre-fixme[16]: `DType` has no attribute `get_index`.
         column_idx = self._dtype.get_index(name)
-        # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
         new_delegate = velox.Column(get_velox_type(self._dtype))
         # pyre-fixme[16]: `Column` has no attribute `_data`.
         new_delegate.set_length(len(col._data))
