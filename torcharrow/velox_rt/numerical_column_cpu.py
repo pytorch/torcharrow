@@ -600,14 +600,13 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
     @trace
     @expression
     def fill_null(self, fill_value: Union[dt.ScalarTypes, Dict]):
-        self._prototype_support_warning("fill_null")
-
         if not isinstance(fill_value, Column._scalar_types):
             raise TypeError(f"fill_null with {type(fill_value)} is not supported")
         if not self.is_nullable:
             return self
 
-        return functional.coalesce(self, fill_value)
+        fill_value_casted = dt.np_typeof_dtype(self.dtype)(fill_value)
+        return functional.coalesce(self, fill_value_casted)._with_null(False)
 
     @trace
     @expression
