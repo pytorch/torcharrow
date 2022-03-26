@@ -68,7 +68,7 @@ class _DenseConversion(tap.TensorConversion):
 
         # Stack them into BatchSize * NumFields Tensor
         return torch.cat(
-            [column_tensor.values.unsqueeze(0).T for column_tensor in tensors], dim=1
+            [column_tensor.unsqueeze(0).T for column_tensor in tensors], dim=1
         )
 
 
