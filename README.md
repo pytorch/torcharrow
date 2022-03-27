@@ -58,7 +58,7 @@ On MacOS
 
 ```bash
 # Install dependencies from Brew
-brew install --formula ninja cmake ccache protobuf icu4c boost gflags glog libevent lz4 lzo snappy xz zstd
+brew install --formula ninja cmake ccache icu4c boost gflags glog libevent
 
 # Build and install other dependencies
 scripts/build_mac_dep.sh ranges_v3 googletest fmt double_conversion folly re2
@@ -69,9 +69,7 @@ On Ubuntu (20.04 or later)
 # Install dependencies from APT
 apt install -y g++ cmake ccache ninja-build checkinstall \
     libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
-    libbz2-dev libgflags-dev libgtest-dev libgmock-dev libevent-dev \
-    libprotobuf-dev liblz4-dev libzstd-dev libre2-dev libsnappy-dev liblzo2-dev \
-    protobuf-compiler
+    libgtest-dev libgflags-dev libevent-dev libre2-dev
 # Build and install folly and fmt
 scripts/setup-ubuntu.sh
 ```

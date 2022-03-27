@@ -50,9 +50,7 @@ jobs:
           sudo apt-get update
           sudo apt install -y g++ cmake ccache ninja-build checkinstall git \
           libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
-          libbz2-dev libgflags-dev libgtest-dev libgmock-dev libevent-dev \
-          libprotobuf-dev liblz4-dev libzstd-dev libre2-dev libsnappy-dev liblzo2-dev \
-          protobuf-compiler
+          libgtest-dev libgflags-dev libevent-dev libre2-dev
 
       # Based on https://github.com/facebookincubator/velox/blob/99429407c3d524e07b32b8b19a03aa7382f819cf/.circleci/config.yml#L114-L116
       - name: Configure ccache
