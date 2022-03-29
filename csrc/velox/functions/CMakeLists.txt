@@ -11,15 +11,12 @@ add_library(
   string_functions.h
   numeric_functions.h
   register_udf.cpp
-  gpt2_bpe_tokenizer.h
-  gpt2_bpe_tokenizer.cpp
-  regex.h
-  regex.cpp
+  text/gpt2_bpe_tokenizer.h
+  text/gpt2_bpe_tokenizer.cpp
+  text/regex.h
+  text/regex.cpp
 )
 
-# find_library(RE2 re2 REQUIRED)
-# add_subdirectory(re2)
-# add_subdirectory($<TARGET_PROPERTY:re2,INCLUDE_DIRECTORIES>)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
 target_link_libraries(
