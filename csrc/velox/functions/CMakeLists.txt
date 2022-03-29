@@ -10,6 +10,7 @@ add_library(
   functions.h
   string_functions.h
   numeric_functions.h
+  rec/bucketize.h
   register_udf.cpp
   text/gpt2_bpe_tokenizer.h
   text/gpt2_bpe_tokenizer.cpp

@@ -10,9 +10,11 @@
 
 #include <velox/functions/Registerer.h>
 #include "numeric_functions.h"
+#include "rec/bucketize.h" // @manual
 #include "string_functions.h"
 #include "velox/expression/VectorFunction.h"
 #include "velox/functions/lib/Re2Functions.h"
+#include "velox/type/Type.h"
 
 namespace facebook::torcharrow::functions {
 
@@ -115,7 +117,6 @@ inline void registerTorchArrowFunctions() {
   velox::registerFunction<torcharrow_bitwiseor, int64_t, int64_t, int64_t>(
       {"torcharrow_bitwiseor"});
 
-
   // Round
   velox::registerFunction<torcharrow_round, float, float>({"torcharrow_round"});
   velox::registerFunction<torcharrow_round, double, double>(
@@ -146,10 +147,84 @@ inline void registerTorchArrowFunctions() {
 
   // Invert/Not
   velox::registerFunction<torcharrow_not, bool, bool>({"torcharrow_not"});
-  velox::registerFunction<torcharrow_not_int, int8_t, int8_t>({"torcharrow_not"});
-  velox::registerFunction<torcharrow_not_int, int16_t, int16_t>({"torcharrow_not"});
-  velox::registerFunction<torcharrow_not_int, int32_t, int32_t>({"torcharrow_not"});
-  velox::registerFunction<torcharrow_not_int, int64_t, int64_t>({"torcharrow_not"});
+  velox::registerFunction<torcharrow_not_int, int8_t, int8_t>(
+      {"torcharrow_not"});
+  velox::registerFunction<torcharrow_not_int, int16_t, int16_t>(
+      {"torcharrow_not"});
+  velox::registerFunction<torcharrow_not_int, int32_t, int32_t>(
+      {"torcharrow_not"});
+  velox::registerFunction<torcharrow_not_int, int64_t, int64_t>(
+      {"torcharrow_not"});
+
+  // Recsys
+
+  // bucketize
+  velox::registerFunction<bucketize, int32_t, int32_t, velox::Array<float>>(
+      {"bucketize"});
+  velox::registerFunction<bucketize, int32_t, float, velox::Array<float>>(
+      {"bucketize"});
+  velox::registerFunction<bucketize, int32_t, int64_t, velox::Array<float>>(
+      {"bucketize"});
+  velox::registerFunction<bucketize, int32_t, int32_t, velox::Array<int32_t>>(
+      {"bucketize"});
+  velox::registerFunction<bucketize, int32_t, float, velox::Array<int32_t>>(
+      {"bucketize"});
+  velox::registerFunction<bucketize, int32_t, int64_t, velox::Array<int32_t>>(
+      {"bucketize"});
+  velox::registerFunction<bucketize, int32_t, int32_t, velox::Array<int64_t>>(
+      {"bucketize"});
+  velox::registerFunction<bucketize, int32_t, float, velox::Array<int64_t>>(
+      {"bucketize"});
+  velox::registerFunction<bucketize, int32_t, int64_t, velox::Array<int64_t>>(
+      {"bucketize"});
+
+
+  // List input
+  velox::registerFunction<
+      bucketize,
+      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
+      velox::Array<float>>({"bucketize"});
+  velox::registerFunction<
+      bucketize,
+      velox::ArrayWriterT<int32_t>,
+      velox::Array<float>,
+      velox::Array<float>>({"bucketize"});
+  velox::registerFunction<
+      bucketize,
+      velox::ArrayWriterT<int32_t>,
+      velox::Array<int64_t>,
+      velox::Array<float>>({"bucketize"});
+  velox::registerFunction<
+      bucketize,
+      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
+      velox::Array<int32_t>>({"bucketize"});
+  velox::registerFunction<
+      bucketize,
+      velox::ArrayWriterT<int32_t>,
+      velox::Array<float>,
+      velox::Array<int32_t>>({"bucketize"});
+  velox::registerFunction<
+      bucketize,
+      velox::ArrayWriterT<int32_t>,
+      velox::Array<int64_t>,
+      velox::Array<int32_t>>({"bucketize"});
+  velox::registerFunction<
+      bucketize,
+      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
+      velox::Array<int64_t>>({"bucketize"});
+  velox::registerFunction<
+      bucketize,
+      velox::ArrayWriterT<int32_t>,
+      velox::Array<float>,
+      velox::Array<int64_t>>({"bucketize"});
+  velox::registerFunction<
+      bucketize,
+      velox::ArrayWriterT<int32_t>,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>>({"bucketize"});
 
   // TODO: consider to refactor registration code with helper functions
   // to save some lines, like https://fburl.com/code/dk6zi7t3

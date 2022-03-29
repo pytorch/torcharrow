@@ -49,7 +49,7 @@ setup_wheel_python() {
   conda activate "env$PYTHON_VERSION"
 }
 
-setup_build_version 0.0.2
+setup_build_version 0.0.4
 setup_wheel_python
 python setup.py clean
 if [[ "$(uname)" == Darwin ]]; then
