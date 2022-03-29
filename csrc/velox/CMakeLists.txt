@@ -77,7 +77,6 @@ add_subdirectory(functions)
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
-
 # Link with Velox:
 target_link_libraries(_torcharrow PRIVATE
   velox_vector

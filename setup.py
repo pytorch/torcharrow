@@ -97,7 +97,6 @@ class CMakeBuild(build_ext):
 
         cmake_args = [
             f"-DCMAKE_BUILD_TYPE={cfg}",
-            # f"-DCMAKE_PREFIX_PATH=/Users/nayef211/opt/miniconda3/envs/torchtext/lib/python3.9/site-packages/torch/share/cmake",
             f"-DCMAKE_PREFIX_PATH={torch.utils.cmake_prefix_path}",
             f"-DCMAKE_INSTALL_PREFIX={extdir}",
             # "-DCMAKE_VERBOSE_MAKEFILE=ON",
