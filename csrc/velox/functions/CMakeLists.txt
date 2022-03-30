@@ -16,6 +16,7 @@ add_library(
   text/gpt2_bpe_tokenizer.cpp
   text/regex.h
   text/regex.cpp
+  text/bpe_tokenize.h
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")

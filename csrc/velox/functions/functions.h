@@ -12,6 +12,7 @@
 #include "numeric_functions.h"
 #include "rec/bucketize.h" // @manual
 #include "string_functions.h"
+#include "text/bpe_tokenize.h" // @manual
 #include "velox/expression/VectorFunction.h"
 #include "velox/functions/lib/Re2Functions.h"
 #include "velox/type/Type.h"
@@ -225,6 +226,15 @@ inline void registerTorchArrowFunctions() {
       velox::ArrayWriterT<int32_t>,
       velox::Array<int64_t>,
       velox::Array<int64_t>>({"bucketize"});
+
+  // TorchText
+  // bpe_encode
+    velox::registerFunction<
+      bpe_tokenize,
+      velox::ArrayWriterT<int64_t>,
+      std::shared_ptr<GPT2BPEEncoder>,
+      velox::Varchar>({"bpe_tokenize"});
+
 
   // TODO: consider to refactor registration code with helper functions
   // to save some lines, like https://fburl.com/code/dk6zi7t3
