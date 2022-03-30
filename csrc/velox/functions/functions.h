@@ -227,15 +227,6 @@ inline void registerTorchArrowFunctions() {
       velox::Array<int64_t>,
       velox::Array<int64_t>>({"bucketize"});
 
-  // TorchText
-  // bpe_encode
-    velox::registerFunction<
-      bpe_tokenize,
-      velox::ArrayWriterT<int64_t>,
-      std::shared_ptr<GPT2BPEEncoder>,
-      velox::Varchar>({"bpe_tokenize"});
-
-
   // TODO: consider to refactor registration code with helper functions
   // to save some lines, like https://fburl.com/code/dk6zi7t3
 
