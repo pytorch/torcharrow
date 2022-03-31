@@ -6,33 +6,32 @@
 
 import array as ar
 import warnings
-from typing import List, Callable
+from typing import List, Callable, Optional
 
 import torcharrow as ta
-
-# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
 from tabulate import tabulate
+from torcharrow._functional import functional
 from torcharrow.dispatcher import Dispatcher
-from torcharrow.icolumn import IColumn
-from torcharrow.ilist_column import IListColumn, IListMethods
+from torcharrow.icolumn import Column
+from torcharrow.ilist_column import ListColumn, ListMethods
 from torcharrow.scope import Scope
 
-from .column import ColumnFromVelox
+from .column import ColumnCpuMixin
 from .typing import get_velox_type
 
 # -----------------------------------------------------------------------------
-# IListColumn
+# ListColumn
 
 
-class ListColumnCpu(ColumnFromVelox, IListColumn):
+class ListColumnCpu(ColumnCpuMixin, ListColumn):
 
     # private constructor
     def __init__(self, device, dtype, data, offsets, mask):
         assert dt.is_list(dtype)
-        IListColumn.__init__(self, device, dtype)
+        ListColumn.__init__(self, device, dtype)
 
         self._data = velox.Column(
             velox.VeloxArrayType(get_velox_type(dtype.item_dtype))
@@ -57,9 +56,8 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
     @staticmethod
     def _from_pysequence(device: str, data: List[List], dtype: dt.List):
         if dt.is_primitive(dtype.item_dtype):
-            # pyre-fixme[16]: Module `torcharrow` has no attribute `_torcharrow`.
             velox_column = velox.Column(get_velox_type(dtype), data)
-            return ColumnFromVelox._from_velox(
+            return ColumnCpuMixin._from_velox(
                 device,
                 dtype,
                 velox_column,
@@ -118,7 +116,7 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
             return self.dtype.default_value()
         else:
             return list(
-                ColumnFromVelox._from_velox(
+                ColumnCpuMixin._from_velox(
                     self.device,
                     self._dtype.item_dtype,
                     self._data[i],
@@ -157,7 +155,7 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
         # TODO: more efficient/straightfowrad interop
         arrow_array = self.to_arrow()
 
-        elements = ColumnFromVelox._from_velox(
+        elements = ColumnCpuMixin._from_velox(
             self.device, self._dtype.item_dtype, self._data.elements(), True
         )._to_tensor_default()
         # special case: if the nested type is List (which happens for List[str] that can't be represented as tensor)
@@ -221,26 +219,47 @@ class ListColumnCpu(ColumnFromVelox, IListColumn):
 # ListMethodsCpu
 
 
-class ListMethodsCpu(IListMethods):
-    """Vectorized string functions for IStringColumn"""
+class ListMethodsCpu(ListMethods):
+    """Vectorized string functions for StringColumn"""
 
     def __init__(self, parent: ListColumnCpu):
         super().__init__(parent)
 
-    def vmap(self, fun: Callable[[IColumn], IColumn]):
-        elements = ColumnFromVelox._from_velox(
+    def length(self):
+        return functional.cardinality(self._parent)._with_null(
+            self._parent.dtype.nullable
+        )
+
+    def slice(self, start: int = 0, stop: Optional[int] = None) -> ListColumn:
+        if start < 0:
+            raise NotImplementedError("Negative start position is not supported yet")
+
+        if stop is None:
+            return functional.slice(self._parent, start + 1, 2 ** 31 - 1)._with_null(
+                self._parent.dtype.nullable
+            )
+
+        if stop < 0:
+            raise NotImplementedError("Negative start position is not supported yet")
+
+        return functional.slice(self._parent, start + 1, stop - start)._with_null(
+            self._parent.dtype.nullable
+        )
+
+    def vmap(self, fun: Callable[[Column], Column]):
+        elements = ColumnCpuMixin._from_velox(
             self._parent.device,
             # pyre-fixme[16]: `DType` has no attribute `item_dtype`.
             self._parent._dtype.item_dtype,
-            # pyre-fixme[16]: `IListColumn` has no attribute `_data`.
+            # pyre-fixme[16]: `ListColumn` has no attribute `_data`.
             self._parent._data.elements(),
             True,
         )
         new_elements = fun(elements)
 
-        # pyre-fixme[16]: `IColumn` has no attribute `_data`.
+        # pyre-fixme[16]: `Column` has no attribute `_data`.
         new_data = self._parent._data.withElements(new_elements._data)
-        return ColumnFromVelox._from_velox(
+        return ColumnCpuMixin._from_velox(
             self._parent.device, new_data.dtype(), new_data, True
         )
 

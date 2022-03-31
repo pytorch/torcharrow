@@ -114,6 +114,37 @@ class TestInterop(unittest.TestCase):
         self.assertEqual(df.dtype, df3.dtype)
         self.assertEqual(list(df), list(df3))
 
+    def base_test_from_pysequence(self):
+        ## test with no dtype, to infer
+        ## for input of list and/or tuple
+        col = ta.from_pysequence(data=[None, None, 5], device=self.device)
+        self.assertEqual(list(col), [None, None, 5])
+        self.assertEqual(col.dtype, dt.Int64(nullable=True))
+
+        col = ta.from_pysequence(data=[3, 4, 5], device=self.device)
+        self.assertEqual(list(col), [3, 4, 5])
+        self.assertEqual(col.dtype, dt.int64)
+
+        col = ta.from_pysequence(data=(3, 4, 5), device=self.device)
+        self.assertEqual(list(col), [3, 4, 5])
+        self.assertEqual(col.dtype, dt.int64)
+
+        # test with dtype
+        # for input of list and/or tuple
+        col = ta.from_pysequence(
+            data=[None, None, 5], dtype=dt.Int32(nullable=True), device=self.device
+        )
+        self.assertEqual(list(col), [None, None, 5])
+        self.assertEqual(col.dtype, dt.Int32(nullable=True))
+
+        col = ta.from_pysequence(data=[3, 4, 5], dtype=dt.int32, device=self.device)
+        self.assertEqual(list(col), [3, 4, 5])
+        self.assertEqual(col.dtype, dt.int32)
+
+        col = ta.from_pysequence(data=(3, 4, 5), dtype=dt.int32, device=self.device)
+        self.assertEqual(list(col), [3, 4, 5])
+        self.assertEqual(col.dtype, dt.int32)
+
     def base_test_pad_sequence(self):
         import torch
 
@@ -274,21 +305,6 @@ class TestInterop(unittest.TestCase):
         self.assertTrue(torch.all(tensors.dense_float32 == expected_float_tensor))
         self.assertTrue(torch.all(tensors.dense_float64 == expected_float_tensor))
 
-        # Test unsupported conversion
-        with self.assertRaisesRegex(
-            ValueError, "Column-major Dense format with mask is not supported"
-        ):
-            tensors = df[1:4].to_tensor(
-                {
-                    "dense_int8": tap.rec.Dense(with_presence=True, batch_first=True),
-                    "dense_int16": tap.rec.Dense(),
-                    "dense_int32": tap.rec.Dense(),
-                    "dense_int64": tap.rec.Dense(),
-                    "dense_float32": tap.rec.Dense(),
-                    "dense_float64": tap.rec.Dense(),
-                }
-            )
-
     def base_test_pytorch_transform(self):
         import torch
 
@@ -302,7 +318,7 @@ class TestInterop(unittest.TestCase):
             device=self.device,
         )
 
-        from torcharrow.pytorch import WithPresence, PackedList, PackedMap
+        from torcharrow.pytorch import WithPresence, PackedList
 
         def list_plus_one(x: PackedList[WithPresence[torch.Tensor]]):
             # pyre-fixme[16]: Module `pytorch` has no attribute `PackedList`.

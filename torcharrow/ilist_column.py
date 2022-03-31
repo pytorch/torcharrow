@@ -14,30 +14,30 @@ from typing import Optional, Callable
 import numpy as np
 import torcharrow.dtypes as dt
 
-from .icolumn import IColumn
+from .icolumn import Column
 
 # -----------------------------------------------------------------------------
-# IListColumn
+# ListColumn
 
 
-class IListColumn(IColumn):
+class ListColumn(Column):
 
     # private constructor
     def __init__(self, device, dtype):
         assert dt.is_list(dtype)
         super().__init__(device, dtype)
-        self.list = IListMethods(self)
+        self.list = ListMethods(self)
 
 
 # -----------------------------------------------------------------------------
-# IListMethods
+# ListMethods
 
 
-class IListMethods(abc.ABC):
-    """Vectorized list functions for IListColumn"""
+class ListMethods(abc.ABC):
+    """Vectorized list functions for ListColumn"""
 
     def __init__(self, parent):
-        self._parent: IListColumn = parent
+        self._parent: ListColumn = parent
 
     def length(self):
         me = self._parent
@@ -86,24 +86,24 @@ class IListMethods(abc.ABC):
 
         return me._vectorize(fun, me.dtype.item_dtype.with_null(me.dtype.nullable))
 
-    # pyre-fixme[9]: start has type `int`; used as `None`.
-    # pyre-fixme[9]: stop has type `int`; used as `None`.
-    def slice(self, start: int = None, stop: int = None) -> IListColumn:
-        """Slice sublist from each element in the column"""
-        self._parent._prototype_support_warning("list.slice")
+    def slice(self, start: int = 0, stop: Optional[int] = None) -> ListColumn:
+        """
+        Slice sublist from each element in the column
 
-        me = self._parent
+        Parameters
+        ----------
+        start - int, default 0
+            Start position for slice operation. Negative starting position is not supported yet.
+        start - int, optional
+            Stop position for slice operation. Negative stop position is not supported yet.
+        """
+        raise NotImplementedError
 
-        def fun(i):
-            return i[start:stop]
-
-        return me._vectorize(fun, me.dtype)
-
-    def vmap(self, fun: Callable[[IColumn], IColumn]):
+    def vmap(self, fun: Callable[[Column], Column]):
         """
         EXPERIMENTAL API
 
-        Vectorizing map. Expects a callable that working on a batch (represents by a IColumn).
+        Vectorizing map. Expects a callable that working on a batch (represents by a Column).
 
         Examples:
         >>> import torcharrow as ta

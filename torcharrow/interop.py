@@ -8,15 +8,15 @@ from typing import Optional, Sequence, Union
 
 import torcharrow.dtypes as dt
 
-from .icolumn import IColumn
-from .idataframe import IDataFrame
+from .icolumn import Column
+from .idataframe import DataFrame
 from .interop_arrow import _from_arrow_array, _from_arrow_table
 from .scope import Scope
 
 
 def from_arrow(
     data, dtype: Optional[dt.DType] = None, device: str = ""
-) -> Union[IColumn, IDataFrame]:
+) -> Union[Column, DataFrame]:
     """
     Convert arrow array/table to a TorchArrow Column/DataFrame.
     """
@@ -43,11 +43,15 @@ def from_pandas(data, dtype: Optional[dt.DType] = None, device: str = ""):
 
 def from_pysequence(
     data: Sequence, dtype: Optional[dt.DType] = None, device: str = ""
-) -> IColumn:
+) -> Column:
     """
     Convert Python sequence of scalars or containers to a TorchArrow Column/DataFrame.
+    If dtype is None, it will be automatically inferred from data when possible.
     """
-    # TODO(https://github.com/facebookresearch/torcharrow/issues/80) Infer dtype
+
+    if not dtype:
+        dtype = dt.infer_dtype_from_prefix(data)
+
     device = device or Scope.default.device
 
     # pyre-fixme[6]: For 2nd param expected `DType` but got `Optional[DType]`.

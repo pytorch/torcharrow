@@ -27,6 +27,9 @@ class TestStringColumnCpu(TestStringColumn):
     def test_empty(self):
         self.base_test_empty()
 
+    def test_indexing(self):
+        self.base_test_indexing()
+
     def test_append_offsets(self):
         self.base_test_append_offsets()
 

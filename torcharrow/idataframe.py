@@ -26,15 +26,15 @@ import torcharrow.dtypes as dt
 from torcharrow.dispatcher import Device
 
 from .expression import Var, eval_expression, expression
-from .icolumn import IColumn
+from .icolumn import Column
 from .scope import Scope
 from .trace import trace, traceproperty
 
 # assumes that these have been imported already:
-# from .inumerical_column import INumericalColumn
-# from .istring_column import IStringColumn
-# from .imap_column import IMapColumn
-# from .ilist_column import IMapColumn
+# from .inumerical_column import NumericalColumn
+# from .istring_column import StringColumn
+# from .imap_column import MapColumn
+# from .ilist_column import MapColumn
 
 # ------------------------------------------------------------------------------
 # DataFrame Factory with default scope and device
@@ -159,7 +159,7 @@ def dataframe(
 DataOrDTypeOrNone = Optional[Union[Mapping, Sequence, dt.DType]]
 
 
-class IDataFrame(IColumn):
+class DataFrame(Column):
     """Dataframe, ordered dict of typed columns of the same length"""
 
     def __init__(self, device, dtype):
@@ -172,7 +172,7 @@ class IDataFrame(IColumn):
         return [f.name for f in self.dtype.fields]
 
     @abc.abstractmethod
-    def _set_field_data(self, name: str, col: IColumn, empty_df: bool):
+    def _set_field_data(self, name: str, col: Column, empty_df: bool):
         """
         PRIVATE _set field data, append if field doesn't exist
         self._dtype is already updated upon invocation
@@ -187,7 +187,7 @@ class IDataFrame(IColumn):
 
     @trace
     def __setitem__(self, name: str, value: Any) -> None:
-        if isinstance(value, IColumn):
+        if isinstance(value, Column):
             assert self.device == value.device
             col = value
         else:
@@ -216,7 +216,7 @@ class IDataFrame(IColumn):
 
     @trace
     @expression
-    def isin(self, values: Union[list, dict, IColumn]):
+    def isin(self, values: Union[list, dict, Column]):
         """
         Check whether each element in the dataframe is contained in values.
 
@@ -245,7 +245,7 @@ class IDataFrame(IColumn):
         """
         raise self._not_supported("isin")
 
-    def log(self) -> IDataFrame:
+    def log(self) -> DataFrame:
         raise self._not_supported("log")
 
     # aggregation
@@ -470,7 +470,7 @@ class IDataFrame(IColumn):
 # DataFrameVariable me
 
 
-class IDataFrameVar(Var, IDataFrame):
+class DataFrameVar(Var, DataFrame):
     # A dataframe variable is purely symbolic,
     # It should only appear as part of a relational expression
 
@@ -498,10 +498,10 @@ class IDataFrameVar(Var, IDataFrame):
     def _getdata(self, i):
         return self._not_supported("getdata")
 
-    def _set_field_data(self, name: str, col: IColumn, empty_df: bool):
+    def _set_field_data(self, name: str, col: Column, empty_df: bool):
         raise self._not_supported("_set_field_data")
 
-    def _concat_with(self, columns: List[IColumn]):
+    def _concat_with(self, columns: List[Column]):
         """Returns concatenated columns."""
         raise self._not_supported("_concat_with")
 
@@ -511,4 +511,4 @@ class IDataFrameVar(Var, IDataFrame):
 
 
 # The super variable...
-me = IDataFrameVar("me", "torcharrow.idataframe.me")
+me = DataFrameVar("me", "torcharrow.idataframe.me")

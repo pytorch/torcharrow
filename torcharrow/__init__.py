@@ -7,13 +7,13 @@
 from . import pytorch  # noqa
 from . import velox_rt  # noqa
 from ._functional import functional
-from .icolumn import IColumn, column, concat, if_else  # noqa
-from .idataframe import IDataFrame, dataframe, me  # noqa
-from .ilist_column import IListColumn  # noqa
-from .imap_column import IMapColumn  # noqa
+from .icolumn import Column, column, concat, if_else  # noqa
+from .idataframe import DataFrame, dataframe, me  # noqa
+from .ilist_column import ListColumn  # noqa
+from .imap_column import MapColumn  # noqa
 from .interop import from_pysequence, from_arrow  # noqa
-from .inumerical_column import INumericalColumn  # noqa
-from .istring_column import IStringColumn  # noqa
+from .inumerical_column import NumericalColumn  # noqa
+from .istring_column import StringColumn  # noqa
 
 try:
     # pyre-fixme[21]: Could not find module `torcharrow.version`.
@@ -26,15 +26,16 @@ __all__ = [
     "column",
     "concat",
     "if_else",
+    "from_arrow",
     "from_pysequence",
     "me",
     "functional",
-    "IDataFrame",
-    "IColumn",
-    "INumericalColumn",
-    "IStringColumn",
-    "IListColumn",
-    "IMapColumn",
+    "DataFrame",
+    "Column",
+    "NumericalColumn",
+    "StringColumn",
+    "ListColumn",
+    "MapColumn",
 ]
 
 # module level doc-string

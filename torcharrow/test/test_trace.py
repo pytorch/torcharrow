@@ -10,7 +10,7 @@ import unittest
 import torcharrow as ta
 import torcharrow.dtypes as dt
 from torcharrow import me
-from torcharrow.icolumn import IColumn
+from torcharrow.icolumn import Column
 from torcharrow.scope import Scope
 from torcharrow.trace import trace
 from torcharrow.velox_rt.dataframe_cpu import GroupedDataFrame
@@ -138,7 +138,7 @@ class TestColumnTrace(unittest.TestCase):
         Scope.default = Scope(
             {
                 "tracing": True,
-                "types_to_trace": [Scope, IColumn],
+                "types_to_trace": [Scope, Column],
             }
         )
 
@@ -186,20 +186,20 @@ class TestColumnTrace(unittest.TestCase):
         # print("TRACE", cmds(Scope.default.trace.statements()))
         verdict = [
             "c0 = torcharrow.scope.Scope._Column(int64, dtype=None, device='cpu')",
-            "c1 = torcharrow.icolumn.IColumn.append(c0, [13])",
-            "c2 = torcharrow.icolumn.IColumn.append(c1, [14])",
-            "c3 = torcharrow.icolumn.IColumn.append(c2, [16, 19])",
-            "_ = torcharrow.icolumn.IColumn.__getitem__(c3, 0)",
-            "c4 = torcharrow.icolumn.IColumn.__getitem__(c3, slice(None, 1, None))",
-            "c5 = torcharrow.icolumn.IColumn.__getitem__(c3, [0, 1])",
+            "c1 = torcharrow.icolumn.Column.append(c0, [13])",
+            "c2 = torcharrow.icolumn.Column.append(c1, [14])",
+            "c3 = torcharrow.icolumn.Column.append(c2, [16, 19])",
+            "_ = torcharrow.icolumn.Column.__getitem__(c3, 0)",
+            "c4 = torcharrow.icolumn.Column.__getitem__(c3, slice(None, 1, None))",
+            "c5 = torcharrow.icolumn.Column.__getitem__(c3, [0, 1])",
             "c6 = torcharrow.scope.Scope._Column([True, True], dtype=None, device='cpu')",
             "c7 = torcharrow.velox_rt.numerical_column_cpu.NumericalColumnCpu.__ne__(c3, c3)",
-            "c8 = torcharrow.icolumn.IColumn.__getitem__(c3, c7)",
-            "c9 = torcharrow.icolumn.IColumn.head(c3, 17)",
-            "c10 = torcharrow.icolumn.IColumn.tail(c5, -12)",
-            "c11 = torcharrow.icolumn.IColumn.map(c3, {13: 133}, dtype=Int64(nullable=True))",
-            "c12 = torcharrow.icolumn.IColumn.map(c3, h)",
-            "_ = torcharrow.icolumn.IColumn.reduce(c3, operator.add, 0)",
+            "c8 = torcharrow.icolumn.Column.__getitem__(c3, c7)",
+            "c9 = torcharrow.icolumn.Column.head(c3, 17)",
+            "c10 = torcharrow.icolumn.Column.tail(c5, -12)",
+            "c11 = torcharrow.icolumn.Column.map(c3, {13: 133}, dtype=Int64(nullable=True))",
+            "c12 = torcharrow.icolumn.Column.map(c3, h)",
+            "_ = torcharrow.icolumn.Column.reduce(c3, operator.add, 0)",
             "c13 = torcharrow.velox_rt.numerical_column_cpu.NumericalColumnCpu.sort(c3, ascending=False)",
         ]
 
@@ -219,7 +219,7 @@ def add(tup):
 
 class TestDataframeTrace(unittest.TestCase):
     def setUp(self):
-        types = [Scope, IColumn, GroupedDataFrame]
+        types = [Scope, Column, GroupedDataFrame]
         Scope.default = Scope({"tracing": True, "types_to_trace": types})
 
     def test_simple_df_ops_fail(self):
@@ -259,13 +259,13 @@ class TestDataframeTrace(unittest.TestCase):
         # print("TRACE", cmds(Scope.default.trace.statements()))
         verdict = [
             "c0 = torcharrow.scope.Scope._DataFrame(None, dtype=None, columns=None, device='cpu')",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'a', [1, 2, 3])",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'b', [11, 22, 33])",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'c', [111, 222, 333])",
-            "c4 = torcharrow.icolumn.IColumn.__getitem__(c0, 'a')",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'd', c4)",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'a', [1, 2, 3])",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'b', [11, 22, 33])",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'c', [111, 222, 333])",
+            "c4 = torcharrow.icolumn.Column.__getitem__(c0, 'a')",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'd', c4)",
             "c11 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.drop(c0, ['a'])",
-            "c16 = torcharrow.icolumn.IColumn.__getitem__(c0, ['a', 'c'])",
+            "c16 = torcharrow.icolumn.Column.__getitem__(c0, ['a', 'c'])",
             "c21 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.rename(c16, {'c': 'e'})",
             "c24 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.min(c21)",
         ]
@@ -285,7 +285,7 @@ class TestDataframeTrace(unittest.TestCase):
         df["a"] = [1, 2, 3]
         self.assertEqual(
             Scope.default.trace.statements()[-1],
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'a', [1, 2, 3])",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'a', [1, 2, 3])",
         )
 
         df["b"] = [11, 22, 33]
@@ -295,9 +295,9 @@ class TestDataframeTrace(unittest.TestCase):
         # print("TRACE", cmds(Scope.default.trace.statements()))
         verdict = [
             "c0 = torcharrow.scope.Scope._DataFrame(None, dtype=None, columns=None, device='cpu')",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'a', [1, 2, 3])",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'b', [11, 22, 33])",
-            "_ = torcharrow.idataframe.IDataFrame.__setitem__(c0, 'c', [111, 222, 333])",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'a', [1, 2, 3])",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'b', [11, 22, 33])",
+            "_ = torcharrow.idataframe.DataFrame.__setitem__(c0, 'c', [111, 222, 333])",
             "c9 = torcharrow.velox_rt.dataframe_cpu.DataFrameCpu.where(c0, torcharrow.idataframe.me.__getitem__('a').__gt__(1))",
         ]
 

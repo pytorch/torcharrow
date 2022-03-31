@@ -9,17 +9,19 @@
 #include "column.h"
 #include <memory>
 #include "bindings.h"
+#include "VariantToVector.h"
 
-#include "velox/common/memory/Memory.h"
-#include "velox/type/Type.h"
-#include "velox/vector/ComplexVector.h"
+#include "pybind11/numpy.h"
+#include "pybind11/stl.h"
 #include "velox/common/base/Exceptions.h"
+#include "velox/common/memory/Memory.h"
 #include "velox/core/Expressions.h"
 #include "velox/core/ITypedExpr.h"
 #include "velox/expression/Expr.h"
+#include "velox/functions/FunctionRegistry.h"
 #include "velox/type/Type.h"
 #include "velox/vector/BaseVector.h"
-#include "velox/functions/FunctionRegistry.h"
+#include "velox/vector/ComplexVector.h"
 
 namespace py = pybind11;
 
@@ -89,8 +91,22 @@ std::unique_ptr<BaseColumn> BaseColumn::createConstantColumn(
   // However, at some point we also want to revisit whether
   // SimpleColumn/ConstantColumn needs to be templated and thus we could
   // remove the first dispatch.
-  return VELOX_DYNAMIC_SCALAR_TYPE_DISPATCH_ALL(
-      doCreateConstantColumn, value.kind(), value, size);
+  auto kind = value.kind();
+
+  switch (kind) {
+    case velox::TypeKind::ARRAY: {
+      return std::make_unique<ConstantColumn<velox::ComplexType>>(
+          // Convert array variant value into a single-element ArrayVector
+          variantArrayToVector(
+              value.value<velox::TypeKind::ARRAY>(),
+              TorchArrowGlobalStatic::rootMemoryPool()),
+          0,
+          size);
+    }
+    default:
+      return VELOX_DYNAMIC_SCALAR_TYPE_DISPATCH_ALL(
+          doCreateConstantColumn, value.kind(), value, size);
+  }
 }
 
 std::unique_ptr<BaseColumn> ArrayColumn::valueAt(velox::vector_size_t i) {
@@ -212,6 +228,19 @@ OperatorHandle* BaseColumn::getOrCreateBinaryOperatorHandle(
   return ops[c0TypeId][c1TypeId][commonTypeId][opCodeId].get();
 }
 
+void BaseColumn::exportToArrow(ArrowArray* output) {
+  if (getOffset() != 0 || getLength() < getUnderlyingVeloxVector()->size()) {
+    // This is a slice. Make a copy of the slice and then export the
+    // slice to Arrow
+    velox::VectorPtr temp = vectorSlice(
+        *getUnderlyingVeloxVector(), getOffset(), getOffset() + getLength());
+    temp->setNullCount(getNullCount());
+    velox::exportToArrow(temp, *output);
+  } else {
+    velox::exportToArrow(getUnderlyingVeloxVector(), *output);
+  }
+}
+
 std::shared_ptr<velox::exec::ExprSet> BaseColumn::genBinaryExprSet(
     std::shared_ptr<const velox::RowType> inputRowType,
     std::shared_ptr<const velox::Type> commonType,
@@ -229,8 +258,7 @@ std::shared_ptr<velox::exec::ExprSet> BaseColumn::genBinaryExprSet(
   for (int i = 0; i < 2; i++) {
     auto fieldAccessTypedExpr =
         std::make_shared<velox::core::FieldAccessTypedExpr>(
-            inputRowType->childAt(i),
-            inputRowType->nameOf(i));
+            inputRowType->childAt(i), inputRowType->nameOf(i));
 
     if (*inputRowType->childAt(i) == *commonType) {
       // no need to cast
@@ -266,9 +294,9 @@ std::unique_ptr<BaseColumn> BaseColumn::genericUnaryUDF(
 
   auto iter = dispatchTable.find(key);
   if (iter == dispatchTable.end()) {
-    iter = dispatchTable
-               .insert({key, OperatorHandle::fromUDF(rowType, udfName)})
-               .first;
+    iter =
+        dispatchTable.insert({key, OperatorHandle::fromUDF(rowType, udfName)})
+            .first;
   }
   return iter->second->call({col1.getUnderlyingVeloxVector()});
 }
@@ -289,9 +317,9 @@ std::unique_ptr<BaseColumn> BaseColumn::genericBinaryUDF(
 
   auto iter = dispatchTable.find(key);
   if (iter == dispatchTable.end()) {
-    iter = dispatchTable
-               .insert({key, OperatorHandle::fromUDF(rowType, udfName)})
-               .first;
+    iter =
+        dispatchTable.insert({key, OperatorHandle::fromUDF(rowType, udfName)})
+            .first;
   }
   return iter->second->call(
       {col1.getUnderlyingVeloxVector(), col2.getUnderlyingVeloxVector()});
@@ -315,9 +343,9 @@ std::unique_ptr<BaseColumn> BaseColumn::genericTrinaryUDF(
 
   auto iter = dispatchTable.find(key);
   if (iter == dispatchTable.end()) {
-    iter = dispatchTable
-               .insert({key, OperatorHandle::fromUDF(rowType, udfName)})
-               .first;
+    iter =
+        dispatchTable.insert({key, OperatorHandle::fromUDF(rowType, udfName)})
+            .first;
   }
   return iter->second->call(
       {col1.getUnderlyingVeloxVector(),
@@ -337,9 +365,9 @@ std::unique_ptr<BaseColumn> BaseColumn::factoryNullaryUDF(
 
   auto iter = dispatchTable.find(key);
   if (iter == dispatchTable.end()) {
-    iter = dispatchTable
-               .insert({key, OperatorHandle::fromUDF(rowType, udfName)})
-               .first;
+    iter =
+        dispatchTable.insert({key, OperatorHandle::fromUDF(rowType, udfName)})
+            .first;
   }
   return iter->second->call(size);
 }
@@ -357,8 +385,7 @@ std::unique_ptr<OperatorHandle> OperatorHandle::fromCall(
   for (int i = 0; i < inputRowType->size(); i++) {
     auto fieldAccessTypedExpr =
         std::make_shared<velox::core::FieldAccessTypedExpr>(
-            inputRowType->childAt(i),
-            inputRowType->nameOf(i));
+            inputRowType->childAt(i), inputRowType->nameOf(i));
 
     fieldAccessTypedExprs.push_back(fieldAccessTypedExpr);
   }
@@ -375,7 +402,8 @@ std::unique_ptr<OperatorHandle> OperatorHandle::fromCall(
 std::unique_ptr<OperatorHandle> OperatorHandle::fromUDF(
     velox::RowTypePtr inputRowType,
     const std::string& udfName) {
-  velox::TypePtr outputType = velox::resolveFunction(udfName, inputRowType->children());
+  velox::TypePtr outputType =
+      velox::resolveFunction(udfName, inputRowType->children());
   if (outputType == nullptr) {
     throw std::runtime_error("Request for unknown Velox UDF: " + udfName);
   }
@@ -389,8 +417,7 @@ std::unique_ptr<OperatorHandle> OperatorHandle::fromCast(
       std::vector<std::shared_ptr<const velox::core::ITypedExpr>>;
   InputExprList fieldAccessTypedExprs{
       std::make_shared<velox::core::FieldAccessTypedExpr>(
-          inputRowType->childAt(0),
-          inputRowType->nameOf(0))};
+          inputRowType->childAt(0), inputRowType->nameOf(0))};
 
   InputExprList castTypedExprs{std::make_shared<velox::core::CastTypedExpr>(
       outputType, std::move(fieldAccessTypedExprs), false /* nullOnFailure */)};
@@ -398,10 +425,12 @@ std::unique_ptr<OperatorHandle> OperatorHandle::fromCast(
   return std::make_unique<OperatorHandle>(
       inputRowType,
       std::make_shared<velox::exec::ExprSet>(
-        std::move(castTypedExprs), &TorchArrowGlobalStatic::execContext()));
+          std::move(castTypedExprs), &TorchArrowGlobalStatic::execContext()));
 }
 
-std::unique_ptr<BaseColumn> OperatorHandle::call(velox::RowVectorPtr inputRows, velox::vector_size_t size) {
+std::unique_ptr<BaseColumn> OperatorHandle::call(
+    velox::RowVectorPtr inputRows,
+    velox::vector_size_t size) {
   velox::exec::EvalCtx evalCtx(
       &TorchArrowGlobalStatic::execContext(), exprSet_.get(), inputRows.get());
   velox::SelectivityVector select(size);
@@ -423,8 +452,7 @@ std::unique_ptr<BaseColumn> OperatorHandle::call(velox::vector_size_t size) {
   return call(inputRows, size);
 }
 
-std::unique_ptr<BaseColumn> OperatorHandle::call(
-    velox::VectorPtr a) {
+std::unique_ptr<BaseColumn> OperatorHandle::call(velox::VectorPtr a) {
   velox::RowVectorPtr inputRows = wrapRowVector({a}, inputRowType_);
   return call(inputRows, a->size());
 }
@@ -510,8 +538,7 @@ velox::core::QueryCtx& TorchArrowGlobalStatic::queryContext() {
 velox::core::ExecCtx& TorchArrowGlobalStatic::execContext() {
   static auto pool = velox::memory::getDefaultScopedMemoryPool();
   static velox::core::ExecCtx execContext(
-      pool.get(),
-      &TorchArrowGlobalStatic::queryContext());
+      pool.get(), &TorchArrowGlobalStatic::queryContext());
   return execContext;
 }
 
@@ -519,6 +546,63 @@ velox::core::ExecCtx& TorchArrowGlobalStatic::execContext() {
 // conversion to minimize code duplication.
 // TODO: Open source some part of utility codes in Koski (PyVelox?)
 velox::variant pyToVariant(const pybind11::handle& obj) {
+  // Numpy compatibility
+  //
+  // This check comes before primitive values, because np.float64() will
+  // evaluate as True for both of the following:
+  //    py::isinstance<py::float_>(obj)
+  //    py::isinstance<py::buffer>(obj)
+  //
+  // Thus, if we check primitive values first, pyToVariant(np.float64(1.0))
+  //    will return a variant with REAL type, although
+  //    the value is annoated as float64.
+  //
+  // py::buffer comes with explicit dtype information, so check this before
+  // primitive values.
+  if (py::isinstance<py::buffer>(obj)) {
+    auto buf = py::cast<py::buffer>(obj);
+    auto info = buf.request();
+    // Only scalars are supported for now, proper ndarrays can be added later
+    // We don't handle default cases in `switch` because fall through code
+    // at the end of the function generates a good error message anyway.
+    if (info.size == 1 && info.ndim == 0) {
+      auto dtype = py::dtype(info);
+      // https://numpy.org/doc/stable/reference/generated/numpy.dtype.kind.html
+      switch (dtype.kind()) {
+        case 'i': {
+          switch (dtype.itemsize()) {
+            case 1:
+              return velox::variant::create<velox::TypeKind::TINYINT>(
+                  py::array_t<int8_t>::ensure(obj).at());
+            case 2:
+              return velox::variant::create<velox::TypeKind::SMALLINT>(
+                  py::array_t<int16_t>::ensure(obj).at());
+            case 4:
+              return velox::variant::create<velox::TypeKind::INTEGER>(
+                  py::array_t<int32_t>::ensure(obj).at());
+            case 8:
+              return velox::variant::create<velox::TypeKind::BIGINT>(
+                  py::array_t<int64_t>::ensure(obj).at());
+          }
+        } break;
+        case 'f': {
+          switch (dtype.itemsize()) {
+            case 4:
+              return velox::variant::create<velox::TypeKind::REAL>(
+                  py::array_t<float>::ensure(obj).at());
+            case 8:
+              return velox::variant::create<velox::TypeKind::DOUBLE>(
+                  py::array_t<double>::ensure(obj).at());
+          }
+        } break;
+        case 'b':
+          return velox::variant::create<velox::TypeKind::BOOLEAN>(
+              py::array_t<bool>::ensure(obj).at());
+      }
+    }
+  }
+
+  // Base cases: primitives can be simply returned
   if (py::isinstance<py::bool_>(obj)) {
     return velox::variant::create<velox::TypeKind::BOOLEAN>(
         py::cast<bool>(obj));
@@ -533,15 +617,74 @@ velox::variant pyToVariant(const pybind11::handle& obj) {
     return velox::variant();
   }
 
+  // Check opaque types before containers because some of them might be iterable
   velox::variant out;
-  if (userDefinedPyToVariant(obj, out)) {
+  if (userDefinedPyToOpaque(obj, out)) {
     return out;
+  }
+
+  // Recursively allocate lists
+  if (py::isinstance<py::list>(obj)) {
+    auto casted = py::cast<py::list>(obj);
+    using List = typename velox::detail::VariantTypeTraits<
+        velox::TypeKind::ARRAY>::stored_type;
+    List variantList;
+    for (const auto& item : casted) {
+      variantList.push_back(pyToVariant(item));
+    }
+    return velox::variant::create<velox::TypeKind::ARRAY>(variantList);
   }
 
   VELOX_CHECK(
       false,
       "Unsupported Python type {}",
       py::str(py::type::of(obj)).cast<std::string>());
+}
+
+velox::variant pyToVariantTyped(
+    const py::handle& obj,
+    const std::shared_ptr<const velox::Type>& type) {
+  auto typeKind = type->kind();
+  // Handle nulls
+  if (obj.is_none()) {
+    return velox::variant::null(typeKind);
+  }
+  if (py::isinstance<velox::variant>(obj)) {
+    return velox::variant(py::cast<velox::variant>(obj));
+  }
+  switch (typeKind) {
+    // Base cases: primitives can be simply returned
+    case velox::TypeKind::BOOLEAN:
+      return velox::variant::create<velox::TypeKind::BOOLEAN>(
+          py::cast<bool>(obj));
+    case velox::TypeKind::TINYINT:
+      return velox::variant::create<velox::TypeKind::TINYINT>(
+          py::cast<int8_t>(obj));
+    case velox::TypeKind::SMALLINT:
+      return velox::variant::create<velox::TypeKind::SMALLINT>(
+          py::cast<int16_t>(obj));
+    case velox::TypeKind::INTEGER:
+      return velox::variant::create<velox::TypeKind::INTEGER>(
+          py::cast<int32_t>(obj));
+    case velox::TypeKind::BIGINT:
+      return velox::variant::create<velox::TypeKind::BIGINT>(
+          py::cast<int64_t>(obj));
+    case velox::TypeKind::REAL:
+      return velox::variant::create<velox::TypeKind::REAL>(
+          py::cast<float>(obj));
+    case velox::TypeKind::DOUBLE:
+      return velox::variant::create<velox::TypeKind::DOUBLE>(
+          py::cast<double>(obj));
+    default: {
+      std::string typeName = py::str(obj.get_type());
+      VELOX_CHECK(
+          false,
+          fmt::format(
+              "Inputted type conversion from {} to {} not implemented",
+              typeName,
+              typeKind));
+    }
+  }
 }
 
 } // namespace facebook::torcharrow

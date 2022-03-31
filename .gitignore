@@ -32,3 +32,8 @@ _build/
 
 # Generated Files
 torcharrow/version.py
+
+# sphinx documentation
+docs/source/generated
+# pytorch-sphinx-theme gets installed here
+docs/src

@@ -18,7 +18,7 @@ import torcharrow.pytorch as tap
 from torcharrow import functional
 
 try:
-    # @manual=//configerator/structs/fblearner/interface:features-py
+    # @manual=@/third-party:apache-arrow:apache-arrow-py
     import pyarrow.parquet as pq
 
     HAS_PYARROW_PARQUET = True
@@ -62,13 +62,13 @@ DTYPE = dt.Struct(
 class _DenseConversion(tap.TensorConversion):
     # pyre-fixme[14]: `to_tensor` overrides method defined in `TensorConversion`
     #  inconsistently.
-    def to_tensor(self, df: ta.IDataFrame):
+    def to_tensor(self, df: ta.DataFrame):
         # Default to_tensor, each field is a Tensor
         tensors = df.to_tensor()
 
         # Stack them into BatchSize * NumFields Tensor
         return torch.cat(
-            [column_tensor.values.unsqueeze(0).T for column_tensor in tensors], dim=1
+            [column_tensor.unsqueeze(0).T for column_tensor in tensors], dim=1
         )
 
 
@@ -78,7 +78,7 @@ class _DenseConversion(tap.TensorConversion):
 class _CriteoJaggedTensorConversion(tap.TensorConversion):
     # pyre-fixme[14]: `to_tensor` overrides method defined in `TensorConversion`
     #  inconsistently.
-    def to_tensor(self, df: ta.IDataFrame):
+    def to_tensor(self, df: ta.DataFrame):
         # TODO: Implement df.size(), similar to Pandas
         num_arrays = len(df) * len(df.columns)
 
@@ -143,7 +143,7 @@ class CriteoIntegrationTest(unittest.TestCase):
         os.remove(self.TEMPORARY_PARQUETY_FILE)
 
     @staticmethod
-    def preproc(df: ta.IDataFrame) -> ta.IDataFrame:
+    def preproc(df: ta.DataFrame) -> ta.DataFrame:
         # 1. fill null values
         df["dense_features"] = df["dense_features"].fill_null(0)
         df["sparse_features"] = df["sparse_features"].fill_null(0)
@@ -173,8 +173,8 @@ class CriteoIntegrationTest(unittest.TestCase):
         self.assertEqual(df.dtype, DTYPE)
         self.assertEqual(list(df), self.RAW_ROWS)
 
-        # pyre-fixme[6]: For 1st param expected `IDataFrame` but got `Union[IColumn,
-        #  IDataFrame]`.
+        # pyre-fixme[6]: For 1st param expected `DataFrame` but got `Union[Column,
+        #  DataFrame]`.
         df = type(self).preproc(df)
 
         # Check result

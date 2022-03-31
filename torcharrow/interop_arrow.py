@@ -9,8 +9,8 @@ from typing import Optional
 import torcharrow.dtypes as dt
 
 from .dispatcher import Dispatcher
-from .icolumn import IColumn
-from .idataframe import dataframe, IDataFrame
+from .icolumn import Column
+from .idataframe import dataframe, DataFrame
 from .scope import Scope
 
 
@@ -19,7 +19,7 @@ def _from_arrow_array(
     array,  # type: pa.Array
     dtype: Optional[dt.DType] = None,
     device: str = "",
-) -> IColumn:
+) -> Column:
     device = device or Scope.default.device
 
     import pyarrow as pa
@@ -56,7 +56,7 @@ def _from_arrow_table(
     table,  # type: pa.Table
     dtype: Optional[dt.DType] = None,
     device: str = "",
-) -> IDataFrame:
+) -> DataFrame:
     device = device or Scope.default.device
 
     import pyarrow as pa

@@ -98,9 +98,9 @@ class Scope:
     @staticmethod
     def _require_column_constructors_to_be_registered():
         from .idataframe import dataframe
-        from .ilist_column import IListColumn
-        from .imap_column import IMapColumn
-        from .istring_column import IStringColumn
+        from .ilist_column import ListColumn
+        from .imap_column import MapColumn
+        from .istring_column import StringColumn
         from .velox_rt import NumericalColumnCpu
 
     # private column/dataframe constructors -----------------------------------
@@ -202,7 +202,7 @@ class Scope:
 
         if data is not None:
             warnings.warn(
-                "Constructing column from non Python list/IColumn may result in degenerated performance"
+                "Constructing column from non Python list/Column may result in degenerated performance"
             )
 
         # dtype given, optional data
@@ -382,7 +382,7 @@ but data only provides {len(data)} fields: {data.keys()}
     # helper ------------------------------------------------------------------
     @staticmethod
     def _is_column(c):
-        # NOTE: should be isinstance(c, IColumn)
+        # NOTE: should be isinstance(c, Column)
         # But can't do tha due to cyclic reference, so we use ...
         return c is not None and hasattr(c, "_dtype") and hasattr(c, "_device")
 

@@ -50,20 +50,19 @@ jobs:
           sudo apt-get update
           sudo apt install -y g++ cmake ccache ninja-build checkinstall git \
           libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
-          libbz2-dev libgflags-dev libgtest-dev libgmock-dev libevent-dev \
-          libprotobuf-dev liblz4-dev libzstd-dev libre2-dev libsnappy-dev liblzo2-dev \
-          protobuf-compiler
+          libgtest-dev libgflags-dev libevent-dev libre2-dev
 
       # Based on https://github.com/facebookincubator/velox/blob/99429407c3d524e07b32b8b19a03aa7382f819cf/.circleci/config.yml#L114-L116
       - name: Configure ccache
         run: |
           echo "$GITHUB_WORKSPACE"
-          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz -M 5G
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache_root ccache -sz -M 1G
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz -M 1G
 
       - name: Build and install folly and fmt
         # sudo doesn't preserve environment vairable; set it after sudo: https://stackoverflow.com/questions/8633461/how-to-keep-environment-variables-when-using-sudo/33183620#33183620
         run: |
-          sudo CMAKE_C_COMPILER_LAUNCHER=ccache CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache scripts/setup-ubuntu.sh
+          sudo CMAKE_C_COMPILER_LAUNCHER=ccache CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache_root scripts/setup-ubuntu.sh
 
       - name: Bulid TorchArrow
         run: |
@@ -77,3 +76,14 @@ jobs:
 
       - name : Run TorchArrow unit tests
         run: pytest --no-header -v torcharrow/test
+
+      - name : Install TorchArrow
+        run: |
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache python setup.py install --user
+        
+      - name: Build the docs
+        run: |
+          cd ./docs
+          pip3 install -r requirements.txt --user
+          make html 
+          cd ..      

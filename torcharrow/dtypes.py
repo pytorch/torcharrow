@@ -12,8 +12,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace, is_dataclass
 
 import numpy as np
-
-# pyre-fixme[21]: Could not find module `torcharrow._torcharrow`.
 import torcharrow._torcharrow
 import typing_inspect
 
@@ -275,7 +273,8 @@ class Struct(DType):
     arraycode: ty.ClassVar[str] = ""
 
     # For generating NamedTuple class name for cached _py_type (done in __post__init__)
-    _py_type_id: ty.ClassVar[int] = 0
+    _global_py_type_id: ty.ClassVar[int] = 0
+    _local_py_type_id: int = dataclasses.field(compare=False, default=-1)
 
     # TODO: perhaps this should be a private method
     def get_index(self, name: str) -> int:
@@ -285,6 +284,20 @@ class Struct(DType):
         # pyre-fixme[7]: Expected `int` but got `None`.
         return None
 
+    def __getstate__(self):
+        # _py_type is NamedTuple which is not pickle-able, skip it
+        return (self.fields, self.nullable, self.is_dataframe, self.metadata)
+
+    def __setstate__(self, state):
+        # Restore state, __setattr__ hack is needed due to the frozen dataclass
+        object.__setattr__(self, "fields", state[0])
+        object.__setattr__(self, "nullable", state[1])
+        object.__setattr__(self, "is_dataframe", state[2])
+        object.__setattr__(self, "metadata", state[3])
+
+        # reconstruct _py_type
+        self.__post_init__()
+
     def __post_init__(self):
         if self.nullable:
             for f in self.fields:
@@ -292,6 +305,10 @@ class Struct(DType):
                     raise TypeError(
                         f"nullable structs require each field (like {f.name}) to be nullable as well."
                     )
+        object.__setattr__(self, "_local_py_type_id", type(self)._global_py_type_id)
+        type(self)._global_py_type_id += 1
+
+    def _set_py_type(self):
         # cache the type instance, __setattr__ hack is needed due to the frozen dataclass
         # the _py_type is not listed above to avoid participation in equality check
 
@@ -311,17 +328,20 @@ class Struct(DType):
             self,
             "_py_type",
             ty.NamedTuple(
-                "TorchArrowGeneratedStruct_" + str(type(self)._py_type_id),
+                "TorchArrowGeneratedStruct_" + str(self._local_py_type_id),
                 [
                     (fix_name(f.name, idx), f.dtype.py_type)
                     for (idx, f) in enumerate(self.fields)
                 ],
             ),
         )
-        type(self)._py_type_id += 1
 
     @property
     def py_type(self):
+        if not hasattr(self, "_py_type"):
+            # this call is expensive due to the namedtuple creation, so
+            # do it lazily
+            self._set_py_type()
         return self._py_type
 
     def constructor(self, nullable):
@@ -944,13 +964,13 @@ def dtype_from_batch_pytype(typ: ty.Type) -> DType:
     """
     Like dtype_of_type but representing type hint for the set of rows. Can be a Column or a python List of nested types
     """
-    from .icolumn import IColumn
+    from .icolumn import Column
 
     assert type is not None
 
-    if inspect.isclass(typ) and issubclass(typ, IColumn):
+    if inspect.isclass(typ) and issubclass(typ, Column):
         # TODO: we need a type annotation for Columns with statically accessible dtype
-        raise TypeError("Cannot infer dtype from IColumn")
+        raise TypeError("Cannot infer dtype from Column")
 
     if get_origin(typ) in (List, list):
         args = get_args(typ)

@@ -18,6 +18,7 @@
 #include "bindings.h"
 #include "column.h"
 #include "functions/functions.h" // @manual=//pytorch/torcharrow/csrc/velox/functions:torcharrow_functions
+#include "tensor_conversion.h"
 #include "vector.h"
 #include "velox/buffer/StringViewBufferHolder.h"
 #include "velox/common/base/Exceptions.h"
@@ -25,7 +26,6 @@
 #include "velox/type/Type.h"
 #include "velox/vector/TypeAliases.h"
 #include "velox/vector/arrow/Bridge.h"
-#include "tensor_conversion.h"
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -74,7 +74,8 @@ velox::FlatVectorPtr<T> flatVectorFromPySequence(const PySequence& data) {
         // std::string onto the buffers it manages. We can teach
         // StringViewBufferHolder how to copy data from
         // pybind11::str/pybind11::object to skip one copy
-        rawData[i] = stringArena.getOwnedValue(data[i].template cast<std::string>());
+        rawData[i] =
+            stringArena.getOwnedValue(data[i].template cast<std::string>());
       } else {
         rawData[i] = data[i].template cast<T>();
       }
@@ -145,14 +146,16 @@ py::class_<SimpleColumn<T>, BaseColumn> declareSimpleType(
       "Column",
       [](std::shared_ptr<I> type,
          py::list data) -> std::unique_ptr<SimpleColumn<T>> {
-        return std::make_unique<SimpleColumn<T>>(flatVectorFromPySequence<T>(data));
+        return std::make_unique<SimpleColumn<T>>(
+            flatVectorFromPySequence<T>(data));
       });
   // Column construction from Python tuple
   m.def(
       "Column",
       [](std::shared_ptr<I> type,
          py::tuple data) -> std::unique_ptr<SimpleColumn<T>> {
-        return std::make_unique<SimpleColumn<T>>(flatVectorFromPySequence<T>(data));
+        return std::make_unique<SimpleColumn<T>>(
+            flatVectorFromPySequence<T>(data));
       });
 
   // Import/Export Arrow data
@@ -194,19 +197,7 @@ py::class_<SimpleColumn<T>, BaseColumn> declareSimpleType(
           ArrowArray* castedArray = reinterpret_cast<ArrowArray*>(ptrArray);
           VELOX_CHECK_NOT_NULL(castedArray);
 
-          if (self.getOffset() != 0 ||
-              self.getLength() < self.getUnderlyingVeloxVector()->size()) {
-            // This is a slice. Make a copy of the slice and then export the
-            // slice to Arrow
-            velox::VectorPtr temp = vectorSlice(
-                *self.getUnderlyingVeloxVector(),
-                self.getOffset(),
-                self.getOffset() + self.getLength());
-            temp->setNullCount(self.getNullCount());
-            velox::exportToArrow(temp, *castedArray);
-          } else {
-            velox::exportToArrow(self.getUnderlyingVeloxVector(), *castedArray);
-          }
+          self.exportToArrow(castedArray);
         });
   }
 
@@ -741,7 +732,13 @@ void declareRowType(py::module& m) {
       .def("slice", &RowColumn::slice)
       .def("set_length", &RowColumn::setLength)
       .def("set_null_at", &RowColumn::setNullAt)
-      .def("copy", &RowColumn::copy);
+      .def("copy", &RowColumn::copy)
+      .def("_export_to_arrow", [](RowColumn& self, uintptr_t ptrArray) {
+        ArrowArray* castedArray = reinterpret_cast<ArrowArray*>(ptrArray);
+        VELOX_CHECK_NOT_NULL(castedArray);
+
+        self.exportToArrow(castedArray);
+      });
 
   using I = typename velox::TypeTraits<velox::TypeKind::ROW>::ImplType;
   py::class_<I, velox::Type, std::shared_ptr<I>>(
@@ -760,6 +757,28 @@ void declareRowType(py::module& m) {
   m.def("Column", [](std::shared_ptr<I> type) {
     return std::make_unique<RowColumn>(type);
   });
+  // _torcharrow._import_from_arrow
+  m.def(
+      "_import_from_arrow",
+      [](std::shared_ptr<I> type, uintptr_t ptrArray, uintptr_t ptrSchema) {
+        ArrowArray* castedArray = reinterpret_cast<ArrowArray*>(ptrArray);
+        ArrowSchema* castedSchema = reinterpret_cast<ArrowSchema*>(ptrSchema);
+        VELOX_CHECK_NOT_NULL(castedArray);
+        VELOX_CHECK_NOT_NULL(castedSchema);
+
+        auto column = std::make_unique<RowColumn>(velox::importFromArrowAsOwner(
+            *castedSchema,
+            *castedArray,
+            TorchArrowGlobalStatic::rootMemoryPool()));
+
+        VELOX_CHECK(
+            column->type()->kind() == velox::TypeKind::ROW,
+            "Expected TypeKind is {} but Velox created {}",
+            velox::TypeTraits<velox::TypeKind::ROW>::name,
+            column->type()->kindName());
+
+        return column;
+      });
 }
 
 PYBIND11_MODULE(_torcharrow, m) {
@@ -826,8 +845,7 @@ PYBIND11_MODULE(_torcharrow, m) {
               [](SimpleColumn<bool>& self, bool value) { self.append(value); },
               // explicitly disallow all conversions to bools; enabling
               // this allows `None` and floats to convert to bools
-              py::arg("value").noconvert()
-              )
+              py::arg("value").noconvert())
           .def(
               "append",
               [](SimpleColumn<bool>& self, BIGINTNativeType value) {
@@ -861,6 +879,15 @@ PYBIND11_MODULE(_torcharrow, m) {
     return BaseColumn::createConstantColumn(
         pyToVariant(value), py::cast<velox::vector_size_t>(size));
   });
+  m.def(
+      "ConstantColumn",
+      [](const py::handle& value,
+         py::int_ size,
+         std::shared_ptr<velox::Type> type) {
+        return BaseColumn::createConstantColumn(
+            pyToVariantTyped(value, type),
+            py::cast<velox::vector_size_t>(size));
+      });
 
   declareUserDefinedBindings(m);
 
@@ -877,7 +904,8 @@ PYBIND11_MODULE(_torcharrow, m) {
       "_populate_dense_features_nopresence",
       [](const RowColumn& column, uintptr_t dataTensorPtr) {
         populateDenseFeaturesNoPresence(
-            std::dynamic_pointer_cast<velox::RowVector>(column.getUnderlyingVeloxVector()),
+            std::dynamic_pointer_cast<velox::RowVector>(
+                column.getUnderlyingVeloxVector()),
             column.getOffset(),
             column.getLength(),
             dataTensorPtr);
