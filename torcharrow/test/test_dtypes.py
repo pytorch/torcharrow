@@ -54,11 +54,13 @@ class TestTypes(unittest.TestCase):
         self.assertEqual(Map(int64, string).typecode, "+m")
 
     def test_struct(self):
+        struct = Struct([Field("a", int64), Field("b", string)])
         self.assertEqual(
-            str(Struct([Field("a", int64), Field("b", string)])),
+            str(struct),
             "Struct([Field('a', int64), Field('b', string)])",
         )
-        self.assertEqual(Struct([Field("a", int64), Field("b", string)]).typecode, "+s")
+        self.assertEqual(struct.typecode, "+s")
+        self.assertIn("TorchArrowGeneratedStruct_", str(struct.py_type))
 
     def test_serialization(self):
         # simple types
