@@ -26,6 +26,7 @@ __all__ = [
     "column",
     "concat",
     "if_else",
+    "from_arrow",
     "from_pysequence",
     "me",
     "functional",

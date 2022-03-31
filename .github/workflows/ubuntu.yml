@@ -76,3 +76,14 @@ jobs:
 
       - name : Run TorchArrow unit tests
         run: pytest --no-header -v torcharrow/test
+
+      - name : Install TorchArrow
+        run: |
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache python setup.py install --user
+        
+      - name: Build the docs
+        run: |
+          cd ./docs
+          pip3 install -r requirements.txt --user
+          make html 
+          cd ..      
