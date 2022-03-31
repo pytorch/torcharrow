@@ -43,10 +43,13 @@ setup_macos() {
 # Outputs:
 #   PATH modified to put correct Python version in PATH
 setup_wheel_python() {
-  eval "$(conda shell.bash hook)"
-  conda env remove -n "env$PYTHON_VERSION" || true
-  conda create -yn "env$PYTHON_VERSION" python="$PYTHON_VERSION"
-  conda activate "env$PYTHON_VERSION"
+  if [[ -n "$PYTHON_VERSION" ]]; then
+      eval "$(conda shell.bash hook)"
+      conda env remove -n "env$PYTHON_VERSION" || true
+      conda create -yn "env$PYTHON_VERSION" python="$PYTHON_VERSION"
+      conda activate "env$PYTHON_VERSION"
+ fi
+
 }
 
 setup_build_version 0.0.4
