@@ -59,7 +59,7 @@ s
 s.device
 
 
-# TorchArrow infers that that the type is `Int64(nullable=True)`. Of course, we can always get lots of more information from a column: the length, count, null_count determine the total number, the number of non-null, and the number of nulls, respectively.
+# TorchArrow infers that the type is `Int64(nullable=True)`. Of course, we can always get lots of more information from a column: the length, count, null_count determine the total number, the number of non-null, and the number of nulls, respectively.
 #
 #
 #
