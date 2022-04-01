@@ -102,7 +102,7 @@ class TestStringColumn(unittest.TestCase):
         self.assertEqual(list(c.str.split(".", 10)), [v.split(".", 10) for v in s])
 
     def base_test_string_categorization_methods(self):
-        # isalpha/isnumeric/isalnum/isdigit/isdecimal/isspace/islower/isupper/istitle/isprintable
+        # isalpha/isnumeric/isalnum/isdigit/isdecimal/isspace/islower/isupper/istitle
         self.assertEqual(
             list(
                 self.create_column(
@@ -178,23 +178,6 @@ class TestStringColumn(unittest.TestCase):
                 ).str.istitle()
             ),
             [True, False, True, False, False, False],
-        )
-        self.assertEqual(
-            list(
-                self.create_column(
-                    [
-                        "abc",
-                        "ABc",
-                        "Ab  c",
-                        " ",
-                        "",
-                        u"ab\u0000\u000D",
-                        u"\u0605bc",
-                        "re\t32",
-                    ],
-                ).str.isprintable()
-            ),
-            [True, True, True, True, True, False, False, False],
         )
 
     def base_test_concat(self):
