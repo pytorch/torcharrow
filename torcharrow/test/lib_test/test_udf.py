@@ -230,26 +230,6 @@ class TestSimpleColumns(unittest.TestCase):
         lcol = ta.generic_udf_dispatch("torcharrow_isnumeric", col)
         self.assert_SimpleColumn(lcol, [True, True, True, True, True])
 
-    def test_isprintable(self) -> None:
-        # All False
-        data = [
-            u"ab\u0000\u000D",
-            u"\u0605bc",
-            u"12\u206034",
-            u"\u2064",
-            "re\terw",
-            None,
-        ]
-        col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
-        lcol = ta.generic_udf_dispatch("torcharrow_isprintable", col)
-        self.assert_SimpleColumn(lcol, [False, False, False, False, False, None])
-
-        # # All True
-        data = ["9876543210123456789", "ⅧⅪ", "ⅷ〩𐍁ᛯ", "᧖७𝟡௫６", "¼⑲⑹⓲➎㉏𐧯"]
-        col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
-        lcol = ta.generic_udf_dispatch("torcharrow_isprintable", col)
-        self.assert_SimpleColumn(lcol, [True, True, True, True, True])
-
     def test_factory(self) -> None:
         col = ta.factory_udf_dispatch("rand", 42)
         self.assertEqual(col.type().kind(), ta.TypeKind.DOUBLE)
