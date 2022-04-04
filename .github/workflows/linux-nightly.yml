@@ -27,7 +27,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@v2
         with:
-            submodules: true
+            submodules: recursive
 
       - name: Build the wheel
         run: |
@@ -73,7 +73,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@v2
         with:
-            submodules: true
+            submodules: recursive
 
       - name: Build the wheel
         run: |
