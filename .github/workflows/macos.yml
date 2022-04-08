@@ -47,7 +47,7 @@ jobs:
 
       - name: Install dependencies from Brew
         run: |
-          brew install --formula ninja cmake ccache icu4c boost gflags glog libevent
+          brew install --formula ninja cmake ccache boost gflags glog libevent
 
       # Based on https://github.com/facebookincubator/velox/blob/99429407c3d524e07b32b8b19a03aa7382f819cf/.circleci/config.yml#L114-L116
       - name: Configure ccache
@@ -56,7 +56,7 @@ jobs:
           CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz -M 5G
 
       - name: Build and install other dependencies
-        run: CMAKE_C_COMPILER_LAUNCHER=ccache CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache scripts/build_mac_dep.sh ranges_v3 fmt double_conversion folly re2
+        run: CMAKE_C_COMPILER_LAUNCHER=ccache CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache scripts/build_mac_dep.sh fmt double_conversion folly re2
 
       - name: Bulid TorchArrow
         run: |
