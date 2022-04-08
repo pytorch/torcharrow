@@ -56,9 +56,9 @@ jobs:
           done
 
   macos-container:
-    runs-on: macos-11
+    runs-on: macos-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         python-version:
           - 3.7
@@ -77,7 +77,7 @@ jobs:
 
       - name: Build the wheel
         run: |
-          ./csrc/velox/velox/scripts/setup-macos.sh
+          MACOSX_DEPLOYMENT_TARGET=10.15 ./csrc/velox/velox/scripts/setup-macos.sh
           pip install wheel
           ./packaging/build_wheel.sh
           pip install delocate
