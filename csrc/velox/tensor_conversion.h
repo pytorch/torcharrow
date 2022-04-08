@@ -19,7 +19,7 @@ namespace facebook::torcharrow {
 //
 // Similar to AT_DISPATCH_ALL_TYPES in PyTorch:
 // https://github.com/pytorch/pytorch/blob/8bf3179f6e3fc9d468ff34a891c081590cd2412c/aten/src/ATen/Dispatch.h#L211-L214
-#define VELOX_DYNAMIC_NUMERIC_TYPE_DISPATCH(TEMPLATE_FUNC, typeKind, ...)      \
+#define VELOX_DYNAMIC_NUMERIC_TYPE_DISPATCH(TEMPLATE_FUNC, typeKind, ...)     \
   [&]() {                                                                     \
     switch (typeKind) {                                                       \
       case ::facebook::velox::TypeKind::INTEGER: {                            \
@@ -52,7 +52,8 @@ namespace facebook::torcharrow {
   }()
 
 // Populate packed dense features into Tensor.
-// Packed dense features are represented in Velox output slice as struct with same numeric-typed fields
+// Packed dense features are represented in Velox output slice as struct with
+// same numeric-typed fields
 //
 // Tensor data is expected to be pre-allocated with correct size
 void populateDenseFeaturesNoPresence(
