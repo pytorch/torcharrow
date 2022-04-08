@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include <cmath>
 #include <math.h>
+#include <cmath>
 #include <limits>
 #include "velox/functions/Udf.h"
 
@@ -160,7 +160,8 @@ struct torcharrow_round {
 template <typename T>
 struct torcharrow_bitwiseand {
   template <typename TOutput, typename TInput = TOutput>
-  FOLLY_ALWAYS_INLINE bool call(TOutput& result, const TInput& a, const TInput& b) {
+  FOLLY_ALWAYS_INLINE bool
+  call(TOutput& result, const TInput& a, const TInput& b) {
     result = a & b;
     return true;
   }
@@ -169,7 +170,8 @@ struct torcharrow_bitwiseand {
 template <typename T>
 struct torcharrow_bitwiseor {
   template <typename TOutput, typename TInput = TOutput>
-  FOLLY_ALWAYS_INLINE bool call(TOutput& result, const TInput& a, const TInput& b) {
+  FOLLY_ALWAYS_INLINE bool
+  call(TOutput& result, const TInput& a, const TInput& b) {
     result = a | b;
     return true;
   }

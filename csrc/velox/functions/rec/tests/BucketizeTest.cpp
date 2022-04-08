@@ -22,8 +22,8 @@
 namespace facebook::velox {
 namespace {
 
-  using namespace facebook::velox::test;
-  
+using namespace facebook::velox::test;
+
 class BucketizeTest : public functions::test::FunctionBaseTest {
  protected:
   static void SetUpTestCase() {

@@ -8,8 +8,8 @@
 
 #include "column.h"
 #include <memory>
-#include "bindings.h"
 #include "VariantToVector.h"
+#include "bindings.h"
 
 #include "pybind11/numpy.h"
 #include "pybind11/stl.h"

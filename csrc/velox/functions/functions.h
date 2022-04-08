@@ -176,7 +176,6 @@ inline void registerTorchArrowFunctions() {
   velox::registerFunction<bucketize, int32_t, int64_t, velox::Array<int64_t>>(
       {"bucketize"});
 
-
   // List input
   velox::registerFunction<
       bucketize,
