@@ -28,14 +28,12 @@ conda activate torcharrow
 
 Follow the instructions [in this Colab notebook](https://colab.research.google.com/drive/1S0ldwN7qNM37E4WZnnAEnzn1DWnAQ6Vt)
 
-### Binaries (Experimental)
+### Nightly Binaries (Experimental)
 
-Experimental binary on MacOS and Linux (Ubuntu 18.04 or later, CentOS 8 or later) for Python 3.7 and 3.8 can be installed via pip wheels:
+Experimental nightly binary on MacOS (requires macOS SDK >= 10.15) and Linux (requires glibc >= 2.17) for Python 3.7, 3.8, and 3.9 can be installed via pip wheels:
 ```
-pip install torcharrow
+pip install --pre torcharrow -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
 ```
-
-Make sure you have `pip>=20.3` on Linux to install the wheel.
 
 ### From Source
 
