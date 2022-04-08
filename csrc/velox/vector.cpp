@@ -29,7 +29,8 @@ velox::VectorPtr
 arrayVectorSlice(const velox::ArrayVector& src, int start, int end) {
   auto length = end - start;
   std::shared_ptr<const velox::Type> elementType = src.type();
-  auto result = velox::BaseVector::create(ARRAY(elementType), length, src.pool());
+  auto result =
+      velox::BaseVector::create(ARRAY(elementType), length, src.pool());
   auto ptr = result.get()->as<velox::ArrayVector>();
   if (length > 0) {
     ptr->setElements(vectorSlice(
