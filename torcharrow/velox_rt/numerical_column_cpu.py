@@ -6,7 +6,7 @@
 
 import math
 import operator
-from typing import Callable, Dict, List, Optional, Sequence, Union
+from typing import Callable, Dict, List, Optional, Sequence, Union, Any
 
 import numpy as np
 import torcharrow as ta
@@ -19,6 +19,7 @@ from torcharrow.expression import expression
 from torcharrow.icolumn import Column
 from torcharrow.inumerical_column import NumericalColumn
 from torcharrow.trace import trace, traceproperty
+from torcharrow.velox_rt.dataframe_cpu import DataFrameCpu
 
 from .column import ColumnCpuMixin
 from .typing import get_velox_type
@@ -291,18 +292,34 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
 
         return self._checked_binary_op_call(other, op_name)
 
-    @trace
-    @expression
-    def __add__(self, other: Union[NumericalColumn, int, float]) -> NumericalColumn:
-        # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
-        #  `Union[NumericalColumn, float, int]`.
-        return self._checked_arithmetic_op_call(other, "add", operator.add)
+    def _checked_arithmetic_op_call_with_df(
+        self,
+        other: Any,
+        op_name: str,
+        fallback_py_op: Callable,
+        inverse_operation_name: str,
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        if isinstance(other, DataFrameCpu):
+            return getattr(other, inverse_operation_name)(self)
+
+        return self._checked_arithmetic_op_call(other, op_name, fallback_py_op)
 
     @trace
     @expression
-    def __radd__(self, other: Union[int, float]) -> NumericalColumn:
-        return self._checked_arithmetic_op_call(
-            other, "radd", Column._swap(operator.add)
+    def __add__(
+        self, other: Union[DataFrameCpu, NumericalColumn, int, float]
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        return self._checked_arithmetic_op_call_with_df(
+            other, "add", operator.add, "__radd__"
+        )
+
+    @trace
+    @expression
+    def __radd__(
+        self, other: Union[DataFrameCpu, int, float]
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        return self._checked_arithmetic_op_call_with_df(
+            other, "radd", Column._swap(operator.add), "__add__"
         )
 
     @trace
