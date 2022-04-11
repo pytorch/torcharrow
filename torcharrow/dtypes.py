@@ -9,7 +9,7 @@ import inspect
 import re
 import typing as ty
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, replace, is_dataclass
+from dataclasses import dataclass, is_dataclass, replace
 
 import numpy as np
 import torcharrow._torcharrow

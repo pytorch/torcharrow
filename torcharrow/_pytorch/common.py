@@ -7,13 +7,13 @@
 import abc
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import TypeVar, Generic, Union, List, Optional, Tuple, Callable
+from typing import Callable, Generic, List, Optional, Tuple, TypeVar, Union
 
 import torch  # type: ignore
 import torcharrow as ta
 import torcharrow.dtypes as dt
 from torcharrow import dtypes
-from torcharrow.dtypes import DType, is_struct, is_list, is_map
+from torcharrow.dtypes import DType, is_list, is_map, is_struct
 from torcharrow.scope import Scope
 from typing_extensions import final
 

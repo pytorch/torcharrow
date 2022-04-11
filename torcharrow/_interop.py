@@ -4,7 +4,7 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import List, Optional, cast
+from typing import cast, List, Optional
 
 # Skipping analyzing 'numpy': found module but no type hints or library stubs
 import numpy as np  # type: ignore

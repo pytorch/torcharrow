@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import unittest
-from typing import List, Optional, NamedTuple
+from typing import List, NamedTuple, Optional
 
 import numpy.testing
 import torcharrow as ta

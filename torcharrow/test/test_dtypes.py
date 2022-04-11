@@ -12,18 +12,18 @@ import torcharrow.dtypes as dt
 from torcharrow.dtypes import (
     Field,
     Int64,
+    int64,
+    is_int64,
+    is_list,
+    is_map,
+    is_numerical,
+    is_string,
+    is_struct,
     List,
     Map,
     String,
-    Struct,
-    int64,
-    is_list,
-    is_string,
-    is_numerical,
-    is_map,
-    is_int64,
-    is_struct,
     string,
+    Struct,
 )
 from torcharrow.velox_rt.typing import dtype_of_velox_type
 
