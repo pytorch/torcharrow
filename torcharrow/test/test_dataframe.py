@@ -562,6 +562,21 @@ class TestDataFrame(unittest.TestCase):
         z["a"]
         (z | (x["a"]))
 
+        # Basic operator with column and dataframe
+        # +
+        k = ta.dataframe(
+            {"a": [0, 1, 3, 4], "b": [0.0, 10.0, 20.0, 30.0]}, device=self.device
+        )
+        l = ta.column(list(range(4)), device=self.device)
+        self.assertEqual(
+            list(k["a"] + k),
+            [(0, 0.0), (2, 11.0), (6, 23.0), (8, 34.0)],
+        )
+        self.assertEqual(
+            list(l + k),
+            [(0, 0.0), (2, 11.0), (5, 22.0), (7, 33.0)],
+        )
+
     def base_test_python_comparison_ops(self):
         # Use a dtype of list to prevent fast path through numerical
         # column operators to ensure we are testing the generic python
