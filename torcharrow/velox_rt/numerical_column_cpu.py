@@ -267,7 +267,10 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
         return self._checked_binary_op_call(other, op_name)
 
     def _checked_arithmetic_op_call(
-        self, other: Union[int, float, bool], op_name: str, fallback_py_op: Callable
+        self,
+        other: Union[NumericalColumn, int, float, bool],
+        op_name: str,
+        fallback_py_op: Callable,
     ) -> NumericalColumn:
         def should_use_py_impl(
             self, other: Union[NumericalColumn, int, float, bool]
@@ -325,8 +328,6 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
     @trace
     @expression
     def __sub__(self, other: Union[NumericalColumn, int, float]) -> NumericalColumn:
-        # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
-        #  `Union[NumericalColumn, float, int]`.
         return self._checked_arithmetic_op_call(other, "sub", operator.sub)
 
     @trace
@@ -338,16 +339,20 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
 
     @trace
     @expression
-    def __mul__(self, other: Union[NumericalColumn, int, float]) -> NumericalColumn:
-        # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
-        #  `Union[NumericalColumn, float, int]`.
-        return self._checked_arithmetic_op_call(other, "mul", operator.mul)
+    def __mul__(
+        self, other: Union[DataFrameCpu, NumericalColumn, int, float]
+    ) -> Union[DataFrameCpu, NumericalColumn]:
+        return self._checked_arithmetic_op_call_with_df(
+            other, "mul", operator.mul, "__rmul__"
+        )
 
     @trace
     @expression
-    def __rmul__(self, other: Union[int, float]) -> NumericalColumn:
-        return self._checked_arithmetic_op_call(
-            other, "rmul", Column._swap(operator.mul)
+    def __rmul__(
+        self, other: Union[int, float]
+    ) -> Union[DataFrameCpu, NumericalColumn]:
+        return self._checked_arithmetic_op_call_with_df(
+            other, "rmul", Column._swap(operator.mul), "__mul__"
         )
 
     @trace
@@ -428,8 +433,6 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
               if a is float type, a % 0 will be float('nan')
         """
         return self._rethrow_zero_division_error(
-            # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but
-            #  got `Union[NumericalColumn, float, int]`.
             lambda: self._checked_arithmetic_op_call(other, "mod", operator.mod)
         )
 
@@ -491,8 +494,6 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
     @trace
     @expression
     def __and__(self, other: Union[NumericalColumn, int]) -> NumericalColumn:
-        # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
-        #  `Union[NumericalColumn, int]`.
         return self._checked_arithmetic_op_call(other, "bitwise_and", operator.__and__)
 
     @trace
@@ -505,8 +506,6 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
     @trace
     @expression
     def __or__(self, other: Union[NumericalColumn, int]) -> NumericalColumn:
-        # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
-        #  `Union[NumericalColumn, int]`.
         return self._checked_arithmetic_op_call(other, "bitwise_or", operator.__or__)
 
     @trace
@@ -519,8 +518,6 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
     @trace
     @expression
     def __xor__(self, other: Union[NumericalColumn, int]) -> NumericalColumn:
-        # pyre-fixme[6]: For 1st param expected `Union[bool, float, int]` but got
-        #  `Union[NumericalColumn, int]`.
         return self._checked_arithmetic_op_call(other, "bitwise_xor", operator.__xor__)
 
     @trace
