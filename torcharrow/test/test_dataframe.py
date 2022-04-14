@@ -12,6 +12,7 @@ import torcharrow as ta
 import torcharrow.dtypes as dt
 from torcharrow import me
 from torcharrow.idataframe import DataFrame
+from torcharrow.velox_rt.dataframe_cpu import DataFrameCpu
 
 # run python3 -m unittest outside this directory to run all tests
 
@@ -576,6 +577,17 @@ class TestDataFrame(unittest.TestCase):
             list(l + k),
             [(0, 0.0), (2, 11.0), (5, 22.0), (7, 33.0)],
         )
+
+        # *
+        dfa = ta.dataframe(
+            {"a": [1.0, 2.0, 3.0], "b": [11.0, 22.0, 33.0]}, device=self.device
+        )
+        dfb = dfa["a"] * dfa
+        self.assertEqual(list(dfb), [(1.0, 11.0), (4.0, 44.0), (9.0, 99.0)])
+        self.assertTrue(isinstance(dfb, DataFrameCpu))
+
+        cola = ta.column([3, 4, 5], device=self.device)
+        self.assertEqual(list(dfa * cola), [(3.0, 33.0), (8.0, 88.0), (15.0, 165.0)])
 
     def base_test_python_comparison_ops(self):
         # Use a dtype of list to prevent fast path through numerical
