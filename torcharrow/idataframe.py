@@ -11,21 +11,21 @@ import abc
 from typing import (
     Any,
     Callable,
+    Dict,
+    get_type_hints,
     Iterable,
     List,
-    Dict,
     Mapping,
     Optional,
     Sequence,
     Union,
-    get_type_hints,
 )
 
 import torcharrow as ta
 import torcharrow.dtypes as dt
 from torcharrow.dispatcher import Device
 
-from .expression import Var, eval_expression, expression
+from .expression import eval_expression, expression, Var
 from .icolumn import Column
 from .scope import Scope
 from .trace import trace, traceproperty

@@ -4,14 +4,13 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
-from . import pytorch  # noqa
-from . import velox_rt  # noqa
+from . import pytorch, velox_rt  # noqa  # noqa
 from ._functional import functional
 from .icolumn import Column, column, concat, if_else  # noqa
 from .idataframe import DataFrame, dataframe, me  # noqa
 from .ilist_column import ListColumn  # noqa
 from .imap_column import MapColumn  # noqa
-from .interop import from_pysequence, from_arrow  # noqa
+from .interop import from_arrow, from_pysequence  # noqa
 from .inumerical_column import NumericalColumn  # noqa
 from .istring_column import StringColumn  # noqa
 

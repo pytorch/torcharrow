@@ -318,7 +318,7 @@ class TestInterop(unittest.TestCase):
             device=self.device,
         )
 
-        from torcharrow.pytorch import WithPresence, PackedList
+        from torcharrow.pytorch import PackedList, WithPresence
 
         def list_plus_one(x: PackedList[WithPresence[torch.Tensor]]):
             # pyre-fixme[16]: Module `pytorch` has no attribute `PackedList`.
