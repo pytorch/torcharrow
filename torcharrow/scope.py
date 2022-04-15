@@ -11,7 +11,7 @@ import warnings
 import torcharrow as ta
 import torcharrow.dtypes as dt
 
-from .dispatcher import Dispatcher, Device
+from .dispatcher import Device, Dispatcher
 from .trace import Trace, trace
 
 # ---------------------------------------------------------------------------

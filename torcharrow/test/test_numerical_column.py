@@ -7,7 +7,7 @@
 import statistics
 import typing as ty
 import unittest
-from math import ceil, floor, log, isnan
+from math import ceil, floor, isnan, log
 
 import numpy as np
 import numpy.testing

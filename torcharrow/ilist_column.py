@@ -9,7 +9,7 @@ import array as ar
 import builtins
 import functools
 from dataclasses import dataclass
-from typing import Optional, Callable
+from typing import Callable, Optional
 
 import numpy as np
 import torcharrow.dtypes as dt

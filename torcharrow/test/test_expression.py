@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass
 from typing import Any, Callable, List, Mapping, Optional, Sequence
 
-from torcharrow.expression import Call, Expression, GetAttr, Var, eval_expression
+from torcharrow.expression import Call, eval_expression, Expression, GetAttr, Var
 
 # -----------------------------------------------------------------------------
 
