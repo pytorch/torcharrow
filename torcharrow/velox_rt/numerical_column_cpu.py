@@ -327,14 +327,20 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
 
     @trace
     @expression
-    def __sub__(self, other: Union[NumericalColumn, int, float]) -> NumericalColumn:
-        return self._checked_arithmetic_op_call(other, "sub", operator.sub)
+    def __sub__(
+        self, other: Union[DataFrameCpu, NumericalColumn, int, float]
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        return self._checked_arithmetic_op_call_with_df(
+            other, "sub", operator.add, "__rsub__"
+        )
 
     @trace
     @expression
-    def __rsub__(self, other: Union[int, float]) -> NumericalColumn:
-        return self._checked_arithmetic_op_call(
-            other, "rsub", Column._swap(operator.sub)
+    def __rsub__(
+        self, other: Union[DataFrameCpu, int, float]
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        return self._checked_arithmetic_op_call_with_df(
+            other, "rsub", Column._swap(operator.add), "__sub__"
         )
 
     @trace

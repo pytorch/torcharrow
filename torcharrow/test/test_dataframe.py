@@ -588,6 +588,15 @@ class TestDataFrame(unittest.TestCase):
 
         cola = ta.column([3, 4, 5], device=self.device)
         self.assertEqual(list(dfa * cola), [(3.0, 33.0), (8.0, 88.0), (15.0, 165.0)])
+        # -
+        self.assertEqual(
+            list(k["a"] - k),
+            [(0, 0.0), (0, -9.0), (0, -17.0), (0, -26.0)],
+        )
+        self.assertEqual(
+            list(l - k),
+            [(0, 0.0), (0, -9.0), (-1, -18.0), (-1, -27.0)],
+        )
 
     def base_test_python_comparison_ops(self):
         # Use a dtype of list to prevent fast path through numerical
