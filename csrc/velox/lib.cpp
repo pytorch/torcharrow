@@ -892,11 +892,14 @@ PYBIND11_MODULE(_torcharrow, m) {
   declareUserDefinedBindings(m);
 
   // generic UDF dispatch
+  // TODO: Support vararg instead of hard coding with UDF arity
   m.def("generic_udf_dispatch", &BaseColumn::genericUnaryUDF);
   m.def("generic_udf_dispatch", &BaseColumn::genericBinaryUDF);
   m.def("generic_udf_dispatch", &BaseColumn::genericTrinaryUDF);
+  m.def("generic_udf_dispatch", &BaseColumn::genericQuaternaryUDF);
 
-  // factory UDF dispatch
+  // factory UDF dispatch (e.g. UDF without any parameters, length is required
+  // for such UDF call)
   m.def("factory_udf_dispatch", &BaseColumn::factoryNullaryUDF);
 
   // Tensor conversion related binding
