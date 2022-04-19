@@ -79,17 +79,6 @@ class TestSimpleColumns(unittest.TestCase):
             isupper, [False, True, True, None, False, False, False]
         )
 
-        # substr, 3 parameters
-        substr = ta.generic_udf_dispatch(
-            "substr",
-            col,
-            ta.ConstantColumn(2, 7),  # start
-            ta.ConstantColumn(2, 7),  # length
-        )
-        data = ["abc", "ABC", "XYZ123", None, "xYZ", "123", "äöå"]
-
-        self.assert_SimpleColumn(substr, ["bc", "BC", "YZ", None, "YZ", "23", "öå"])
-
         data2 = [1, 2, 3, None, 5, None, -7]
         col2 = self.construct_simple_column(ta.VeloxType_BIGINT(), data2)
 
@@ -229,6 +218,31 @@ class TestSimpleColumns(unittest.TestCase):
         col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
         lcol = ta.generic_udf_dispatch("torcharrow_isnumeric", col)
         self.assert_SimpleColumn(lcol, [True, True, True, True, True])
+
+    def test_trinary(self) -> None:
+        data = ["abc", "ABC", "XYZ123", None, "xYZ", "123", "äöå"]
+        col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
+
+        # substr, 3 parameters
+        substr = ta.generic_udf_dispatch(
+            "substr",
+            col,
+            ta.ConstantColumn(2, 7),  # start
+            ta.ConstantColumn(2, 7),  # length
+        )
+        self.assert_SimpleColumn(substr, ["bc", "BC", "YZ", None, "YZ", "23", "öå"])
+
+    def test_quaternary(self) -> None:
+        # Based on https://github.com/facebookincubator/velox/blob/8d7fe84d2ce43df952e08ac1015d5bc7c6b868ab/velox/functions/prestosql/tests/ArithmeticTest.cpp#L353-L357
+        x = self.construct_simple_column(ta.VeloxType_DOUBLE(), [3.14, 2, -1])
+        bound1 = self.construct_simple_column(ta.VeloxType_DOUBLE(), [0, 0, 0])
+        bound2 = self.construct_simple_column(ta.VeloxType_DOUBLE(), [4, 4, 3.2])
+        bucketCount = self.construct_simple_column(ta.VeloxType_BIGINT(), [3, 3, 4])
+
+        widthBucket = ta.generic_udf_dispatch(
+            "width_bucket", x, bound1, bound2, bucketCount
+        )
+        self.assert_SimpleColumn(widthBucket, [3, 2, 0])
 
     def test_factory(self) -> None:
         col = ta.factory_udf_dispatch("rand", 42)
