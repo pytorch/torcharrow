@@ -11,6 +11,7 @@
 #include <velox/functions/Registerer.h>
 #include "numeric_functions.h"
 #include "rec/bucketize.h" // @manual
+#include "rec/sigrid_hash.h" // @manual
 #include "string_functions.h"
 #include "velox/expression/VectorFunction.h"
 #include "velox/functions/lib/Re2Functions.h"
@@ -222,6 +223,17 @@ inline void registerTorchArrowFunctions() {
       velox::ArrayWriterT<int32_t>,
       velox::Array<int64_t>,
       velox::Array<int64_t>>({"bucketize"});
+
+  //   sigrid_hash
+  velox::registerFunction<sigrid_hash, int64_t, int64_t, int64_t, int64_t>(
+      {"sigrid_hash"});
+
+  velox::registerFunction<
+      sigrid_hash,
+      velox::ArrayWriterT<int64_t>,
+      velox::Array<int64_t>,
+      int64_t,
+      int64_t>({"sigrid_hash"});
 
   // TODO: consider to refactor registration code with helper functions
   // to save some lines, like https://fburl.com/code/dk6zi7t3
