@@ -385,7 +385,7 @@ class TestDataframeTrace(unittest.TestCase):
         stms = Scope.default.trace.statements()
 
         import torcharrow
-        from torcharrow.dtypes import Struct, Field, int64
+        from torcharrow.dtypes import Field, int64, Struct
 
         # TODO: fix this
         # s0 = Scope.default
