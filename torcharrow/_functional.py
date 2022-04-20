@@ -95,6 +95,8 @@ class _Functional(ModuleType):
     def register_factory_methods(self, methods):
         self._factory_methods.update(methods)
 
+    # pyre-fixme[14]: `__getattr__` overrides method defined in `ModuleType`
+    #  inconsistently.
     def __getattr__(self, op_name: str):
         wrapper = self.create_dispatch_wrapper(op_name)
         setattr(self, op_name, wrapper)

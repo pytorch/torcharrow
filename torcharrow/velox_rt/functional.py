@@ -68,6 +68,8 @@ class VeloxFunctional(types.ModuleType):
             return dispatch
 
     # TODO: automtically populate it
+    # pyre-fixme[14]: `__getattr__` overrides method defined in `ModuleType`
+    #  inconsistently.
     def __getattr__(self, op_name: str):
         dispatch_wrapper = self.create_dispatch_wrapper(op_name)
         setattr(self, op_name, dispatch_wrapper)
