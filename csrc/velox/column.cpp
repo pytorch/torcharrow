@@ -433,6 +433,11 @@ std::unique_ptr<OperatorHandle> OperatorHandle::fromCall(
 std::unique_ptr<OperatorHandle> OperatorHandle::fromUDF(
     velox::RowTypePtr inputRowType,
     const std::string& udfName) {
+  if (udfName == "coalesce") {
+    return OperatorHandle::fromCall(
+        inputRowType, inputRowType->childAt(0), udfName);
+  }
+
   velox::TypePtr outputType =
       velox::resolveFunction(udfName, inputRowType->children());
   if (outputType == nullptr) {
