@@ -29,6 +29,23 @@ class _TestFunctionalBase(unittest.TestCase):
             ),
         )
 
+        cls.base_width_bucket_df = ta.dataframe(
+            {
+                "x": [3.14, 2, -1],
+                "bound1": [0, 0, 0],
+                "bound2": [4, 4, 3.2],
+                "bucketCount": [3, 3, 4],
+            },
+            dtype=dt.Struct(
+                [
+                    dt.Field("x", dt.float64),
+                    dt.Field("bound1", dt.float64),
+                    dt.Field("bound2", dt.float64),
+                    dt.Field("bucketCount", dt.int64),
+                ]
+            ),
+        )
+
         cls.setUpTestCaseData()
 
     @classmethod
@@ -65,11 +82,27 @@ class _TestFunctionalBase(unittest.TestCase):
             [[12], [22, 23], [32]],
         )
 
+    def test_width_bucket(self):
+        df = self.width_bucket_df
+
+        self.assertEqual(
+            list(
+                functional.width_bucket(
+                    df["x"],
+                    df["bound1"],
+                    df["bound2"],
+                    df["bucketCount"],
+                )
+            ),
+            [3, 2, 0],
+        )
+
 
 class TestFunctionalCpu(_TestFunctionalBase):
     @classmethod
     def setUpTestCaseData(cls):
         cls.df1 = cls.base_df1.copy()
+        cls.width_bucket_df = cls.base_width_bucket_df.copy()
 
 
 if __name__ == "__main__":
