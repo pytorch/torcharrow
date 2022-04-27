@@ -1,0 +1,77 @@
+package:
+  name: torcharrow
+  version: "{{ environ.get('BUILD_VERSION') }}"
+
+source:
+  path: "{{ environ.get('SOURCE_ROOT_DIR') }}"
+
+requirements:
+  build:
+    # - { { compiler('c') } } # [win]
+    # - { { compiler('cxx') } } # [win]
+    - cmake
+    - python
+    {% if osx %}
+    - ninja
+    - icu
+    - ccache
+    - boost
+    - libevent
+    - glog
+    - protobuf
+    - gflags
+    - lz4
+    - lzo
+    - snappy
+    - xz
+    - zstd
+    {% elif linux %}
+    - ninja-build
+    - checkinstall
+    - libssl-dev
+    - libboost-all-dev
+    - libdouble-conversion-dev
+    - libgoogle-glog-dev
+    - libgflags-dev
+    - libevent-dev
+    - libre2-dev
+    {% endif %}
+  host:
+    - python
+    - setuptools
+    - cpuonly
+    {{ environ.get('CONDA_PYTORCH_BUILD_CONSTRAINT') }}
+  run:
+    - python
+    - numpy
+    - boost
+    - libboost
+    - typing_inspect
+    - pandas
+    - typing
+    - tabulate
+    - pyarrow
+    - arrow
+    - cffi
+    {{ environ.get('CONDA_PYTORCH_CONSTRAINT') }}
+
+build:
+  string: py{{py}}
+  script_env:
+    - BUILD_VERSION
+
+test:
+  imports:
+    - torcharrow
+  source_files:
+    - torcharrow/test
+  requires:
+    - cpuonly
+    - pytest
+
+about:
+  home: https://github.com/facebookresearch/torcharrow
+  license: BSD
+  license_file: LICENSE
+  summary: "A torch.Tensor-like DataFrame library supporting multiple execution runtimes and Arrow as a common memory format."
+  doc_url: https://github.com/facebookresearch/torcharrow/blob/main/tutorial/tutorial.ipynb
