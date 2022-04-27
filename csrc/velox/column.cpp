@@ -353,6 +353,37 @@ std::unique_ptr<BaseColumn> BaseColumn::genericTrinaryUDF(
        col3.getUnderlyingVeloxVector()});
 }
 
+std::unique_ptr<BaseColumn> BaseColumn::genericQuaternaryUDF(
+    const std::string& udfName,
+    const BaseColumn& col1,
+    const BaseColumn& col2,
+    const BaseColumn& col3,
+    const BaseColumn& col4) {
+  auto rowType = velox::ROW(
+      {"c0", "c1", "c2", "c3"},
+      {col1.getUnderlyingVeloxVector()->type(),
+       col2.getUnderlyingVeloxVector()->type(),
+       col3.getUnderlyingVeloxVector()->type(),
+       col4.getUnderlyingVeloxVector()->type()});
+  GenericUDFDispatchKey key(udfName, rowType->toString());
+
+  static std::
+      unordered_map<GenericUDFDispatchKey, std::unique_ptr<OperatorHandle>>
+          dispatchTable;
+
+  auto iter = dispatchTable.find(key);
+  if (iter == dispatchTable.end()) {
+    iter =
+        dispatchTable.insert({key, OperatorHandle::fromUDF(rowType, udfName)})
+            .first;
+  }
+  return iter->second->call(
+      {col1.getUnderlyingVeloxVector(),
+       col2.getUnderlyingVeloxVector(),
+       col3.getUnderlyingVeloxVector(),
+       col4.getUnderlyingVeloxVector()});
+}
+
 std::unique_ptr<BaseColumn> BaseColumn::factoryNullaryUDF(
     const std::string& udfName,
     int size) {
@@ -402,6 +433,11 @@ std::unique_ptr<OperatorHandle> OperatorHandle::fromCall(
 std::unique_ptr<OperatorHandle> OperatorHandle::fromUDF(
     velox::RowTypePtr inputRowType,
     const std::string& udfName) {
+  if (udfName == "coalesce") {
+    return OperatorHandle::fromCall(
+        inputRowType, inputRowType->childAt(0), udfName);
+  }
+
   velox::TypePtr outputType =
       velox::resolveFunction(udfName, inputRowType->children());
   if (outputType == nullptr) {
