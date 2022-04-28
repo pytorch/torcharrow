@@ -180,47 +180,47 @@ inline void registerTorchArrowFunctions() {
   // List input
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<int32_t>,
       velox::Array<float>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<float>,
       velox::Array<float>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<int64_t>,
       velox::Array<float>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<int32_t>,
       velox::Array<int32_t>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<float>,
       velox::Array<int32_t>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<int64_t>,
       velox::Array<int32_t>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<int32_t>,
       velox::Array<int64_t>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<float>,
       velox::Array<int64_t>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<int64_t>,
       velox::Array<int64_t>>({"bucketize"});
 
