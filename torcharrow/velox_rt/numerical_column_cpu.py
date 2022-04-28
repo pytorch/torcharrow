@@ -433,25 +433,31 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
 
     @trace
     @expression
-    def __mod__(self, other: Union[NumericalColumn, int, float]) -> NumericalColumn:
+    def __mod__(
+        self, other: Union[NumericalColumn, int, float]
+    ) -> Union[NumericalColumn, DataFrameCpu]:
         """
         Note: if a is integer type, a % 0 will raise ZeroDivisionError.
               if a is float type, a % 0 will be float('nan')
         """
         return self._rethrow_zero_division_error(
-            lambda: self._checked_arithmetic_op_call(other, "mod", operator.mod)
+            lambda: self._checked_arithmetic_op_call_with_df(
+                other, "mod", operator.mod, "__rmod__"
+            )
         )
 
     @trace
     @expression
-    def __rmod__(self, other: Union[int, float]) -> NumericalColumn:
+    def __rmod__(
+        self, other: Union[NumericalColumn, int, float]
+    ) -> Union[NumericalColumn, DataFrameCpu]:
         """
         Note: if a is integer type, a % 0 will raise ZeroDivisionError.
               if a is float type, a % 0 will be float('nan')
         """
         return self._rethrow_zero_division_error(
-            lambda: self._checked_arithmetic_op_call(
-                other, "rmod", Column._swap(operator.mod)
+            lambda: self._checked_arithmetic_op_call_with_df(
+                other, "rmod", Column._swap(operator.mod), "__mod__"
             )
         )
 
