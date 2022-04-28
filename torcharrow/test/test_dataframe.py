@@ -588,6 +588,7 @@ class TestDataFrame(unittest.TestCase):
 
         cola = ta.column([3, 4, 5], device=self.device)
         self.assertEqual(list(dfa * cola), [(3.0, 33.0), (8.0, 88.0), (15.0, 165.0)])
+
         # -
         self.assertEqual(
             list(k["a"] - k),
@@ -597,6 +598,17 @@ class TestDataFrame(unittest.TestCase):
             list(l - k),
             [(0, 0.0), (0, -9.0), (-1, -18.0), (-1, -27.0)],
         )
+
+        # %
+        dfx = ta.dataframe(
+            {"a": [3.0, 31.0, 94.0], "b": [5.0, 7.0, 33.0]}, device=self.device
+        )
+        dfy = dfx["a"] % dfx
+        self.assertEqual(list(dfy), [(0.0, 3.0), (0.0, 3.0), (0.0, 28.0)])
+        self.assertTrue(isinstance(dfy, DataFrameCpu))
+
+        colx = ta.column([3, 4, 5], device=self.device)
+        self.assertEqual(list(dfx % colx), [(0.0, 2.0), (3.0, 3.0), (4.0, 3.0)])
 
     def base_test_python_comparison_ops(self):
         # Use a dtype of list to prevent fast path through numerical
