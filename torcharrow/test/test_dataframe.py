@@ -586,6 +586,11 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(dfb), [(1.0, 11.0), (4.0, 44.0), (9.0, 99.0)])
         self.assertTrue(isinstance(dfb, DataFrameCpu))
 
+        dfd = ta.dataframe({"a": [1, 3, 7]})
+        dfe = dfd["a"] ** dfd
+        self.assertEqual(list(dfe), [(1,), (27,), (823543,)])
+        self.assertTrue(isinstance(dfe, DataFrameCpu))
+
         cola = ta.column([3, 4, 5], device=self.device)
         self.assertEqual(list(dfa * cola), [(3.0, 33.0), (8.0, 88.0), (15.0, 165.0)])
 

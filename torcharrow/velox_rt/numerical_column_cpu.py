@@ -183,12 +183,12 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
 
         col = velox.Column(get_velox_type(self.dtype))
         if na_position == "first":
-            for i in range(none_count):
+            for _ in range(none_count):
                 col.append_null()
         for value in res:
             col.append(value)
         if na_position == "last":
-            for i in range(none_count):
+            for _ in range(none_count):
                 col.append_null()
 
         return ColumnCpuMixin._from_velox(self.device, self.dtype, col, True)
@@ -464,13 +464,15 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
     @trace
     @expression
     def __pow__(self, other):
-        return self._checked_arithmetic_op_call(other, "pow", operator.pow)
+        return self._checked_arithmetic_op_call_with_df(
+            other, "pow", operator.pow, "__rpow__"
+        )
 
     @trace
     @expression
     def __rpow__(self, other):
-        return self._checked_arithmetic_op_call(
-            other, "rpow", Column._swap(operator.pow)
+        return self._checked_arithmetic_op_call_with_df(
+            other, "rpow", Column._swap(operator.pow), "__pow__"
         )
 
     @trace
@@ -655,7 +657,7 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
         self._prototype_support_warning("drop_duplicates")
 
         if subset is not None:
-            raise TypeError(f"subset parameter for numerical columns not supported")
+            raise TypeError("subset parameter for numerical columns not supported")
         seen = set()
         col = velox.Column(get_velox_type(self.dtype))
         for i in range(len(self)):
@@ -703,9 +705,9 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
             try:
                 total = next(it)
             except StopIteration:
-                raise ValueError(f"cum[min/max] undefined for empty column.")
+                raise ValueError("cum[min/max] undefined for empty column.")
         if total is None:
-            raise ValueError(f"cum[min/max] undefined for columns with row 0 as null.")
+            raise ValueError("cum[min/max] undefined for columns with row 0 as null.")
 
         res.append(total)
         for element in it:
