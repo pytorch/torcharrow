@@ -203,6 +203,28 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(df4), data4)
         self.assertEqual(df4.dtype, dtype4)
 
+        # DataFrame construction from NamedTuple data does not require dtype or columns provided
+        # Column names can be inferred from data
+        IntAndStrType = NamedTuple("IntAndStr", [("t1", int), ("t2", str)])
+        data5 = [
+            IntAndStrType(t1=1, t2="a"),
+            IntAndStrType(t1=2, t2="b"),
+            IntAndStrType(t1=3, t2="c"),
+        ]
+        dtype = dt.Struct([dt.Field("t1", dt.int64), dt.Field("t2", dt.string)])
+        df5 = ta.dataframe(data5, device=self.device)
+        self.assertEqual(list(df5), data5)
+        self.assertEqual(df5.dtype, dtype)
+
+        # NamedTuple data for dataframe construction cannot contain None element if its (inferred) dtype is not nullable
+        data6 = [None, IntAndStrType(t1=2, t2="b"), IntAndStrType(t1=3, t2="c")]
+        with self.assertRaises(TypeError) as ex:
+            df = ta.dataframe(data6, device=self.device)
+        self.assertTrue(
+            f"a tuple of type {str(dtype)} is required, got None" in str(ex.exception),
+            f"Excpeion message is not as expected: {str(ex.exception)}",
+        )
+
     def base_test_infer(self):
         df = ta.dataframe({"a": [1, 2, 3], "b": [1.0, None, 3]}, device=self.device)
         self.assertEqual(df.columns, ["a", "b"])
