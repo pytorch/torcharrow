@@ -11,6 +11,7 @@
 #include <velox/functions/Registerer.h>
 #include "numeric_functions.h"
 #include "rec/bucketize.h" // @manual
+#include "rec/firstX.h" // @manual
 #include "rec/sigrid_hash.h" // @manual
 #include "string_functions.h"
 #include "velox/expression/VectorFunction.h"
@@ -224,7 +225,7 @@ inline void registerTorchArrowFunctions() {
       velox::Array<int64_t>,
       velox::Array<int64_t>>({"bucketize"});
 
-  //   sigrid_hash
+  // sigrid_hash
   velox::registerFunction<sigrid_hash, int64_t, int64_t, int64_t, int64_t>(
       {"sigrid_hash"});
 
@@ -234,6 +235,31 @@ inline void registerTorchArrowFunctions() {
       velox::Array<int64_t>,
       int64_t,
       int64_t>({"sigrid_hash"});
+
+  // firstX
+  velox::registerFunction<
+      firstX,
+      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
+      int32_t>({"firstx"});
+
+  velox::registerFunction<
+      firstX,
+      velox::ArrayWriterT<int64_t>,
+      velox::Array<int64_t>,
+      int32_t>({"firstx"});
+
+  velox::registerFunction<
+      firstX,
+      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
+      int64_t>({"firstx"});
+
+  velox::registerFunction<
+      firstX,
+      velox::ArrayWriterT<int64_t>,
+      velox::Array<int64_t>,
+      int64_t>({"firstx"});
 
   // TODO: consider to refactor registration code with helper functions
   // to save some lines, like https://fburl.com/code/dk6zi7t3
