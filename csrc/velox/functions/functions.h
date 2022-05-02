@@ -230,7 +230,7 @@ inline void registerTorchArrowFunctions() {
 
   velox::registerFunction<
       sigrid_hash,
-      velox::ArrayWriterT<int64_t>,
+      velox::Array<int64_t>,
       velox::Array<int64_t>,
       int64_t,
       int64_t>({"sigrid_hash"});
