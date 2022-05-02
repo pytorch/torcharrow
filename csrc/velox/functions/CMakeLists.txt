@@ -11,6 +11,7 @@ add_library(
   numeric_functions.h
   rec/bucketize.h
   rec/sigrid_hash.h
+  rec/firstX.h
   register_udf.cpp
 )
 
