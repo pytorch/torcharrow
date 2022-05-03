@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import unittest
 from dataclasses import dataclass
-from typing import Union, List, Any
+from typing import Any, List, Union
 
 import pyarrow as pa  # @manual=@/third-party:apache-arrow:apache-arrow-py
 import torcharrow._torcharrow as ta

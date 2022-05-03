@@ -12,8 +12,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from setuptools import Extension
-from setuptools import find_packages, setup
+from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
 ROOT_DIR = Path(__file__).parent.resolve()

@@ -11,7 +11,7 @@ import warnings
 import torcharrow as ta
 import torcharrow.dtypes as dt
 
-from .dispatcher import Dispatcher, Device
+from .dispatcher import Device, Dispatcher
 from .trace import Trace, trace
 
 # ---------------------------------------------------------------------------
@@ -344,13 +344,21 @@ but data only provides {len(data)} fields: {data.keys()}
                 if dtype is None or not dt.is_tuple(dtype):
                     raise TypeError("Dataframe cannot infer struct type from data")
                 dtype = ty.cast(dt.Tuple, dtype)
-                if columns is None:
-                    raise TypeError(
-                        "DataFrame construction from tuples requires"
-                        " dtype or columns to be given"
-                    )
-                if len(dtype.fields) != len(columns):
-                    raise TypeError("Dataframe column length must equal row length")
+                if columns is not None:
+                    if len(dtype.fields) != len(columns):
+                        raise TypeError("Dataframe column length must equal row length")
+                else:
+                    first_tuple_columns = None
+                    for v in data:
+                        if v is not None:
+                            if hasattr(v, "_fields"):
+                                first_tuple_columns = v._fields
+                                break
+                    if first_tuple_columns is None:
+                        raise TypeError(
+                            "DataFrame construction from tuples requires dtype or columns to be given"
+                        )
+                    columns = list(first_tuple_columns)
                 dtype = dt.Struct(
                     [dt.Field(n, t) for n, t in zip(columns, dtype.fields)]
                 )

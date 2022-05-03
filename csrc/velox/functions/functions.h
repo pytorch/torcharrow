@@ -11,6 +11,9 @@
 #include <velox/functions/Registerer.h>
 #include "numeric_functions.h"
 #include "rec/bucketize.h" // @manual
+#include "rec/compute_score.h" // @manual
+#include "rec/firstX.h" // @manual
+#include "rec/sigrid_hash.h" // @manual
 #include "string_functions.h"
 #include "velox/expression/VectorFunction.h"
 #include "velox/functions/lib/Re2Functions.h"
@@ -37,8 +40,6 @@ inline void registerTorchArrowFunctions() {
       {"torcharrow_istitle"});
   velox::registerFunction<torcharrow_isnumeric, bool, velox::Varchar>(
       {"torcharrow_isnumeric"});
-  velox::registerFunction<torcharrow_isprintable, bool, velox::Varchar>(
-      {"torcharrow_isprintable"});
 
   // Natural logarithm
   velox::registerFunction<torcharrow_log, float, float>({"torcharrow_log"});
@@ -178,53 +179,142 @@ inline void registerTorchArrowFunctions() {
   velox::registerFunction<bucketize, int32_t, int64_t, velox::Array<int64_t>>(
       {"bucketize"});
 
-
   // List input
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<int32_t>,
       velox::Array<float>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<float>,
       velox::Array<float>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<int64_t>,
       velox::Array<float>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<int32_t>,
       velox::Array<int32_t>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<float>,
       velox::Array<int32_t>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<int64_t>,
       velox::Array<int32_t>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<int32_t>,
       velox::Array<int64_t>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<float>,
       velox::Array<int64_t>>({"bucketize"});
   velox::registerFunction<
       bucketize,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<int64_t>,
       velox::Array<int64_t>>({"bucketize"});
+
+  //   sigrid_hash
+  velox::registerFunction<sigridHash, int64_t, int64_t, int64_t, int64_t>(
+      {"sigrid_hash"});
+
+  velox::registerFunction<
+      sigridHash,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>,
+      int64_t,
+      int64_t>({"sigrid_hash"});
+
+  // firstX
+  velox::registerFunction<
+      firstX,
+      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
+      int32_t>({"firstx"});
+
+  velox::registerFunction<
+      firstX,
+      velox::ArrayWriterT<int64_t>,
+      velox::Array<int64_t>,
+      int32_t>({"firstx"});
+
+  velox::registerFunction<
+      firstX,
+      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
+      int64_t>({"firstx"});
+
+  velox::registerFunction<
+      firstX,
+      velox::ArrayWriterT<int64_t>,
+      velox::Array<int64_t>,
+      int64_t>({"firstx"});
+
+  velox::registerFunction<
+      hasIdOverlap,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>>({"has_id_overlap"});
+
+  velox::registerFunction<
+      idOverlapCount,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>>({"id_overlap_count"});
+
+  velox::registerFunction<
+      getMaxCount,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>>({"get_max_count"});
+
+  velox::registerFunction<
+      getJaccardSimilarity,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>>({"get_jaccard_similarity"});
+
+  velox::registerFunction<
+      getCosineSimilarity,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<float>,
+      velox::Array<int64_t>,
+      velox::Array<float>>({"get_cosine_similarity"});
+
+  velox::registerFunction<
+      getScoreSum,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<float>,
+      velox::Array<int64_t>,
+      velox::Array<float>>({"get_score_sum"});
+
+  velox::registerFunction<
+      getScoreMin,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>,
+      velox::Array<float>>({"get_score_min"});
+
+  velox::registerFunction<
+      getScoreMax,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>,
+      velox::Array<float>>({"get_score_max"});
 
   // TODO: consider to refactor registration code with helper functions
   // to save some lines, like https://fburl.com/code/dk6zi7t3

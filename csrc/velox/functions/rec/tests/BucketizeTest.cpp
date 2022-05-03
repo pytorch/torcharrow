@@ -14,13 +14,15 @@
 
 #include <velox/common/base/VeloxException.h>
 #include <velox/vector/SimpleVector.h>
-#include <velox/vector/tests/VectorMaker.h>
+#include <velox/vector/tests/VectorTestBase.h>
 
 #include "pytorch/torcharrow/csrc/velox/functions/functions.h"
 #include "velox/functions/prestosql/tests/FunctionBaseTest.h"
 
 namespace facebook::velox {
 namespace {
+
+using namespace facebook::velox::test;
 
 class BucketizeTest : public functions::test::FunctionBaseTest {
  protected:

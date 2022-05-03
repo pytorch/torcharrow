@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding: utf-8
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
 #
@@ -47,7 +48,7 @@ pd.Series([1, 2, None, 4])
 # In[3]:
 
 
-s = ta.Column([1, 2, None, 4])
+s = ta.column([1, 2, None, 4])
 s
 
 
@@ -59,7 +60,7 @@ s
 s.device
 
 
-# TorchArrow infers that that the type is `Int64(nullable=True)`. Of course, we can always get lots of more information from a column: the length, count, null_count determine the total number, the number of non-null, and the number of nulls, respectively.
+# TorchArrow infers that the type is `Int64(nullable=True)`. Of course, we can always get lots of more information from a column: the length, count, null_count determine the total number, the number of non-null, and the number of nulls, respectively.
 #
 #
 #
@@ -75,7 +76,7 @@ len(s), s._count(), s.null_count
 # In[6]:
 
 
-ss = ta.Column([2.718, 3.14, 42.42])
+ss = ta.column([2.718, 3.14, 42.42])
 ss
 
 
@@ -84,7 +85,7 @@ ss
 # In[7]:
 
 
-sf = ta.Column([["hello", "world"], ["how", "are", "you"]], dtype=dt.List(dt.string))
+sf = ta.column([["hello", "world"], ["how", "are", "you"]], dtype=dt.List(dt.string))
 sf.dtype
 
 
@@ -94,7 +95,7 @@ sf.dtype
 # In[8]:
 
 
-mf = ta.Column(
+mf = ta.column(
     [
         {"helsinki": [-1.3, 21.5], "moscow": [-4.0, 24.3]},
         {"algiers": [11.2, 25.2], "kinshasa": [22.2, 26.8]},
@@ -120,7 +121,7 @@ sf
 
 
 # TODO: Fix this!
-# sf = sf.concat([ta.Column("I", "am", "fine", "too")]
+# sf = sf.concat([ta.column("I", "am", "fine", "too")]
 
 
 # ## Constructing data: Dataframes
@@ -130,7 +131,7 @@ sf
 # In[11]:
 
 
-df = ta.DataFrame(
+df = ta.dataframe(
     {"a": list(range(7)), "b": list(reversed(range(7))), "c": list(range(7))}
 )
 df
@@ -151,7 +152,7 @@ df.columns
 # In[13]:
 
 
-df["d"] = ta.Column(list(range(99, 99 + 7)))
+df["d"] = ta.column(list(range(99, 99 + 7)))
 df
 
 
@@ -179,8 +180,8 @@ df
 # In[16]:
 
 
-df_inner = ta.DataFrame({"b1": [11, 22, 33], "b2": [111, 222, 333]})
-df_outer = ta.DataFrame({"a": [1, 2, 3], "b": df_inner})
+df_inner = ta.dataframe({"b1": [11, 22, 33], "b2": [111, 222, 333]})
+df_outer = ta.dataframe({"a": [1, 2, 3], "b": df_inner})
 df_outer
 
 
@@ -247,14 +248,6 @@ df[1]
 df[2:6:2]
 
 
-# But you can also slice columns. The below return all columns after and including 'c'.
-
-# In[23]:
-
-
-df["c":]
-
-
 # TorchArrow follows the normal Python semantics for slices: that is a slice interval is closed on the left and open on the right.
 
 # ## Selection by Condition
@@ -315,7 +308,7 @@ s.drop_null()
 # In[29]:
 
 
-u = ta.Column(list(range(5)))
+u = ta.column(list(range(5)))
 v = -u
 w = v + 1
 v * w
@@ -324,8 +317,8 @@ v * w
 # In[30]:
 
 
-uv = ta.DataFrame({"a": u, "b": v})
-uu = ta.DataFrame({"a": u, "b": u})
+uv = ta.dataframe({"a": u, "b": v})
+uu = ta.dataframe({"a": u, "b": u})
 (uv == uu)
 
 
@@ -336,8 +329,8 @@ uu = ta.DataFrame({"a": u, "b": u})
 # In[31]:
 
 
-u = ta.Column([1, None, 3])
-v = ta.Column([11, None, None])
+u = ta.column([1, None, 3])
+v = ta.column([11, None, None])
 u + v
 
 
@@ -375,7 +368,7 @@ t.describe()
 # In[34]:
 
 
-s = ta.Column(["what a wonderful world!", "really?"])
+s = ta.column(["what a wonderful world!", "really?"])
 s.str.upper()
 
 
@@ -385,7 +378,7 @@ s.str.upper()
 # In[35]:
 
 
-ss = s.str.split(sep=" ")
+ss = s.str.split(pat=" ")
 ss
 
 
@@ -424,7 +417,7 @@ mf.maps.keys()
 # In[38]:
 
 
-xf = ta.DataFrame({"A": ["a", "b", "a", "b"], "B": [1, 2, 3, 4], "C": [10, 11, 12, 13]})
+xf = ta.dataframe({"A": ["a", "b", "a", "b"], "B": [1, 2, 3, 4], "C": [10, 11, 12, 13]})
 
 xf.where(xf["B"] > 2)
 
@@ -473,7 +466,7 @@ xf.select(*xf.columns, D=me["B"] + me["C"])
 # In[41]:
 
 
-ta.Column([1, 2, None, 4]).map({1: 111})
+ta.column([1, 2, None, 4]).map({1: 111})
 
 
 # If the mapping is a defaultdict, all values will be mapped as described by the default dict.
@@ -483,7 +476,7 @@ ta.Column([1, 2, None, 4]).map({1: 111})
 
 from collections import defaultdict
 
-ta.Column([1, 2, None, 4]).map(defaultdict(lambda: -1, {1: 111}))
+ta.column([1, 2, None, 4]).map(defaultdict(lambda: -1, {1: 111}))
 
 
 # **Handling null.** If the mapping is a function, then it will be applied on all values (including null), unless na_action is `'ignore'`, in which case, null values are passed through.
@@ -495,7 +488,7 @@ def add_ten(num):
     return num + 10
 
 
-ta.Column([1, 2, None, 4]).map(add_ten, na_action="ignore")
+ta.column([1, 2, None, 4]).map(add_ten, na_action="ignore")
 
 
 # Note that `.map(add_ten, na_action=None)` would fail with a type error since `add_ten` is not defined for `None`/null. So if we wanted to pass null to `add_ten` we would have to prepare for it, maybe like so:
@@ -507,7 +500,7 @@ def add_ten_or_0(num):
     return 0 if num is None else num + 10
 
 
-ta.Column([1, 2, None, 4]).map(add_ten_or_0, na_action=None)
+ta.column([1, 2, None, 4]).map(add_ten_or_0, na_action=None)
 
 
 # **Mapping to different types.** If `map` returns a column type that is different from the input column type, then `map` has to specify the returned column type.
@@ -515,7 +508,7 @@ ta.Column([1, 2, None, 4]).map(add_ten_or_0, na_action=None)
 # In[45]:
 
 
-ta.Column([1, 2, 3, 4]).map(str, dtype=dt.string)
+ta.column([1, 2, 3, 4]).map(str, dtype=dt.string)
 
 
 # Instead of specifying `dtype` argument, you can also rely on type annotations (both Python annotations and `dtypes` are supported):
@@ -532,7 +525,7 @@ def str_only_even(x) -> Optional[str]:
     return None
 
 
-ta.Column([1, 2, 3, 4]).map(str_only_even)  # dt.string(nullable=True) is inferred
+ta.column([1, 2, 3, 4]).map(str_only_even)  # dt.string(nullable=True) is inferred
 
 
 # **Map over Dataframes** Of course, `map` works over Dataframes, too. In this case the callable gets the whole row as a tuple.
@@ -544,7 +537,7 @@ def add_unary(tup):
     return tup[0] + tup[1]
 
 
-ta.DataFrame({"a": [1, 2, 3], "b": [1, 2, 3]}).map(add_unary, dtype=dt.int64)
+ta.dataframe({"a": [1, 2, 3], "b": [1, 2, 3]}).map(add_unary, dtype=dt.int64)
 
 
 # **Multi-parameter functions**. So far all our functions were unary functions. But `map` can be used for n-ary functions, too: simply specify the set of `columns` you want to pass to the nary function.
@@ -557,7 +550,7 @@ def add_binary(a, b):
     return a + b
 
 
-ta.DataFrame({"a": [1, 2, 3], "b": ["a", "b", "c"], "c": [1, 2, 3]}).map(
+ta.dataframe({"a": [1, 2, 3], "b": ["a", "b", "c"], "c": [1, 2, 3]}).map(
     add_binary, columns=["a", "c"], dtype=dt.int64
 )
 
@@ -567,7 +560,7 @@ ta.DataFrame({"a": [1, 2, 3], "b": ["a", "b", "c"], "c": [1, 2, 3]}).map(
 # In[49]:
 
 
-ta.DataFrame({"a": [17, 29, 30], "b": [3, 5, 11]}).map(
+ta.dataframe({"a": [17, 29, 30], "b": [3, 5, 11]}).map(
     divmod,
     columns=["a", "b"],
     dtype=dt.Struct([dt.Field("quotient", dt.int64), dt.Field("remainder", dt.int64)]),
@@ -604,7 +597,7 @@ class State:
 
 
 m = State(10)
-ta.Column([1, 2, 3]).map(m.add_fib)
+ta.column([1, 2, 3]).map(m.add_fib)
 
 
 # TorchArrow requires that only global functions or methods on class instances can be used as user defined functions. Lambdas, which can can capture arbitrary state and are not inspectable, are not supported.
@@ -616,7 +609,7 @@ ta.Column([1, 2, 3]).map(m.add_fib)
 # In[51]:
 
 
-ta.Column([1, 2, 3, 4]).filter(lambda x: x % 2 == 1)
+ta.column([1, 2, 3, 4]).filter(lambda x: x % 2 == 1)
 
 
 # Instead of the predicate you can pass an iterable of boolean of the same length as the column:
@@ -624,7 +617,7 @@ ta.Column([1, 2, 3, 4]).filter(lambda x: x % 2 == 1)
 # In[52]:
 
 
-ta.Column([1, 2, 3, 4]).filter([True, False, True, False])
+ta.column([1, 2, 3, 4]).filter([True, False, True, False])
 
 
 # If the predicate is an n-ary function, use the  `columns` argument as we have seen for `map`.
@@ -654,7 +647,7 @@ sf.flatmap(selfish)
 import operator
 
 
-ta.Column([1, 2, 3, 4]).reduce(operator.mul)
+ta.column([1, 2, 3, 4]).reduce(operator.mul)
 
 
 # ## Batch Transform
@@ -672,7 +665,7 @@ def multiple_ten(val: List[int]) -> List[int]:
     return [x * 10 for x in val]
 
 
-ta.Column([1, 2, 3, 4]).transform(multiple_ten, format="python")
+ta.column([1, 2, 3, 4]).transform(multiple_ten, format="python")
 
 
 # In[56]:

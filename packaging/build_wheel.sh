@@ -33,7 +33,7 @@ setup_build_version() {
 # Set some useful variables for OS X, if applicable
 setup_macos() {
   if [[ "$(uname)" == Darwin ]]; then
-    export CC=clang CXX=clang++
+    export MACOSX_DEPLOYMENT_TARGET=10.15 CC=clang CXX=clang++
   fi
 }
 
@@ -43,10 +43,13 @@ setup_macos() {
 # Outputs:
 #   PATH modified to put correct Python version in PATH
 setup_wheel_python() {
-  eval "$(conda shell.bash hook)"
-  conda env remove -n "env$PYTHON_VERSION" || true
-  conda create -yn "env$PYTHON_VERSION" python="$PYTHON_VERSION"
-  conda activate "env$PYTHON_VERSION"
+  if [[ -n "$PYTHON_VERSION" ]]; then
+      eval "$(conda shell.bash hook)"
+      conda env remove -n "env$PYTHON_VERSION" || true
+      conda create -yn "env$PYTHON_VERSION" python="$PYTHON_VERSION"
+      conda activate "env$PYTHON_VERSION"
+ fi
+
 }
 
 setup_build_version 0.0.4

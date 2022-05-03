@@ -22,4 +22,4 @@ velox::ArrayVectorPtr variantArrayToVector(
     const std::vector<velox::variant>& variantArray,
     velox::memory::MemoryPool* pool);
 
-} // namespace facebook::velox::core
+} // namespace facebook::torcharrow

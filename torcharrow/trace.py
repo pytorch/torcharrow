@@ -5,9 +5,9 @@
 # LICENSE file in the root directory of this source tree.
 
 import functools
-from typing import List, Tuple, Type, Optional
+from typing import List, Optional, Tuple, Type
 
-from .expression import Expression, Call, Var, GetAttr
+from .expression import Call, Expression, GetAttr, Var
 
 # -----------------------------------------------------------------------------
 # Trace state (part of a scope object)

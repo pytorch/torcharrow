@@ -103,11 +103,6 @@ function install_build_prerequisites {
   pip3 install --user cmake-format regex
 }
 
-function install_googletest {
-  github_checkout google/googletest release-1.10.0
-  cmake_install
-}
-
 function install_fmt {
   github_checkout fmtlib/fmt 7.1.3
   cmake_install -DFMT_TEST=OFF

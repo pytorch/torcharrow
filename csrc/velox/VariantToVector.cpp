@@ -85,4 +85,4 @@ ArrayVectorPtr variantArrayToVector(
       variantArrayToVectorImpl, elementType->kind(), variantArray, pool);
 }
 
-} // namespace facebook::velox::core
+} // namespace facebook::torcharrow

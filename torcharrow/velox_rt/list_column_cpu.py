@@ -6,7 +6,7 @@
 
 import array as ar
 import warnings
-from typing import List, Callable, Optional
+from typing import Callable, List, Optional
 
 import torcharrow as ta
 import torcharrow._torcharrow as velox

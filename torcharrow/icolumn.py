@@ -13,7 +13,7 @@ import math
 import operator
 import typing as ty
 import warnings
-from collections import OrderedDict, defaultdict
+from collections import defaultdict, OrderedDict
 from typing import Callable
 
 import numpy as np

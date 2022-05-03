@@ -9,7 +9,7 @@ import math
 import operator
 import statistics
 from functools import partial
-from typing import List, Optional, Union, Callable
+from typing import Callable, List, Optional, Union
 
 import torcharrow.dtypes as dt
 from torcharrow.dispatcher import Device
