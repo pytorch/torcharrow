@@ -61,7 +61,7 @@ inline int64_t computeSigridHash(
 }
 
 template <typename TExecParams>
-struct sigrid_hash {
+struct sigridHash {
   VELOX_DEFINE_FUNCTION_TYPES(TExecParams);
 
   // By default we use precision = 63, to computed signed division quotient
