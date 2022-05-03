@@ -11,6 +11,7 @@
 #include <velox/functions/Registerer.h>
 #include "numeric_functions.h"
 #include "rec/bucketize.h" // @manual
+#include "rec/compute_score.h" // @manual
 #include "rec/firstX.h" // @manual
 #include "rec/sigrid_hash.h" // @manual
 #include "string_functions.h"
@@ -225,12 +226,12 @@ inline void registerTorchArrowFunctions() {
       velox::Array<int64_t>,
       velox::Array<int64_t>>({"bucketize"});
 
-  // sigrid_hash
-  velox::registerFunction<sigrid_hash, int64_t, int64_t, int64_t, int64_t>(
+  //   sigrid_hash
+  velox::registerFunction<sigridHash, int64_t, int64_t, int64_t, int64_t>(
       {"sigrid_hash"});
 
   velox::registerFunction<
-      sigrid_hash,
+      sigridHash,
       velox::Array<int64_t>,
       velox::Array<int64_t>,
       int64_t,
@@ -260,6 +261,60 @@ inline void registerTorchArrowFunctions() {
       velox::ArrayWriterT<int64_t>,
       velox::Array<int64_t>,
       int64_t>({"firstx"});
+
+  velox::registerFunction<
+      hasIdOverlap,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>>({"has_id_overlap"});
+
+  velox::registerFunction<
+      idOverlapCount,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>>({"id_overlap_count"});
+
+  velox::registerFunction<
+      getMaxCount,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>>({"get_max_count"});
+
+  velox::registerFunction<
+      getJaccardSimilarity,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>>({"get_jaccard_similarity"});
+
+  velox::registerFunction<
+      getCosineSimilarity,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<float>,
+      velox::Array<int64_t>,
+      velox::Array<float>>({"get_cosine_similarity"});
+
+  velox::registerFunction<
+      getScoreSum,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<float>,
+      velox::Array<int64_t>,
+      velox::Array<float>>({"get_score_sum"});
+
+  velox::registerFunction<
+      getScoreMin,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>,
+      velox::Array<float>>({"get_score_min"});
+
+  velox::registerFunction<
+      getScoreMax,
+      float,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>,
+      velox::Array<float>>({"get_score_max"});
 
   // TODO: consider to refactor registration code with helper functions
   // to save some lines, like https://fburl.com/code/dk6zi7t3
