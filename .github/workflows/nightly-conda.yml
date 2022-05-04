@@ -42,7 +42,7 @@ jobs:
       - name: Conda Build
         run: |
 #          MACOSX_DEPLOYMENT_TARGET=10.15 ./csrc/velox/velox/scripts/setup-macos.sh
-          ./scripts/build_mac_deps.sh
+          ./scripts/build_mac_dep.sh
           ./packaging/build_conda.sh
 
 
