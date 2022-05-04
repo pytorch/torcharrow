@@ -373,8 +373,8 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
         This behavior is different from __truediv__, but is consistent with Pytorch.
         """
         return self._rethrow_zero_division_error(
-            lambda: self._checked_arithmetic_op_call(
-                other, "floordiv", operator.floordiv
+            lambda: self._checked_arithmetic_op_call_with_df(
+                other, "floordiv", operator.floordiv, "__rfloordiv__"
             )
         )
 
@@ -390,8 +390,8 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
         This behavior is different from __rtruediv__, but is consistent with Pytorch.
         """
         return self._rethrow_zero_division_error(
-            lambda: self._checked_arithmetic_op_call(
-                other, "rfloordiv", Column._swap(operator.floordiv)
+            lambda: self._checked_arithmetic_op_call_with_df(
+                other, "rfloordiv", Column._swap(operator.floordiv), "__floordiv__"
             )
         )
 
