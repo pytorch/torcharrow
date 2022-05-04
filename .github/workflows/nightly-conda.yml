@@ -1,0 +1,63 @@
+name: TorchArrow Nightly Build and Test for Conda
+on:
+#  schedule:
+#    - cron: "0 0 * * *"
+  pull_request:
+    branches:
+      - main
+      # For PR created by ghstack
+      - gh/*/*/base
+
+    # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
+
+  workflow_call:
+    secrets:
+      AWS_PYTORCH_UPLOADER_ACCESS_KEY_ID:
+        required: true
+      AWS_PYTORCH_UPLOADER_SECRET_ACCESS_KEY:
+        required: true
+
+jobs:
+  macos-container:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - 3.7
+          - 3.8
+          - 3.9
+    steps:
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Check out source repository
+        uses: actions/checkout@v2
+        with:
+            submodules: recursive
+
+      - name: Conda Build
+        run: |
+#          MACOSX_DEPLOYMENT_TARGET=10.15 ./csrc/velox/velox/scripts/setup-macos.sh
+          ./scripts/build_mac_deps.sh
+          ./packaging/build_conda.sh
+
+
+#      - name: Upload wheel to S3 Storage
+#        env:
+#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PYTORCH_UPLOADER_ACCESS_KEY_ID }}
+#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PYTORCH_UPLOADER_SECRET_ACCESS_KEY }}
+#          S3_PATH: "s3://pytorch/whl/nightly/"
+#        run: |
+#          pip install --user awscli
+#          set -x
+#          if [[ -z "${AWS_ACCESS_KEY_ID}" ]]; then
+#             echo "AWS_ACCESS_KEY_ID is not set, exiting upload"
+#             exit 1
+#          fi
+#          for pkg in fixed_dist/torcharrow*.whl; do
+#              ~/.local/bin/aws s3 cp "$pkg" "$S3_PATH" --acl public-read
+#          done
