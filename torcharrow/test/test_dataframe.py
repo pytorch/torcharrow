@@ -203,6 +203,28 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(df4), data4)
         self.assertEqual(df4.dtype, dtype4)
 
+        # DataFrame construction from NamedTuple data does not require dtype or columns provided
+        # Column names can be inferred from data
+        IntAndStrType = NamedTuple("IntAndStr", [("t1", int), ("t2", str)])
+        data5 = [
+            IntAndStrType(t1=1, t2="a"),
+            IntAndStrType(t1=2, t2="b"),
+            IntAndStrType(t1=3, t2="c"),
+        ]
+        dtype = dt.Struct([dt.Field("t1", dt.int64), dt.Field("t2", dt.string)])
+        df5 = ta.dataframe(data5, device=self.device)
+        self.assertEqual(list(df5), data5)
+        self.assertEqual(df5.dtype, dtype)
+
+        # NamedTuple data for dataframe construction cannot contain None element if its (inferred) dtype is not nullable
+        data6 = [None, IntAndStrType(t1=2, t2="b"), IntAndStrType(t1=3, t2="c")]
+        with self.assertRaises(TypeError) as ex:
+            df = ta.dataframe(data6, device=self.device)
+        self.assertTrue(
+            f"a tuple of type {str(dtype)} is required, got None" in str(ex.exception),
+            f"Excpeion message is not as expected: {str(ex.exception)}",
+        )
+
     def base_test_infer(self):
         df = ta.dataframe({"a": [1, 2, 3], "b": [1.0, None, 3]}, device=self.device)
         self.assertEqual(df.columns, ["a", "b"])
@@ -586,8 +608,14 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(dfb), [(1.0, 11.0), (4.0, 44.0), (9.0, 99.0)])
         self.assertTrue(isinstance(dfb, DataFrameCpu))
 
+        dfd = ta.dataframe({"a": [1, 3, 7]})
+        dfe = dfd["a"] ** dfd
+        self.assertEqual(list(dfe), [(1,), (27,), (823543,)])
+        self.assertTrue(isinstance(dfe, DataFrameCpu))
+
         cola = ta.column([3, 4, 5], device=self.device)
         self.assertEqual(list(dfa * cola), [(3.0, 33.0), (8.0, 88.0), (15.0, 165.0)])
+
         # -
         self.assertEqual(
             list(k["a"] - k),
@@ -597,6 +625,24 @@ class TestDataFrame(unittest.TestCase):
             list(l - k),
             [(0, 0.0), (0, -9.0), (-1, -18.0), (-1, -27.0)],
         )
+
+        # %
+        dfx = ta.dataframe(
+            {"a": [3.0, 31.0, 94.0], "b": [5.0, 7.0, 33.0]}, device=self.device
+        )
+        dfy = dfx["a"] % dfx
+        self.assertEqual(list(dfy), [(0.0, 3.0), (0.0, 3.0), (0.0, 28.0)])
+        self.assertTrue(isinstance(dfy, DataFrameCpu))
+
+        colx = ta.column([3, 4, 5], device=self.device)
+        self.assertEqual(list(dfx % colx), [(0.0, 2.0), (3.0, 3.0), (4.0, 3.0)])
+
+        # //
+        dfx = ta.dataframe({"a": [3, 4, 6], "b": [6, 8, 7]}, device=self.device)
+        self.assertEqual(list(dfx["a"] // dfx), [(1, 0), (1, 0), (1, 0)])
+        self.assertEqual(list(dfx["b"] // dfx), [(2, 1), (2, 1), (1, 1)])
+        self.assertEqual(list(dfx // dfx["a"]), [(1, 2), (1, 2), (1, 1)])
+        self.assertEqual(list(dfx // dfx["b"]), [(0, 1), (0, 1), (0, 1)])
 
     def base_test_python_comparison_ops(self):
         # Use a dtype of list to prevent fast path through numerical
