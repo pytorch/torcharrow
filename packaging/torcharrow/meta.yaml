@@ -12,19 +12,7 @@ requirements:
     - cmake
     - python
     {% if osx %}
-    - ninja
-    - icu
-    - ccache
     - boost
-    - libevent
-    - glog
-    - protobuf
-    - gflags
-    - lz4
-    - lzo
-    - snappy
-    - xz
-    - zstd
     {% elif linux %}
     - ninja-build
     - checkinstall
@@ -39,7 +27,6 @@ requirements:
   host:
     - python
     - setuptools
-    - cpuonly
     {{ environ.get('CONDA_PYTORCH_BUILD_CONSTRAINT') }}
   run:
     - python
@@ -66,7 +53,6 @@ test:
   source_files:
     - torcharrow/test
   requires:
-    - cpuonly
     - pytest
 
 about:

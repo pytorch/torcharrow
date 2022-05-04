@@ -8,5 +8,4 @@
 set -ex
 
 git submodule update --init --recursive
-scripts/build_mac_dep.sh ranges_v3 fmt double_conversion folly re2
 $PYTHON setup.py install --single-version-externally-managed --record=record.txt
