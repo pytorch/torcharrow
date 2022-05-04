@@ -47,7 +47,7 @@ jobs:
         run: |
           conda activate conda_build_env
           conda install -yq conda-build -c conda-forge
-          ./scripts/build_mac_dep.sh
+          MACOSX_DEPLOYMENT_TARGET=10.15 ./csrc/velox/velox/scripts/setup-macos.sh
           ./packaging/build_conda.sh
 
 
