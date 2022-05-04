@@ -29,10 +29,11 @@ jobs:
           - 3.8
           - 3.9
     steps:
-      - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - name: Create Conda Env
+        uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.python-version }}
+          activate-environment: conda_build_env
 
       - name: Check out source repository
         uses: actions/checkout@v2
@@ -40,7 +41,12 @@ jobs:
           submodules: recursive
 
       - name: Conda Build
+        shell: bash -l {0}
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
+          conda activate conda_build_env
+          conda install -yq conda-build -c conda-forge
           ./scripts/build_mac_dep.sh
           ./packaging/build_conda.sh
 
