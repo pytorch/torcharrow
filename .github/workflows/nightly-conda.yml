@@ -51,7 +51,8 @@ jobs:
           PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
           source /opt/conda/etc/profile.d/conda.sh
-          conda activate env${{ matrix.python-version }}
+          conda create --name conda_build_env python=${{ matrix.python-version }}
+          conda activate conda_build_env                    
           conda install -yq conda-build -c conda-forge          
           ./packaging/build_conda.sh
 
