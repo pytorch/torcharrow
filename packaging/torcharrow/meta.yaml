@@ -30,6 +30,8 @@ requirements:
     - pyarrow
     - arrow
     - cffi
+    - glog
+    - gflags
     {{ environ.get('CONDA_PYTORCH_CONSTRAINT') }}
 
 build:
