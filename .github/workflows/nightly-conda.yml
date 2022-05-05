@@ -21,7 +21,7 @@ on:
 jobs:
   linux-container:
     runs-on: ubuntu-latest
-    container: prestocpp/velox-velox-torcharrow:kpai-20220301
+#    container: prestocpp/velox-velox-torcharrow:kpai-20220301
     strategy:
       fail-fast: false
       matrix:
@@ -34,11 +34,11 @@ jobs:
         run: |          
           cat /proc/cpuinfo          
 
-#      - name: Create Conda Env
-#        uses: conda-incubator/setup-miniconda@v2
-#        with:
-#          python-version: ${{ matrix.python-version }}
-#          activate-environment: conda_build_env
+      - name: Create Conda Env
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: conda_build_env
 
       - name: Check out source repository
         uses: actions/checkout@v2
@@ -52,13 +52,17 @@ jobs:
           libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
           libgflags-dev libevent-dev libre2-dev
 
+      - name: Build and install folly and fmt
+        run: |
+          sudo ./scripts/setup-ubuntu.sh
+
       - name: Conda Build
         shell: bash -l {0}
         env:
           PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
           source /opt/conda/etc/profile.d/conda.sh
-          conda create --name conda_build_env python=${{ matrix.python-version }}
+#          conda create --name conda_build_env python=${{ matrix.python-version }}
           conda activate conda_build_env                    
           conda install -yq conda-build -c conda-forge          
           ./packaging/build_conda.sh
