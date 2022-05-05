@@ -240,25 +240,25 @@ inline void registerTorchArrowFunctions() {
   // firstX
   velox::registerFunction<
       firstX,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<int32_t>,
       int32_t>({"firstx"});
 
   velox::registerFunction<
       firstX,
-      velox::ArrayWriterT<int64_t>,
+      velox::Array<int64_t>,
       velox::Array<int64_t>,
       int32_t>({"firstx"});
 
   velox::registerFunction<
       firstX,
-      velox::ArrayWriterT<int32_t>,
+      velox::Array<int32_t>,
       velox::Array<int32_t>,
       int64_t>({"firstx"});
 
   velox::registerFunction<
       firstX,
-      velox::ArrayWriterT<int64_t>,
+      velox::Array<int64_t>,
       velox::Array<int64_t>,
       int64_t>({"firstx"});
 
