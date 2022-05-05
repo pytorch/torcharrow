@@ -28,7 +28,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Update submodules
-        run: git submodule update --init --recursive
+        run: |
+          git submodule sync --recursive
+          git submodule update --init --recursive
 
       # Based on https://cristianadam.eu/20200113/speeding-up-c-plus-plus-github-actions-using-ccache/
       - name: Prepare ccache timestamp
