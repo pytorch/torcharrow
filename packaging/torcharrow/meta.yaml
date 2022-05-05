@@ -19,8 +19,10 @@ requirements:
   run:
     - python
     - numpy
+    {% if osx %}
     - boost
     - libboost
+    {% endif %}
     - typing_inspect
     - pandas
     - typing
