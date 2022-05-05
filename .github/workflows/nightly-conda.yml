@@ -32,14 +32,13 @@ jobs:
     steps:
       - name: Print CPU info
         run: |          
-          cat /proc/cpuinfo
-          source /opt/conda/etc/profile.d/conda.sh
+          cat /proc/cpuinfo          
 
-      - name: Create Conda Env
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-          activate-environment: conda_build_env
+#      - name: Create Conda Env
+#        uses: conda-incubator/setup-miniconda@v2
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#          activate-environment: conda_build_env
 
       - name: Check out source repository
         uses: actions/checkout@v2
@@ -51,7 +50,8 @@ jobs:
         env:
           PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
-          conda activate conda_build_env
+          source /opt/conda/etc/profile.d/conda.sh
+          conda activate env${{ matrix.python-version }}
           conda install -yq conda-build -c conda-forge          
           ./packaging/build_conda.sh
 
