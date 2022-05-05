@@ -45,6 +45,13 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Install dependencies with APT
+        run: |
+          sudo apt-get update
+          sudo apt install -y g++ cmake ccache ninja-build checkinstall git \
+          libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
+          libgflags-dev libevent-dev libre2-dev
+
       - name: Conda Build
         shell: bash -l {0}
         env:
