@@ -49,7 +49,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt install -y g++ cmake ccache ninja-build checkinstall git \
-          libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
+          libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev=0.4.0 \
           libgflags-dev libevent-dev libre2-dev
 
       - name: Build and install folly and fmt
