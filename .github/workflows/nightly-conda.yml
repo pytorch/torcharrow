@@ -31,7 +31,9 @@ jobs:
           - 3.9
     steps:
       - name: Print CPU info
-        run: cat /proc/cpuinfo
+        run: |          
+          cat /proc/cpuinfo
+          source /opt/conda/etc/profile.d/conda.sh
 
       - name: Create Conda Env
         uses: conda-incubator/setup-miniconda@v2
@@ -71,37 +73,36 @@ jobs:
 #              ~/.local/bin/aws s3 cp "$pkg" "$S3_PATH" --acl public-read
 #          done
 
-  macos-container:
-    runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version:
-          - 3.7
-          - 3.8
-          - 3.9
-    steps:
-      - name: Create Conda Env
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-          activate-environment: conda_build_env
-
-      - name: Check out source repository
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
-
-      - name: Conda Build
-        shell: bash -l {0}
-        env:
-          PYTHON_VERSION: ${{ matrix.python-version }}
-        run: |
-          conda activate conda_build_env
-          conda install -yq conda-build -c conda-forge
-          MACOSX_DEPLOYMENT_TARGET=10.15 ./csrc/velox/velox/scripts/setup-macos.sh
-          ./packaging/build_conda.sh
-
+#  macos-container:
+#    runs-on: macos-latest
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        python-version:
+#          - 3.7
+#          - 3.8
+#          - 3.9
+#    steps:
+#      - name: Create Conda Env
+#        uses: conda-incubator/setup-miniconda@v2
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#          activate-environment: conda_build_env
+#
+#      - name: Check out source repository
+#        uses: actions/checkout@v2
+#        with:
+#          submodules: recursive
+#
+#      - name: Conda Build
+#        shell: bash -l {0}
+#        env:
+#          PYTHON_VERSION: ${{ matrix.python-version }}
+#        run: |
+#          conda activate conda_build_env
+#          conda install -yq conda-build -c conda-forge
+#          MACOSX_DEPLOYMENT_TARGET=10.15 ./csrc/velox/velox/scripts/setup-macos.sh
+#          ./packaging/build_conda.sh
 
 #      - name: Upload wheel to S3 Storage
 #        env:
