@@ -1314,7 +1314,6 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
             from . import pytorch
 
             pytorch.ensure_available()
-            # pyre-fixme[16]: Module `pytorch` has no attribute `from_tensor`.
             ret = pytorch.from_tensor(raw, dtype=dtype)
         elif format == "python" or format == "column":
             ret = ta.column(raw, dtype=dtype)

@@ -321,10 +321,8 @@ class TestInterop(unittest.TestCase):
         from torcharrow.pytorch import PackedList, WithPresence
 
         def list_plus_one(x: PackedList[WithPresence[torch.Tensor]]):
-            # pyre-fixme[16]: Module `pytorch` has no attribute `PackedList`.
             return PackedList(
                 offsets=x.offsets,
-                # pyre-fixme[16]: Module `pytorch` has no attribute `WithPresence`.
                 values=WithPresence(
                     presence=x.values.presence,
                     values=(x.values.values + 1) * x.values.presence,
