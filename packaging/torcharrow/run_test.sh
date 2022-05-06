@@ -1,0 +1,1 @@
+pytest --no-header -v torcharrow/test
