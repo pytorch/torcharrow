@@ -41,16 +41,12 @@ inline void validateBordersSpec(const T1& borders) {
 
 template <typename T1, typename T2>
 inline int32_t computeBucketId(const T1& borders, const T2& val) {
-  int32_t index = borders.size();
-  auto jump = borders.size();
-
-  while (jump > 0) {
-    while (index - jump >= 0 && val <= borders[index - jump]) {
-      index -= jump;
-    }
-    jump /= 2;
+  int32_t index =
+      std::lower_bound(borders.begin(), borders.end(), val) - borders.begin();
+  if (index >= borders.size() - 1) {
+    return index;
   }
-  return index;
+  return val < borders[index + 1] ? index : index + 1;
 }
 
 template <typename T>
