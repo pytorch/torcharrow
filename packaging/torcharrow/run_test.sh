@@ -1,1 +1,1 @@
-pytest --no-header -v torcharrow/test
+pytest --no-header -v --rootdir=path torcharrow/test
