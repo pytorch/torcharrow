@@ -4,6 +4,9 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+
 add_library(
   torcharrow_udfs OBJECT
   functions.h
@@ -14,10 +17,14 @@ add_library(
   rec/firstX.h
   rec/compute_score.h
   register_udf.cpp
+  regex.h
+  gpt2_bpe_tokenizer.h
+  gpt2_bpe_tokenizer.cpp
 )
 
 target_link_libraries(
   torcharrow_udfs
   velox_functions_string
   velox_functions_prestosql
+  "${TORCH_LIBRARIES}"
 )

@@ -11,6 +11,7 @@ import platform
 import shutil
 import subprocess
 from pathlib import Path
+import torch
 
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
@@ -95,7 +96,7 @@ class CMakeBuild(build_ext):
 
         cmake_args = [
             f"-DCMAKE_BUILD_TYPE={cfg}",
-            # f"-DCMAKE_PREFIX_PATH={torch.utils.cmake_prefix_path}",
+            f"-DCMAKE_PREFIX_PATH={torch.utils.cmake_prefix_path}",
             f"-DCMAKE_INSTALL_PREFIX={extdir}",
             # "-DCMAKE_VERBOSE_MAKEFILE=ON",
             # f"-DPython_INCLUDE_DIR={distutils.sysconfig.get_python_inc()}",
