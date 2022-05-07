@@ -1,5 +1,6 @@
 name: TorchArrow Nightly Build and Test for Conda
 on:
+<<<<<<< HEAD
   schedule:
     - cron: "0 0 * * *"
 
@@ -9,6 +10,15 @@ on:
   #    - main
   #    # For PR created by ghstack
   #    - gh/*/*/base
+=======
+#  schedule:
+#    - cron: "0 0 * * *"
+  pull_request:
+    branches:
+      - main
+      # For PR created by ghstack
+      - gh/*/*/base
+>>>>>>> 4543e11 (Conda nightly build to Github Actions)
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -25,8 +35,13 @@ jobs:
           - 3.9
     steps:
       - name: Print CPU info
+<<<<<<< HEAD
         run: |
           cat /proc/cpuinfo
+=======
+        run: |          
+          cat /proc/cpuinfo          
+>>>>>>> 4543e11 (Conda nightly build to Github Actions)
 
       - name: Create Conda Env
         uses: conda-incubator/setup-miniconda@v2
@@ -52,7 +67,11 @@ jobs:
           path: .ccache
           key: ubuntu-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
           restore-keys: |
+<<<<<<< HEAD
               ubuntu-ccache-
+=======
+              ubuntu-ccache-      
+>>>>>>> 4543e11 (Conda nightly build to Github Actions)
 
       - name: Install dependencies with APT
         run: |
@@ -66,7 +85,11 @@ jobs:
         run: |
           echo "$GITHUB_WORKSPACE"
           CCACHE_DIR=$GITHUB_WORKSPACE/.ccache_root ccache -sz -M 1G
+<<<<<<< HEAD
           CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz -M 1G
+=======
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz -M 1G      
+>>>>>>> 4543e11 (Conda nightly build to Github Actions)
 
       - name: Build and install folly and fmt
         # sudo doesn't preserve environment vairable; set it after sudo: https://stackoverflow.com/questions/8633461/how-to-keep-environment-variables-when-using-sudo/33183620#33183620
@@ -79,6 +102,7 @@ jobs:
           PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
           # source /opt/conda/etc/profile.d/conda.sh
+<<<<<<< HEAD
           conda activate conda_build_env
           conda install -yq conda-build -c conda-forge
           ./packaging/build_conda.sh
@@ -93,6 +117,12 @@ jobs:
           conda install -yq -c anaconda anaconda-client
           anaconda -t "${CONDA_NIGHTLY_PYTORCHBOT_TOKEN}" upload ./conda-bld/linux-64/torcharrow-*.tar.bz2 -u "$CONDA_CHANNEL" --label main --no-progress --force
 
+=======
+          conda activate conda_build_env                    
+          conda install -yq conda-build -c conda-forge          
+          ./packaging/build_conda.sh
+
+>>>>>>> 4543e11 (Conda nightly build to Github Actions)
   macos-container:
     runs-on: macos-latest
     strategy:
@@ -122,6 +152,7 @@ jobs:
           conda activate conda_build_env
           conda install -yq conda-build -c conda-forge
           MACOSX_DEPLOYMENT_TARGET=10.15 ./csrc/velox/velox/scripts/setup-macos.sh
+<<<<<<< HEAD
           ./packaging/build_conda.sh
 
       - name: Conda Upload
@@ -132,3 +163,6 @@ jobs:
         run: |
           conda install -yq anaconda-client
           anaconda -t "${CONDA_NIGHTLY_PYTORCHBOT_TOKEN}" upload ./conda-bld/osx-64/torcharrow-*.tar.bz2 -u "$CONDA_CHANNEL" --label main --no-progress --force
+=======
+          ./packaging/build_conda.sh
+>>>>>>> 4543e11 (Conda nightly build to Github Actions)
