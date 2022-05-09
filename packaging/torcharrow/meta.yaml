@@ -7,8 +7,6 @@ source:
 
 requirements:
   build:
-    # - { { compiler('c') } } # [win]
-    # - { { compiler('cxx') } } # [win]
     - cmake
     - python
   host:
@@ -25,7 +23,7 @@ requirements:
     - pyarrow
     - arrow
     - cffi
-    - glog 0.4.0
+    - glog==0.4.0
     {{ environ.get('CONDA_PYTORCH_CONSTRAINT') }}
 
 build:
