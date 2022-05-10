@@ -23,6 +23,10 @@
 #include "velox/vector/BaseVector.h"
 #include "velox/vector/ComplexVector.h"
 
+#ifdef USE_TORCH
+#include "functions/text/gpt2_bpe_tokenizer.h" // @manual
+#endif
+
 namespace py = pybind11;
 
 namespace facebook::torcharrow {
@@ -658,6 +662,15 @@ velox::variant pyToVariant(const pybind11::handle& obj) {
   if (userDefinedPyToOpaque(obj, out)) {
     return out;
   }
+
+#ifdef USE_TORCH
+  // TODO: The implementation below to handle GPT2BPEEncoder opaque type is a
+  // hack. We want to use Opaque registration mechanism in the future
+  if (py::isinstance<functions::GPT2BPEEncoder>(obj)) {
+    return velox::variant::opaque(
+        obj.cast<std::shared_ptr<functions::GPT2BPEEncoder>>());
+  }
+#endif
 
   // Recursively allocate lists
   if (py::isinstance<py::list>(obj)) {
