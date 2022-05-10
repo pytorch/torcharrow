@@ -10,4 +10,7 @@ project(torcharrow)
 
 # TODO: Move global build config from csrc/velox/CMakeLists.txt to here
 
+# Options
+option(USE_TORCH "Build source files requiring torch dependency" OFF)
+
 add_subdirectory(csrc/velox)
