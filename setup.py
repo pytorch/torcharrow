@@ -93,15 +93,24 @@ class CMakeBuild(build_ext):
         else:
             cfg = "Debug" if self.debug else "Release"
 
+        if "USE_TORCH" in os.environ:
+            import torch
+
+            CMAKE_PREFIX_PATH = f"-DCMAKE_PREFIX_PATH={torch.utils.cmake_prefix_path}"
+            USE_TORCH = "-DUSE_TORCH=ON"
+            TORCH_FLAGS = [CMAKE_PREFIX_PATH, USE_TORCH]
+        else:
+            USE_TORCH = "-DUSE_TORCH=OFF"
+            TORCH_FLAGS = [USE_TORCH]
+
         cmake_args = [
             f"-DCMAKE_BUILD_TYPE={cfg}",
-            # f"-DCMAKE_PREFIX_PATH={torch.utils.cmake_prefix_path}",
             f"-DCMAKE_INSTALL_PREFIX={extdir}",
-            # "-DCMAKE_VERBOSE_MAKEFILE=ON",
+            "-DCMAKE_VERBOSE_MAKEFILE=ON",
             # f"-DPython_INCLUDE_DIR={distutils.sysconfig.get_python_inc()}",
             "-DVELOX_CODEGEN_SUPPORT=OFF",
             "-DVELOX_BUILD_MINIMAL=ON",
-        ]
+        ] + TORCH_FLAGS
         build_args = ["--target", "install"]
 
         # Default to Ninja
