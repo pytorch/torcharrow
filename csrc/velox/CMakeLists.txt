@@ -67,11 +67,22 @@ pybind11_add_module(
   VariantToVector.cpp
 )
 
+set(TORCHARROW_COMPILE_DEFINITIONS)
+
+if(USE_TORCH)
+  find_package(Torch REQUIRED)
+  list(
+    APPEND
+    TORCHARROW_COMPILE_DEFINITIONS
+    USE_TORCH
+    )
+endif()
+
 # TODO(linb): Need this to match with velox, however pybind11 requires "hidden" visibility
 # set_target_properties(_torcharrow PROPERTIES CXX_VISIBILITY_PRESET default)
-
 add_subdirectory(velox)
 add_subdirectory(functions)
+
 
 # Link with Velox:
 target_link_libraries(_torcharrow PRIVATE
@@ -85,11 +96,15 @@ target_link_libraries(_torcharrow PRIVATE
   torcharrow_udfs
 )
 
-#target_compile_definitions(_torcharrow PRIVATE)
+target_compile_definitions(
+  _torcharrow
+  PRIVATE
+  ${TORCHARROW_COMPILE_DEFINITIONS}
+)
 
 # Based off on
 # https://github.com/pytorch/audio/blob/c69955c6dcff7840f69ba9be188b900e480c9633/torchaudio/csrc/CMakeLists.txt#L162-L166
 install(
   TARGETS _torcharrow
   LIBRARY DESTINATION .
-)
+  )

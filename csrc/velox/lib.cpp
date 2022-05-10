@@ -27,6 +27,11 @@
 #include "velox/vector/TypeAliases.h"
 #include "velox/vector/arrow/Bridge.h"
 
+#ifdef USE_TORCH
+#include <torch/csrc/utils/pybind.h> // @manual
+#include "functions/text/gpt2_bpe_tokenizer.h" // @manual
+#endif
+
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
@@ -924,10 +929,51 @@ PYBIND11_MODULE(_torcharrow, m) {
 
   functions::registerUserDefinedFunctions();
 
+  // Is library built with torch
+  m.def("is_built_with_torch", []() {
+#ifdef USE_TORCH
+    return true;
+#else
+    return false;
+#endif
+  });
+
 #ifdef VERSION_INFO
   m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
 #else
   m.attr("__version__") = "dev";
+#endif
+
+#ifdef USE_TORCH
+  // text operator
+  py::class_<
+      functions::GPT2BPEEncoder,
+      c10::intrusive_ptr<functions::GPT2BPEEncoder>>(m, "GPT2BPEEncoder")
+      .def(py::init<
+           std::unordered_map<std::string, int64_t>,
+           std::unordered_map<std::string, int64_t>,
+           std::string,
+           std::unordered_map<int64_t, std::string>,
+           bool>())
+      .def_property_readonly(
+          "bpe_encoder_", &functions::GPT2BPEEncoder::GetBPEEncoder)
+      .def_property_readonly(
+          "bpe_merge_ranks_", &functions::GPT2BPEEncoder::GetBPEMergeRanks)
+      .def_readonly("seperator_", &functions::GPT2BPEEncoder::seperator_)
+      .def_property_readonly(
+          "byte_encoder_", &functions::GPT2BPEEncoder::GetByteEncoder)
+      .def("encode", &functions::GPT2BPEEncoder::Encode)
+      .def(py::pickle(
+          // __getstate__
+          [](const c10::intrusive_ptr<functions::GPT2BPEEncoder>& self)
+              -> functions::GPT2BPEEncoderStatesPybind {
+            return functions::_serialize_gpt2_bpe_encoder_pybind(self);
+          },
+          // __setstate__
+          [](functions::GPT2BPEEncoderStatesPybind states)
+              -> c10::intrusive_ptr<functions::GPT2BPEEncoder> {
+            return functions::_deserialize_gpt2_bpe_encoder_pybind(states);
+          }));
 #endif
 }
 

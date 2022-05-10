@@ -4,4 +4,3 @@
 [submodule "velox"]
 	path = csrc/velox/velox
 	url = https://github.com/facebookincubator/velox.git
-
