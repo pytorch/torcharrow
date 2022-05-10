@@ -13,6 +13,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+  secrets:
+    CONDA_NIGHTLY_PYTORCHBOT_TOKEN:
+      required: false
+
 jobs:
   linux-container:
     runs-on: ubuntu-latest
@@ -88,9 +92,14 @@ jobs:
         env:
           PYTHON_VERSION: ${{ matrix.python-version }}
           CONDA_NIGHTLY_PYTORCHBOT_TOKEN: ${{ secrets.CONDA_NIGHTLY_PYTORCHBOT_TOKEN }}
+<<<<<<< HEAD
           CONDA_CHANNEL: pytorch-nightly
         run: |
           conda install -yq -c anaconda anaconda-client
+=======
+        run: |
+          conda install -yq anaconda-client
+>>>>>>> 210a448 (add upload torcharrow build to conda)
           anaconda -t "${CONDA_NIGHTLY_PYTORCHBOT_TOKEN}" upload ./conda-bld/linux-64/torcharrow-*.tar.bz2 -u "$CONDA_CHANNEL" --label main --no-progress --force
 
   macos-container:
