@@ -95,6 +95,7 @@ jobs:
           CONDA_CHANNEL: pytorch-nightly
         run: |
           conda install -yq -c anaconda anaconda-client
+          conda install -c conda-forge -yq jq
           anaconda -t "${CONDA_NIGHTLY_PYTORCHBOT_TOKEN}" upload ./conda-bld/linux-64/torcharrow-*.tar.bz2 -u "$CONDA_CHANNEL" --label main --no-progress --force
 
   macos-container:
