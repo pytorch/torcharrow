@@ -57,21 +57,6 @@ DTYPE = dt.Struct(
     ]
 )
 
-# TODO: allow to use to_tensor with Callable
-# TODO: implement conversion in native C++
-class _DenseConversion(tap.TensorConversion):
-    # pyre-fixme[14]: `to_tensor` overrides method defined in `TensorConversion`
-    #  inconsistently.
-    def to_tensor(self, df: ta.DataFrame):
-        # Default to_tensor, each field is a Tensor
-        tensors = df.to_tensor()
-
-        # Stack them into BatchSize * NumFields Tensor
-        return torch.cat(
-            [column_tensor.unsqueeze(0).T for column_tensor in tensors], dim=1
-        )
-
-
 # Based on https://github.com/facebookresearch/torchrec/blob/main/torchrec/datasets/criteo.py#L441-L456
 # TODO: this is not a general purpose JaggedTensor conversion -- it leverages the fact that in Criteo preproc, each array is single element
 # TODO: implement general purpose jagged sparse tensor conversion in native C++
@@ -203,7 +188,7 @@ class CriteoIntegrationTest(unittest.TestCase):
         # Convert to Tensor
         tensors = df.to_tensor(
             {
-                "dense_features": _DenseConversion(),
+                "dense_features": tap.rec.Dense(batch_first=True),
                 "sparse_features": _CriteoJaggedTensorConversion(),
             }
         )
