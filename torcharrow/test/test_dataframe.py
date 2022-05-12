@@ -536,9 +536,9 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(c // d), [(i,) for i in [0, 0, 0]])
         self.assertEqual(list(e // d), [(i,) for i in [0.0, 0.0, 1.0]])
 
-        self.assertEqual(list(c ** 2), [(i,) for i in [0, 1, 9]])
-        self.assertEqual(list(2 ** c), [(i,) for i in [1, 2, 8]])
-        self.assertEqual(list(c ** d), [(i,) for i in [0, 1, 729]])
+        self.assertEqual(list(c**2), [(i,) for i in [0, 1, 9]])
+        self.assertEqual(list(2**c), [(i,) for i in [1, 2, 8]])
+        self.assertEqual(list(c**d), [(i,) for i in [0, 1, 729]])
 
         #     # # null handling
 

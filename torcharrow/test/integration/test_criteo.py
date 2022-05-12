@@ -111,7 +111,7 @@ class CriteoIntegrationTest(unittest.TestCase):
                 for j in range(INT_FEATURE_COUNT)
             )
             sparse_features_struct = tuple(
-                random.randrange(-(2 ** 31), 2 ** 31)
+                random.randrange(-(2**31), 2**31)
                 if random.randrange(100) < 98
                 else None
                 for j in range(CAT_FEATURE_COUNT)
