@@ -235,7 +235,7 @@ class ListMethodsCpu(ListMethods):
             raise NotImplementedError("Negative start position is not supported yet")
 
         if stop is None:
-            return functional.slice(self._parent, start + 1, 2 ** 31 - 1)._with_null(
+            return functional.slice(self._parent, start + 1, 2**31 - 1)._with_null(
                 self._parent.dtype.nullable
             )
 
