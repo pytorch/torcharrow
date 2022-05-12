@@ -12,7 +12,6 @@ from functools import partial
 from typing import Callable, List, Optional, Union
 
 import torcharrow.dtypes as dt
-from torcharrow.dispatcher import Device
 
 from .expression import expression
 from .icolumn import Column
