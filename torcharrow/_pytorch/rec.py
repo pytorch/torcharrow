@@ -4,6 +4,7 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
+from enum import Enum
 from typing import Callable
 
 import torch
@@ -25,8 +26,8 @@ class Dense(Callable):
     """
 
     def __init__(self, *, batch_first=False, with_presence=False):
-        self.batch_first = batch_first
-        self.with_presence = with_presence
+        self._batch_first = batch_first
+        self._with_presence = with_presence
 
     def __call__(self, df):
         # Only support CPU dataframe for now
@@ -53,28 +54,39 @@ class Dense(Callable):
 
         return data_tensor
 
+    @property
+    def batch_first(self) -> bool:
+        return self._batch_first
+
+    @property
+    def with_presence(self) -> bool:
+        return self._with_presence
+
 
 @final
 # pyre-fixme[39]: `(...) -> Any` is not a valid parent class.
-class Sparse(Callable):
+class IndividualSparse(Callable):
     """
-    Predefined conversion callable for sparse features.
+    Predefined conversion for individual (weighted) sparse features.
 
-    is_jagged: bool, whether to output jagged format tensors with keys and key offsets
-    is_combined: bool, whether to combine individual features as final output
-    as_list: bool, whether to concate individual features to list as final output
-    is_legacy: bool, whether to use by legacy HPC (only for combined format)
+    Individual sparse conversion:
+      From: ARRAY<BIGINT>
+      To: Tuple<Tensor, Tensor, Tensor> for (offset, length, value)
+
+    Individual weighted sparse conversion:
+      From: ARRAY<ROW<BIGINT, REAL>>
+      To: Tuple<Tensor, Tensor, Tensor> for (offset, length, value, weight)
+
+    Args:
+        weighted: bool. Whether feature is weighted sparse or not.
     """
 
     def __init__(
-        self, *, is_jagged=False, is_combined=False, as_list=False, is_legacy=False
+        self,
+        *,
+        weighted: bool,
     ):
-        if is_legacy and not is_combined:
-            raise ValueError("Legacy HPC only supports CombinedSparse format")
-        self.is_jagged = is_jagged
-        self.is_combined = is_combined
-        self.as_list = as_list
-        self.is_legacy = is_legacy
+        self._weighted = weighted
 
     def __call__(self, df):
         # Only support CPU dataframe for now
@@ -83,31 +95,135 @@ class Sparse(Callable):
         # TODO: Implement OSS Sparse conversions
         raise NotImplementedError
 
+    @property
+    def weighted(self) -> bool:
+        return self._weighted
+
+
+class PackOption(Enum):
+    """
+    Options to pack multiple (weighted) sparse features individually with different reperesentations.
+
+    AS_PYDICT:
+        Dict<String, Tuple<Tensor, Tensor, Tensor, (Tensor)>>.
+        Key: field name; Value: <offset, length, value, (score)> tuple.
+
+    AS_PYLIST:
+        List<[Tensor, Tensor, (Tensor)] x N>.
+        Iterates over each child sparse feature, and push length, value, (score) Tensor into the list
+    """
+
+    AS_PYDICT = 1
+    AS_PYLIST = 2
+
 
 @final
 # pyre-fixme[39]: `(...) -> Any` is not a valid parent class.
-class WeightedSparse(Callable):
+class PackedSparse(Callable):
     """
-    Predefined conversion callable for weighted sparse features.
+    Predefined conversion for packed (weighted) sparse features
+    into individual representation.
+    Note: JaggedSparse is the recommended way for multiple (weighted) sparse
+    features collation. JaggedSparse will combine multiple features into
+    one continuous memory chunk and is GPU/accelerator friendly.
 
-    is_jagged: bool, whether to output jagged format tensors with keys and key offsets
-    is_combined: bool, whether to combine individual features as final output
-    is_legacy: bool, whether to use by legacy HPC (only for combined format)
+    From: ROW<ARRAY<BIGINT>...> or ROW<ARRAY<ROW<BIGINT, REAL>>...>
+    To: Packed tensor representation of each feature alone
+
+    Args:
+        weighted: bool. Whether feature is weighted sparse or not.
+        pack_option: PackOption. Representation of pack format.
     """
 
-    def __init__(self, *, is_jagged=False, is_combined=False, is_legacy=False):
-        if is_legacy and not is_combined:
-            raise ValueError("Legacy HPC only supports CombinedWeightedSparse format")
-        self.is_jagged = is_jagged
-        self.is_combined = is_combined
-        self.is_legacy = is_legacy
+    def __init__(
+        self,
+        *,
+        weighted: bool,
+        pack_option: PackOption = PackOption.AS_PYDICT,
+    ):
+        self._weighted = weighted
+        self._pack_option = pack_option
 
     def __call__(self, df):
         # Only support CPU dataframe for now
         assert df.device == "cpu"
 
-        # TODO: Implement OSS Weighted Sparse conversions
+        # TODO: Implement OSS Sparse conversions
         raise NotImplementedError
+
+    @property
+    def weighted(self) -> bool:
+        return self._weighted
+
+    @property
+    def pack_option(self) -> PackOption:
+        return self._pack_option
+
+
+class CombineOption(Enum):
+    """
+    Options to combine packed (weighted) sparse features with different reperesentations.
+
+    JAGGED:
+        Preferred representation option.
+        Convert into Tuple<List<str>, List<int>, Tensor, Tensor, (Tensor)>.
+        Represent (keys, length per key, length, value, (weight))
+        For JaggedTensor layout refer to: https://fburl.com/diffusion/lo7ssa8i
+
+    COMBINED:
+        Convert into Tuple<Tensor, Tensor, (Tensor)>.
+        packed keys - 2D tensor,
+        packed values - concat'ed 1D tensor,
+        packed weights - concat'ed 1D tensor
+
+    JAGGED_WITH_OFFSET:
+        Convert into Tuple<Tensor, Tensor, (Tensor), List<int>, List<int>>.
+        Represents (length, value, (weight), length per key, offset per key)
+    """
+
+    JAGGED = 1
+    COMBINED = 2
+    JAGGED_WITH_OFFSET = 3
+
+
+@final
+# pyre-fixme[39]: `(...) -> Any` is not a valid parent class.
+class JaggedSparse(Callable):
+    """
+    Predefined conversion callable for packed (weighted) sparse features
+    into combined representations.
+
+    From: ROW<ARRAY<BIGINT>...> or ROW<ARRAY<ROW<BIGINT, REAL>>...>
+    To: Combined tensor representation based on CombineOption
+
+    Args:
+       weighted: bool. Whether feature is weighted sparse or not.
+       combine_option: CombineOption. Representation of combined format.
+    """
+
+    def __init__(
+        self,
+        *,
+        weighted: bool,
+        combine_option: CombineOption = CombineOption.JAGGED,
+    ):
+        self._weighted = weighted
+        self._combine_option = combine_option
+
+    def __call__(self, df):
+        # Only support CPU dataframe for now
+        assert df.device == "cpu"
+
+        # TODO: Implement OSS Sparse conversions
+        raise NotImplementedError
+
+    @property
+    def weighted(self) -> bool:
+        return self._weighted
+
+    @property
+    def combine_option(self) -> CombineOption:
+        return self._combine_option
 
 
 @final
@@ -135,7 +251,7 @@ class Scalar(Callable):
     """
 
     def __init__(self, *, with_presence=False):
-        self.with_presence = with_presence
+        self._with_presence = with_presence
 
     def __call__(self, df):
         # Only support CPU dataframe for now
@@ -147,3 +263,7 @@ class Scalar(Callable):
 
         # TODO: Implement OSS Scalar conversions
         raise NotImplementedError
+
+    @property
+    def with_presence(self) -> bool:
+        return self._with_presence
