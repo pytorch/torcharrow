@@ -160,6 +160,14 @@ inline void registerTorchArrowFunctions() {
   velox::registerFunction<torcharrow_not_int, int64_t, int64_t>(
       {"torcharrow_not"});
 
+  // Sigmoid
+  velox::registerFunction<sigmoid, float, float>({"sigmoid"});
+  velox::registerFunction<sigmoid, double, double>({"sigmoid"});
+  velox::registerFunction<sigmoid, float, int8_t>({"sigmoid"});
+  velox::registerFunction<sigmoid, float, int16_t>({"sigmoid"});
+  velox::registerFunction<sigmoid, float, int32_t>({"sigmoid"});
+  velox::registerFunction<sigmoid, float, int64_t>({"sigmoid"});
+
   // Recsys
 
   // bucketize
