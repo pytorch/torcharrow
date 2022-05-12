@@ -8,6 +8,7 @@ from types import ModuleType
 from typing import Dict, Set
 
 from torcharrow.icolumn import Column
+from torcharrow.inumerical_column import NumericalColumn
 
 
 class _Functional(ModuleType):
@@ -101,6 +102,14 @@ class _Functional(ModuleType):
         wrapper = self.create_dispatch_wrapper(op_name)
         setattr(self, op_name, wrapper)
         return wrapper
+
+    def scale_to_0_1(self, col: NumericalColumn) -> NumericalColumn:
+        """Return the column data scaled to range [0,1]."""
+        assert isinstance(col, NumericalColumn)
+        min_val = col.min()
+        max_val = col.max()
+        # TODO (tbao): support min = max case with sigmoid
+        return (col - min_val) / (max_val - min_val)
 
 
 functional = _Functional()
