@@ -104,12 +104,16 @@ class _Functional(ModuleType):
         return wrapper
 
     def scale_to_0_1(self, col: NumericalColumn) -> NumericalColumn:
-        """Return the column data scaled to range [0,1]."""
+        """Return the column data scaled to range [0,1].
+        If column contains only a single value, then column is scaled with sigmoid function.
+        """
         assert isinstance(col, NumericalColumn)
         min_val = col.min()
         max_val = col.max()
-        # TODO (tbao): support min = max case with sigmoid
-        return (col - min_val) / (max_val - min_val)
+        if min_val < max_val:
+            return (col - min_val) / (max_val - min_val)
+        else:
+            return self.sigmoid(col)
 
 
 functional = _Functional()

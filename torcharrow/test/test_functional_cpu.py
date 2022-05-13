@@ -9,6 +9,7 @@ import unittest
 import torcharrow as ta
 import torcharrow._torcharrow
 import torcharrow.dtypes as dt
+from numpy.testing import assert_array_almost_equal
 from torcharrow import functional
 from torcharrow.velox_rt.functional import velox_functional
 
@@ -66,6 +67,14 @@ class TestFunctionalCpu(unittest.TestCase):
         self.assertEqual(
             list(functional.scale_to_0_1(c)), [0.0, 0.25, 0.5, None, 0.75, 1.0]
         )
+
+        c = ta.column([2, 2, 2], device=self.device)
+        assert_array_almost_equal(
+            [0.11920291930437088, 0.11920291930437088, 0.11920291930437088],
+            list(functional.scale_to_0_1(c)),
+            decimal=15,
+        )
+
         c = ta.column(["foo", "bar"])
         with self.assertRaises(AssertionError):
             functional.scale_to_0_1(c)
