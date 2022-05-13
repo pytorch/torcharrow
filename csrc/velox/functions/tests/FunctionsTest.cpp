@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <optional>
 
+#include <fmt/format.h>
 #include <gmock/gmock.h>
 
 #include <velox/common/base/VeloxException.h>
@@ -34,6 +35,13 @@ class FunctionsTest : public functions::test::FunctionBaseTest {
     torcharrow::functions::registerTorchArrowFunctions();
   }
 
+  template <typename T>
+  void EXPECT_ALMOST_EQ(T a, T b) {
+    constexpr static double kEps = 1e-7;
+    EXPECT_TRUE(fabs(a - b) < kEps)
+        << fmt::format("{} and {} are not close", a, b);
+  }
+
   template <typename T, typename T1 = T, typename TExpected = T>
   void assertExpression(
       const std::string& expression,
@@ -47,9 +55,9 @@ class FunctionsTest : public functions::test::FunctionBaseTest {
         expression, makeRowVector({vector0, vector1}));
     for (int32_t i = 0; i < arg0.size(); ++i) {
       if (std::isnan(expected[i])) {
-        ASSERT_TRUE(std::isnan(result->valueAt(i))) << "at " << i;
+        EXPECT_TRUE(std::isnan(result->valueAt(i))) << "at " << i;
       } else {
-        ASSERT_EQ(result->valueAt(i), expected[i]) << "at " << i;
+        EXPECT_EQ(result->valueAt(i), expected[i]) << "at " << i;
       }
     }
   }
@@ -58,16 +66,21 @@ class FunctionsTest : public functions::test::FunctionBaseTest {
   void assertUnaryExpression(
       const std::string& expression,
       const std::vector<T>& arg0,
-      const std::vector<TExpected>& expected) {
+      const std::vector<TExpected>& expected,
+      const bool almostEqual = false) {
     auto vector0 = makeFlatVector(arg0);
 
     auto result =
         evaluate<SimpleVector<TExpected>>(expression, makeRowVector({vector0}));
     for (int32_t i = 0; i < arg0.size(); ++i) {
       if (std::isnan(expected[i])) {
-        ASSERT_TRUE(std::isnan(result->valueAt(i))) << "at " << i;
+        EXPECT_TRUE(std::isnan(result->valueAt(i))) << "at " << i;
       } else {
-        ASSERT_EQ(result->valueAt(i), expected[i]) << "at " << i;
+        if (almostEqual) {
+          EXPECT_ALMOST_EQ<TExpected>(result->valueAt(i), expected[i]);
+        } else {
+          EXPECT_EQ(result->valueAt(i), expected[i]) << "at " << i;
+        }
       }
     }
   }
@@ -361,6 +374,20 @@ TEST_F(FunctionsTest, not ) {
 
   assertUnaryExpression<bool>(
       "torcharrow_not(c0)", {true, false, true}, {false, true, false});
+}
+
+TEST_F(FunctionsTest, Sigmoid) {
+  std::vector<double> doubles = {-2.0, -1.1, 0, 1.1, 2.0};
+  std::vector<double> expectedDoubles = {
+      0.119203, 0.2497398, 0.5, 0.2497398, 0.119203};
+  assertUnaryExpression<double, double>(
+      "sigmoid(c0)", doubles, expectedDoubles, true);
+
+  std::vector<int32_t> ints = {-2, -1, 0, 1, 2};
+  std::vector<float> expectedFloats = {
+      0.119203, 0.26894143, 0.5, 0.26894143, 0.119203};
+  assertUnaryExpression<int32_t, float>(
+      "sigmoid(c0)", ints, expectedFloats, true);
 }
 
 } // namespace

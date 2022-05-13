@@ -177,4 +177,18 @@ struct torcharrow_bitwiseor {
   }
 };
 
+template <typename T>
+struct sigmoid {
+  template <typename TOutput, typename TInput = TOutput>
+  FOLLY_ALWAYS_INLINE bool call(TOutput& result, const TInput& x) {
+    if (x >= 0) {
+      result = 1 / (1 + exp(x));
+    } else {
+      const auto z = exp(x);
+      result = z / (1 + z);
+    }
+    return true;
+  }
+};
+
 } // namespace facebook::torcharrow::functions
