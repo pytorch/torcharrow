@@ -13,10 +13,6 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-  secrets:
-    CONDA_NIGHTLY_PYTORCHBOT_TOKEN:
-      required: false
-
 jobs:
   linux-container:
     runs-on: ubuntu-latest
