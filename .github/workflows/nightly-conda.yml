@@ -1,12 +1,14 @@
 name: TorchArrow Nightly Build and Test for Conda
 on:
-#  schedule:
-#    - cron: "0 0 * * *"
-  pull_request:
-    branches:
-      - main
-      # For PR created by ghstack
-      - gh/*/*/base
+  schedule:
+    - cron: "0 0 * * *"
+
+  # Use the following to trigger test on a dev PR
+  # pull_request:
+  #  branches:
+  #    - main
+  #    # For PR created by ghstack
+  #    - gh/*/*/base
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -81,6 +83,16 @@ jobs:
           conda install -yq conda-build -c conda-forge
           ./packaging/build_conda.sh
 
+      - name: Conda Upload
+        shell: bash -l {0}
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
+          CONDA_NIGHTLY_PYTORCHBOT_TOKEN: ${{ secrets.CONDA_NIGHTLY_PYTORCHBOT_TOKEN }}
+          CONDA_CHANNEL: pytorch-nightly
+        run: |
+          conda install -yq -c anaconda anaconda-client
+          anaconda -t "${CONDA_NIGHTLY_PYTORCHBOT_TOKEN}" upload ./conda-bld/linux-64/torcharrow-*.tar.bz2 -u "$CONDA_CHANNEL" --label main --no-progress --force
+
   macos-container:
     runs-on: macos-latest
     strategy:
@@ -111,3 +123,12 @@ jobs:
           conda install -yq conda-build -c conda-forge
           MACOSX_DEPLOYMENT_TARGET=10.15 ./csrc/velox/velox/scripts/setup-macos.sh
           ./packaging/build_conda.sh
+
+      - name: Conda Upload
+        shell: bash -l {0}
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
+          CONDA_NIGHTLY_PYTORCHBOT_TOKEN: ${{ secrets.CONDA_NIGHTLY_PYTORCHBOT_TOKEN }}
+        run: |
+          conda install -yq anaconda-client
+          anaconda -t "${CONDA_NIGHTLY_PYTORCHBOT_TOKEN}" upload ./conda-bld/osx-64/torcharrow-*.tar.bz2 -u "$CONDA_CHANNEL" --label main --no-progress --force

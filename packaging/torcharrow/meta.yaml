@@ -24,6 +24,7 @@ requirements:
     - arrow
     - cffi
     - glog==0.4.0
+    - libsodium
     {{ environ.get('CONDA_PYTORCH_CONSTRAINT') }}
 
 build:
