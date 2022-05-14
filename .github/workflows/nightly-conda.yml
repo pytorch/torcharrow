@@ -1,22 +1,21 @@
 name: TorchArrow Nightly Build and Test for Conda
 on:
-   schedule:
-      - cron: "0 0 * * *"
+  schedule:
+    - cron: "0 0 * * *"
 
-   # Use the following to trigger test on a dev PR
-   # pull_request:
-   #  branches:
-   #    - main
-   #    # For PR created by ghstack
-   #    - gh/*/*/base
+  # Use the following to trigger test on a dev PR
+  # pull_request:
+  #  branches:
+  #    - main
+  #    # For PR created by ghstack
+  #    - gh/*/*/base
 
-   # Allows you to run this workflow manually from the Actions tab
-   workflow_dispatch:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
-   workflow_call:
-      secrets:
-         CONDA_NIGHTLY_PYTORCHBOT_TOKEN:
-            required: false
+  secrets:
+    CONDA_NIGHTLY_PYTORCHBOT_TOKEN:
+      required: false
 
 jobs:
   linux-container:
