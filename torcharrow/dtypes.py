@@ -248,8 +248,8 @@ class List(DType):
     def py_type(self):
         return ty.List[self.item_dtype.py_type]
 
-    def constructor(self, nullable):
-        return List(self.item_dtype, nullable)
+    def constructor(self, nullable, fixed_size=-1):
+        return List(self.item_dtype, nullable, fixed_size)
 
     def __str__(self):
         nullable = ", nullable=" + str(self.nullable) if self.nullable else ""
