@@ -35,6 +35,10 @@ class ListColumnCpu(ColumnCpuMixin, ListColumn):
 
         self._data = velox.Column(
             velox.VeloxArrayType(get_velox_type(dtype.item_dtype))
+            if dtype.fixed_size == -1
+            else velox.VeloxFixedArrayType(
+                dtype.fixed_size, get_velox_type(dtype.item_dtype)
+            )
         )
         if len(data) > 0:
             self.append(data)
@@ -91,6 +95,10 @@ class ListColumnCpu(ColumnCpuMixin, ListColumn):
         else:
             new_element_column = ta.column(self._dtype.item_dtype)
             new_element_column = new_element_column.append(value)
+            if self._dtype.fixed_size != -1 and self.dtype.fixed_size != len(
+                new_element_column
+            ):
+                raise ValueError("value incompatible with list fixed_size")
             self._data.append(new_element_column._data)
 
     def _finalize(self):
