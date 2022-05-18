@@ -17,6 +17,7 @@
 #include "string_functions.h"
 #ifdef USE_TORCH
 #include "text/bpe_tokenize.h" // @manual
+#include "text/vocab_ops.h" // @manual
 #endif
 #include "velox/expression/VectorFunction.h"
 #include "velox/functions/lib/Re2Functions.h"
@@ -239,7 +240,12 @@ inline void registerTorchArrowFunctions() {
 
 #ifdef USE_TORCH
   // TorchText
-  // bpe_encode
+  velox::registerFunction<
+      lookup_indices,
+      velox::ArrayWriterT<int64_t>,
+      std::shared_ptr<Vocab>,
+      velox::Array<velox::Varchar>>({"lookup_indices"});
+
   velox::registerFunction<
       bpe_tokenize,
       velox::ArrayWriterT<int64_t>,

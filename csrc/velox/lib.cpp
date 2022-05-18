@@ -968,8 +968,62 @@ PYBIND11_MODULE(_torcharrow, m) {
 #else
   m.attr("__version__") = "dev";
 #endif
-
 #ifdef USE_TORCH
+  py::class_<functions::Vocab, c10::intrusive_ptr<functions::Vocab>>(m, "Vocab")
+      .def(py::init<functions::StringList, c10::optional<int64_t>>())
+      .def_readonly("itos_", &functions::Vocab::itos_)
+      .def_readonly("default_index_", &functions::Vocab::default_index_)
+      .def(
+          "__contains__",
+          [](c10::intrusive_ptr<functions::Vocab>& self,
+             const py::str& item) -> bool {
+            Py_ssize_t length;
+            const char* buffer = PyUnicode_AsUTF8AndSize(item.ptr(), &length);
+            return self->__contains__(c10::string_view{buffer, (size_t)length});
+          })
+      .def(
+          "__getitem__",
+          [](c10::intrusive_ptr<functions::Vocab>& self,
+             const py::str& item) -> int64_t {
+            Py_ssize_t length;
+            const char* buffer = PyUnicode_AsUTF8AndSize(item.ptr(), &length);
+            return self->__getitem__(c10::string_view{buffer, (size_t)length});
+          })
+      .def("insert_token", &functions::Vocab::insert_token)
+      .def("set_default_index", &functions::Vocab::set_default_index)
+      .def("get_default_index", &functions::Vocab::get_default_index)
+      .def("__len__", &functions::Vocab::__len__)
+      .def("append_token", &functions::Vocab::append_token)
+      .def("lookup_token", &functions::Vocab::lookup_token)
+      .def("lookup_tokens", &functions::Vocab::lookup_tokens)
+      .def(
+          "lookup_indices",
+          [](const c10::intrusive_ptr<functions::Vocab>& self,
+             const py::list& items) {
+            std::vector<int64_t> indices(items.size());
+            int64_t counter = 0;
+            for (const auto& item : items) {
+              Py_ssize_t length;
+              const char* buffer = PyUnicode_AsUTF8AndSize(item.ptr(), &length);
+              indices[counter++] =
+                  self->__getitem__(c10::string_view{buffer, (size_t)length});
+            }
+            return indices;
+          })
+      .def("get_stoi", &functions::Vocab::get_stoi)
+      .def("get_itos", &functions::Vocab::get_itos)
+      .def(py::pickle(
+          // __getstate__
+          [](const c10::intrusive_ptr<functions::Vocab>& self)
+              -> functions::VocabStates {
+            return functions::_serialize_vocab(self);
+          },
+          // __setstate__
+          [](functions::VocabStates states)
+              -> c10::intrusive_ptr<functions::Vocab> {
+            return functions::_deserialize_vocab(states);
+          }));
+
   // text operator
   py::class_<
       functions::GPT2BPEEncoder,

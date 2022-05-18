@@ -33,6 +33,9 @@ if (USE_TORCH)
     text/regex.h
     text/regex.cpp
     text/bpe_tokenize.h
+    text/vocab.h
+    text/vocab.cpp
+    text/vocab_ops.h
     )
   list(
     APPEND
