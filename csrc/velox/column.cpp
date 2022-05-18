@@ -25,6 +25,7 @@
 
 #ifdef USE_TORCH
 #include "functions/text/gpt2_bpe_tokenizer.h" // @manual
+#include "functions/text/vocab.h" // @manual
 #endif
 
 namespace py = pybind11;
@@ -670,6 +671,13 @@ velox::variant pyToVariant(const pybind11::handle& obj) {
     return velox::variant::opaque(
         obj.cast<std::shared_ptr<functions::GPT2BPEEncoder>>());
   }
+
+  // handle vocab opaque type
+  if (py::isinstance<functions::Vocab>(obj)) {
+    return velox::variant::opaque(
+        obj.cast<std::shared_ptr<functions::Vocab>>());
+  }
+
 #endif
 
   // Recursively allocate lists

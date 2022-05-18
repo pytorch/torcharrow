@@ -77,14 +77,14 @@ def init_bpe_encoder():
     return bpe
 
 
-class _TestFunctionalBase(unittest.TestCase):
+class _TestTextOpsBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if not (tap.available and _ta.is_built_with_torch()):
             raise unittest.SkipTest("Requires PyTorch")
 
         cls.tokenizer = init_bpe_encoder()
-        cls.base_df = ta.dataframe(
+        cls.base_df_bpe = ta.dataframe(
             {
                 "text": ["Hello World!, how are you?", "Respublica superiorem"],
                 "labels": [0, 1],
@@ -101,6 +101,19 @@ class _TestFunctionalBase(unittest.TestCase):
                 ]
             ),
         )
+
+        cls.base_df_vocab = ta.dataframe(
+            {
+                "text": [["Hello", "world"], ["How", "are", "you!", "OOV"]],
+                "indices": [[1, 2], [3, 4, 5, 0]],
+            },
+            dtype=dt.Struct(
+                fields=[
+                    dt.Field("text", dt.List(dt.string)),
+                    dt.Field("indices", dt.List(dt.int64)),
+                ]
+            ),
+        )
         cls.setUpTestCaseData()
 
     @classmethod
@@ -114,14 +127,25 @@ class _TestFunctionalBase(unittest.TestCase):
         tap.available and _ta.is_built_with_torch(), "Requires PyTorch"
     )
     def test_bpe_encode(self):
-        out_df = functional.bpe_tokenize(self.tokenizer, self.df["text"])
-        self.assertEqual(list(out_df), list(self.df["tokens"]))
+        out_df = functional.bpe_tokenize(self.tokenizer, self.df_bpe["text"])
+        self.assertEqual(list(out_df), list(self.df_bpe["tokens"]))
+
+    @unittest.skipUnless(
+        tap.available and _ta.is_built_with_torch(), "Requires PyTorch"
+    )
+    def test_vocab_lookup_indices(self):
+        tokens = ["<unk>", "Hello", "world", "How", "are", "you!"]
+        vocab = _ta.Vocab(tokens, 0)
+        indices = [[1, 2], [3, 4, 5, 0]]
+        out_df = functional.lookup_indices(vocab, self.df_vocab["text"])
+        self.assertEqual(indices, list(out_df))
 
 
-class TestFunctionalCpu(_TestFunctionalBase):
+class TestTextOpsCpu(_TestTextOpsBase):
     @classmethod
     def setUpTestCaseData(cls):
-        cls.df = cls.base_df.copy()
+        cls.df_bpe = cls.base_df_bpe.copy()
+        cls.df_vocab = cls.base_df_vocab.copy()
 
 
 if __name__ == "__main__":

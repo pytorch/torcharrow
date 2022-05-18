@@ -558,7 +558,9 @@ py::class_<SimpleColumn<T>, BaseColumn> declareFloatingType(py::module& m) {
 template <
     velox::TypeKind kind,
     typename T = typename velox::TypeTraits<kind>::NativeType>
-velox::ArrayVectorPtr arrayVectorFromPyList(const py::list& data) {
+velox::ArrayVectorPtr arrayVectorFromPyList(
+    int fixed_size,
+    const py::list& data) {
   using velox::vector_size_t;
 
   // Prepare the arguments for creating ArrayVector
@@ -625,9 +627,13 @@ velox::ArrayVectorPtr arrayVectorFromPyList(const py::list& data) {
   }
   flatVector->setNullCount(elementNullCount);
 
+  const auto typ = fixed_size == -1
+      ? velox::ARRAY(velox::CppToType<T>::create())
+      : velox::FIXED_SIZE_ARRAY(fixed_size, velox::CppToType<T>::create());
+
   return std::make_shared<velox::ArrayVector>(
       TorchArrowGlobalStatic::rootMemoryPool(),
-      velox::ARRAY(velox::CppToType<T>::create()),
+      typ,
       nulls,
       data.size(),
       offsets,
@@ -637,6 +643,7 @@ velox::ArrayVectorPtr arrayVectorFromPyList(const py::list& data) {
 }
 
 velox::ArrayVectorPtr arrayVectorFromPyListByType(
+    int fixed_size,
     velox::TypePtr elementType,
     const py::list& data) {
   switch (elementType->kind()) {
@@ -657,7 +664,7 @@ velox::ArrayVectorPtr arrayVectorFromPyListByType(
     }
     default: {
       return VELOX_DYNAMIC_SCALAR_TYPE_DISPATCH(
-          arrayVectorFromPyList, elementType->kind(), data);
+          arrayVectorFromPyList, elementType->kind(), fixed_size, data);
       break;
     }
   }
@@ -681,17 +688,35 @@ void declareArrayType(py::module& m) {
       .def(py::init<velox::TypePtr>())
       .def("element_type", &velox::ArrayType::elementType);
 
+  using J = typename velox::FixedSizeArrayType;
+  py::class_<J, velox::Type, std::shared_ptr<J>>(
+      m, "VeloxFixedArrayType", py::module_local())
+      .def(py::init<int, velox::TypePtr>())
+      .def("element_type", &velox::FixedSizeArrayType::elementType)
+      .def("fixed_width", &velox::FixedSizeArrayType::fixedElementsWidth);
+
   // Empty Column
   m.def("Column", [](std::shared_ptr<I> type) {
     return std::make_unique<ArrayColumn>(type);
   });
+  m.def("Column", [](std::shared_ptr<J> type) {
+    return std::make_unique<ArrayColumn>(type);
+  });
+
   // Column construction from Python list
   m.def(
       "Column",
       [](std::shared_ptr<I> type,
          py::list data) -> std::unique_ptr<ArrayColumn> {
         return std::make_unique<ArrayColumn>(
-            arrayVectorFromPyListByType(type->elementType(), data));
+            arrayVectorFromPyListByType(-1, type->elementType(), data));
+      });
+  m.def(
+      "Column",
+      [](std::shared_ptr<J> type,
+         py::list data) -> std::unique_ptr<ArrayColumn> {
+        return std::make_unique<ArrayColumn>(arrayVectorFromPyListByType(
+            type->fixedElementsWidth(), type->elementType(), data));
       });
 }
 
@@ -943,8 +968,62 @@ PYBIND11_MODULE(_torcharrow, m) {
 #else
   m.attr("__version__") = "dev";
 #endif
-
 #ifdef USE_TORCH
+  py::class_<functions::Vocab, c10::intrusive_ptr<functions::Vocab>>(m, "Vocab")
+      .def(py::init<functions::StringList, c10::optional<int64_t>>())
+      .def_readonly("itos_", &functions::Vocab::itos_)
+      .def_readonly("default_index_", &functions::Vocab::default_index_)
+      .def(
+          "__contains__",
+          [](c10::intrusive_ptr<functions::Vocab>& self,
+             const py::str& item) -> bool {
+            Py_ssize_t length;
+            const char* buffer = PyUnicode_AsUTF8AndSize(item.ptr(), &length);
+            return self->__contains__(c10::string_view{buffer, (size_t)length});
+          })
+      .def(
+          "__getitem__",
+          [](c10::intrusive_ptr<functions::Vocab>& self,
+             const py::str& item) -> int64_t {
+            Py_ssize_t length;
+            const char* buffer = PyUnicode_AsUTF8AndSize(item.ptr(), &length);
+            return self->__getitem__(c10::string_view{buffer, (size_t)length});
+          })
+      .def("insert_token", &functions::Vocab::insert_token)
+      .def("set_default_index", &functions::Vocab::set_default_index)
+      .def("get_default_index", &functions::Vocab::get_default_index)
+      .def("__len__", &functions::Vocab::__len__)
+      .def("append_token", &functions::Vocab::append_token)
+      .def("lookup_token", &functions::Vocab::lookup_token)
+      .def("lookup_tokens", &functions::Vocab::lookup_tokens)
+      .def(
+          "lookup_indices",
+          [](const c10::intrusive_ptr<functions::Vocab>& self,
+             const py::list& items) {
+            std::vector<int64_t> indices(items.size());
+            int64_t counter = 0;
+            for (const auto& item : items) {
+              Py_ssize_t length;
+              const char* buffer = PyUnicode_AsUTF8AndSize(item.ptr(), &length);
+              indices[counter++] =
+                  self->__getitem__(c10::string_view{buffer, (size_t)length});
+            }
+            return indices;
+          })
+      .def("get_stoi", &functions::Vocab::get_stoi)
+      .def("get_itos", &functions::Vocab::get_itos)
+      .def(py::pickle(
+          // __getstate__
+          [](const c10::intrusive_ptr<functions::Vocab>& self)
+              -> functions::VocabStates {
+            return functions::_serialize_vocab(self);
+          },
+          // __setstate__
+          [](functions::VocabStates states)
+              -> c10::intrusive_ptr<functions::Vocab> {
+            return functions::_deserialize_vocab(states);
+          }));
+
   // text operator
   py::class_<
       functions::GPT2BPEEncoder,
