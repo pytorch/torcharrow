@@ -8,6 +8,7 @@ import operator
 import unittest
 
 import torcharrow as ta
+import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 from torcharrow.ilist_column import ListColumn
 
@@ -152,6 +153,60 @@ class TestListColumn(unittest.TestCase):
         self.assertEqual(list(c.flatmap(lambda xs: [xs, xs])), [fst, fst, snd, snd])
 
         ta.column([1, 2, 3, 4], device=self.device).map(str, dtype=dt.string)
+
+    def base_test_fixed_size_list(self):
+        # Creation
+        d = ta.column(
+            [[1, 2], [3, 4]], dtype=dt.List(item_dtype=dt.int64, fixed_size=2)
+        )
+        self.assertEqual(d.dtype.fixed_size, 2)
+        self.assertEqual(type(d._data.type()), velox.VeloxFixedArrayType)
+        self.assertEqual(d._data.type().fixed_width(), 2)
+
+        # Unequal length cells are disallowed
+        with self.assertRaises(Exception) as ex:
+            ta.column([[1, 2], [4]], dtype=dt.List(item_dtype=dt.int64, fixed_size=2))
+        self.assertTrue(
+            "Exception: VeloxRuntimeError" in str(ex.exception),
+            f"Wanted VeloxRuntimeError: {str(ex.exception)}",
+        )
+        self.assertTrue(
+            "Reason: Invalid length element at index 1, got length 1, want length 2"
+            in str(ex.exception),
+            f"Wanted detailed reason {str(ex.exception)}",
+        )
+
+        # Appending another fixed list of same size
+        e = d.append(d)
+        self.assertEqual(list(e), [[1, 2], [3, 4], [1, 2], [3, 4]])
+        self.assertEqual(e.dtype.fixed_size, 2)
+        self.assertEqual(type(e._data.type()), velox.VeloxFixedArrayType)
+        self.assertEqual(e._data.type().fixed_width(), 2)
+
+        # Appending a non-fixed list of same size
+        f = d.append(ta.column([[4, 5], [5, 6]]))
+        self.assertEqual(list(f), [[1, 2], [3, 4], [4, 5], [5, 6]])
+        self.assertEqual(f.dtype.fixed_size, 2)
+        self.assertEqual(type(f._data.type()), velox.VeloxFixedArrayType)
+        self.assertEqual(f._data.type().fixed_width(), 2)
+
+        # Appending a fixed list of different size
+        with self.assertRaises(ValueError) as ex:
+            d.append(
+                ta.column([[1, 2, 3]], dtype=dt.List(item_dtype=dt.int64, fixed_size=3))
+            )
+        self.assertTrue(
+            "value incompatible with list fixed_size" in str(ex.exception),
+            f"Unexpected failure reason: {str(ex.exception)}",
+        )
+
+        # Appending a non-fixed list of different size
+        with self.assertRaises(ValueError) as ex:
+            d.append(ta.column([[1]]))
+        self.assertTrue(
+            "value incompatible with list fixed_size" in str(ex.exception),
+            f"Unexpected failure reason: {str(ex.exception)}",
+        )
 
 
 if __name__ == "__main__":

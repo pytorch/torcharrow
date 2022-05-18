@@ -43,6 +43,9 @@ class TestListColumnCpu(TestListColumn):
     def test_map_reduce_etc(self):
         self.base_test_map_reduce_etc()
 
+    def test_fixed_size_list(self):
+        self.base_test_fixed_size_list()
+
 
 if __name__ == "__main__":
     unittest.main()
