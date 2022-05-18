@@ -349,20 +349,20 @@ class TestNumericalColumn(unittest.TestCase):
         e = ta.column([0.0], device=self.device)
         self.assertTrue(isnan(list(e // 0)[0]))
 
-        self.assertEqual(list(c ** 2), [0, 1.0, 9.0])
-        self.assertEqual(list(c ** 2.0), [0, 1.0, 9.0])
-        self.assertEqual(list(c ** -2.0), [float("inf"), 1.0, 0.1111111119389534])
-        self.assertEqual(list(c ** 0), [1.0, 1.0, 1.0])
-        self.assertEqual(list(2 ** c), [1, 2, 8])
-        self.assertEqual(list(c ** d), [0, 1, 729])
+        self.assertEqual(list(c**2), [0, 1.0, 9.0])
+        self.assertEqual(list(c**2.0), [0, 1.0, 9.0])
+        self.assertEqual(list(c**-2.0), [float("inf"), 1.0, 0.1111111119389534])
+        self.assertEqual(list(c**0), [1.0, 1.0, 1.0])
+        self.assertEqual(list(2**c), [1, 2, 8])
+        self.assertEqual(list(c**d), [0, 1, 729])
         with self.assertRaises(Exception) as ex:
-            list(c ** -2)
+            list(c**-2)
         self.assertTrue(
             "Integers to negative integer powers are not allowed" in str(ex.exception)
         )
         e = ta.column([999999], device=self.device)
         with self.assertRaises(Exception) as ex:
-            list(c ** e)
+            list(c**e)
         self.assertTrue(
             "Inf is outside the range of representable values of type int64",
             str(ex.exception),

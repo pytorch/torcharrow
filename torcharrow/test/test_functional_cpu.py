@@ -9,11 +9,12 @@ import unittest
 import torcharrow as ta
 import torcharrow._torcharrow
 import torcharrow.dtypes as dt
+from numpy.testing import assert_array_almost_equal
 from torcharrow import functional
 from torcharrow.velox_rt.functional import velox_functional
 
 
-class TestStringColumnCpu(unittest.TestCase):
+class TestFunctionalCpu(unittest.TestCase):
     def setUp(self):
         self.device = "cpu"
 
@@ -60,6 +61,23 @@ class TestStringColumnCpu(unittest.TestCase):
         for i in range(42):
             self.assertLessEqual(0.0, rand_col[i])
             self.assertLess(rand_col[i], 1.0)
+
+    def test_scale_to_0_1(self):
+        c = ta.column([1, 2, 3, None, 4, 5], device=self.device)
+        self.assertEqual(
+            list(functional.scale_to_0_1(c)), [0.0, 0.25, 0.5, None, 0.75, 1.0]
+        )
+
+        c = ta.column([2, 2, 2], device=self.device)
+        assert_array_almost_equal(
+            [0.11920291930437088, 0.11920291930437088, 0.11920291930437088],
+            list(functional.scale_to_0_1(c)),
+            decimal=15,
+        )
+
+        c = ta.column(["foo", "bar"])
+        with self.assertRaises(AssertionError):
+            functional.scale_to_0_1(c)
 
 
 if __name__ == "__main__":

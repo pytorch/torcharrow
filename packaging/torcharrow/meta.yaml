@@ -7,23 +7,8 @@ source:
 
 requirements:
   build:
-    # - { { compiler('c') } } # [win]
-    # - { { compiler('cxx') } } # [win]
     - cmake
     - python
-    {% if osx %}
-    - boost
-    {% elif linux %}
-    - ninja-build
-    - checkinstall
-    - libssl-dev
-    - libboost-all-dev
-    - libdouble-conversion-dev
-    - libgoogle-glog-dev
-    - libgflags-dev
-    - libevent-dev
-    - libre2-dev
-    {% endif %}
   host:
     - python
     - setuptools
@@ -31,8 +16,6 @@ requirements:
   run:
     - python
     - numpy
-    - boost
-    - libboost
     - typing_inspect
     - pandas
     - typing
@@ -40,6 +23,8 @@ requirements:
     - pyarrow
     - arrow
     - cffi
+    - glog==0.4.0
+    - libsodium
     {{ environ.get('CONDA_PYTORCH_CONSTRAINT') }}
 
 build:
@@ -47,13 +32,17 @@ build:
   script_env:
     - BUILD_VERSION
 
+#GitHub Actions usually provide Mac without AVX2 support, for now just skip the test until Velox can be run without AVX2
+#pytest --no-header -v torcharrow/test
 test:
+  {% if linux %}
   imports:
     - torcharrow
   source_files:
     - torcharrow/test
   requires:
     - pytest
+  {% endif %}
 
 about:
   home: https://github.com/facebookresearch/torcharrow

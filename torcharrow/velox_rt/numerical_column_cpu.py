@@ -6,7 +6,7 @@
 
 import math
 import operator
-from typing import Callable, Dict, List, Optional, Sequence, Union, Any
+from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 import numpy as np
 import torcharrow as ta

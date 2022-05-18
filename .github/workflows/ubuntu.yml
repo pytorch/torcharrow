@@ -26,9 +26,9 @@ jobs:
 
       - name: Check out source repository
         uses: actions/checkout@v2
+        with:
+            submodules: recursive
 
-      - name: Update submodules
-        run: git submodule update --init --recursive
 
       # Based on https://cristianadam.eu/20200113/speeding-up-c-plus-plus-github-actions-using-ccache/
       - name: Prepare ccache timestamp
@@ -86,4 +86,12 @@ jobs:
           cd ./docs
           pip3 install -r requirements.txt --user
           make html 
-          cd ..      
+          cd ..
+
+      - name: Deploy Docs on Push
+        if: ${{ github.event_name == 'push' }}
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: docs/build/html # The folder the action should deploy.

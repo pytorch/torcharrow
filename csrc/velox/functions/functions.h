@@ -15,6 +15,9 @@
 #include "rec/firstX.h" // @manual
 #include "rec/sigrid_hash.h" // @manual
 #include "string_functions.h"
+#ifdef USE_TORCH
+#include "text/bpe_tokenize.h" // @manual
+#endif
 #include "velox/expression/VectorFunction.h"
 #include "velox/functions/lib/Re2Functions.h"
 #include "velox/type/Type.h"
@@ -157,6 +160,14 @@ inline void registerTorchArrowFunctions() {
   velox::registerFunction<torcharrow_not_int, int64_t, int64_t>(
       {"torcharrow_not"});
 
+  // Sigmoid
+  velox::registerFunction<sigmoid, float, float>({"sigmoid"});
+  velox::registerFunction<sigmoid, double, double>({"sigmoid"});
+  velox::registerFunction<sigmoid, float, int8_t>({"sigmoid"});
+  velox::registerFunction<sigmoid, float, int16_t>({"sigmoid"});
+  velox::registerFunction<sigmoid, float, int32_t>({"sigmoid"});
+  velox::registerFunction<sigmoid, float, int64_t>({"sigmoid"});
+
   // Recsys
 
   // bucketize
@@ -225,6 +236,16 @@ inline void registerTorchArrowFunctions() {
       velox::Array<int32_t>,
       velox::Array<int64_t>,
       velox::Array<int64_t>>({"bucketize"});
+
+#ifdef USE_TORCH
+  // TorchText
+  // bpe_encode
+  velox::registerFunction<
+      bpe_tokenize,
+      velox::ArrayWriterT<int64_t>,
+      std::shared_ptr<GPT2BPEEncoder>,
+      velox::Varchar>({"bpe_tokenize"});
+#endif
 
   //   sigrid_hash
   velox::registerFunction<sigridHash, int64_t, int64_t, int64_t, int64_t>(

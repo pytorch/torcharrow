@@ -1,0 +1,134 @@
+name: TorchArrow Nightly Build and Test for Conda
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+  # Use the following to trigger test on a dev PR
+  # pull_request:
+  #  branches:
+  #    - main
+  #    # For PR created by ghstack
+  #    - gh/*/*/base
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  linux-container:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - 3.7
+          - 3.8
+          - 3.9
+    steps:
+      - name: Print CPU info
+        run: |
+          cat /proc/cpuinfo
+
+      - name: Create Conda Env
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: conda_build_env
+
+      - name: Check out source repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      # Based on https://cristianadam.eu/20200113/speeding-up-c-plus-plus-github-actions-using-ccache/
+      - name: Prepare ccache timestamp
+        id: ccache_cache_timestamp
+        run: |
+          echo "::set-output name=timestamp::$(/bin/date -u "+%Y%m%d-%H:%M:%S")"
+        shell: bash
+
+      - name: Load ccache files
+        uses: actions/cache@v2
+        with:
+          path: .ccache
+          key: ubuntu-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+          restore-keys: |
+              ubuntu-ccache-
+
+      - name: Install dependencies with APT
+        run: |
+          sudo apt-get update
+          sudo apt install -y g++ cmake ccache ninja-build checkinstall git \
+          libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
+          libgflags-dev libevent-dev libre2-dev
+
+      # Based on https://github.com/facebookincubator/velox/blob/99429407c3d524e07b32b8b19a03aa7382f819cf/.circleci/config.yml#L114-L116
+      - name: Configure ccache
+        run: |
+          echo "$GITHUB_WORKSPACE"
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache_root ccache -sz -M 1G
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz -M 1G
+
+      - name: Build and install folly and fmt
+        # sudo doesn't preserve environment vairable; set it after sudo: https://stackoverflow.com/questions/8633461/how-to-keep-environment-variables-when-using-sudo/33183620#33183620
+        run: |
+          sudo CMAKE_C_COMPILER_LAUNCHER=ccache CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache_root scripts/setup-ubuntu.sh
+
+      - name: Conda Build
+        shell: bash -l {0}
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          # source /opt/conda/etc/profile.d/conda.sh
+          conda activate conda_build_env
+          conda install -yq conda-build -c conda-forge
+          ./packaging/build_conda.sh
+
+      - name: Conda Upload
+        shell: bash -l {0}
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
+          CONDA_NIGHTLY_PYTORCHBOT_TOKEN: ${{ secrets.CONDA_NIGHTLY_PYTORCHBOT_TOKEN }}
+          CONDA_CHANNEL: pytorch-nightly
+        run: |
+          conda install -yq -c anaconda anaconda-client
+          anaconda -t "${CONDA_NIGHTLY_PYTORCHBOT_TOKEN}" upload ./conda-bld/linux-64/torcharrow-*.tar.bz2 -u "$CONDA_CHANNEL" --label main --no-progress --force
+
+  macos-container:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - 3.7
+          - 3.8
+          - 3.9
+    steps:
+      - name: Create Conda Env
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: conda_build_env
+
+      - name: Check out source repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Conda Build
+        shell: bash -l {0}
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          conda activate conda_build_env
+          conda install -yq conda-build -c conda-forge
+          MACOSX_DEPLOYMENT_TARGET=10.15 ./csrc/velox/velox/scripts/setup-macos.sh
+          ./packaging/build_conda.sh
+
+      - name: Conda Upload
+        shell: bash -l {0}
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
+          CONDA_NIGHTLY_PYTORCHBOT_TOKEN: ${{ secrets.CONDA_NIGHTLY_PYTORCHBOT_TOKEN }}
+        run: |
+          conda install -yq anaconda-client
+          anaconda -t "${CONDA_NIGHTLY_PYTORCHBOT_TOKEN}" upload ./conda-bld/osx-64/torcharrow-*.tar.bz2 -u "$CONDA_CHANNEL" --label main --no-progress --force
