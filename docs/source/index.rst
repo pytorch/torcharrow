@@ -38,6 +38,7 @@ Features described in this documentation are classified by release status:
    column.rst
    dataframe.rst
    dtypes.rst
+   functional.rst
 
 ..
   TODO: docs about NumericColumn, StringColumn, DataFrame, dtype
