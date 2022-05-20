@@ -13,7 +13,7 @@ import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
-from torcharrow._functional import functional
+from torcharrow import functional
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
 from torcharrow.icolumn import Column
