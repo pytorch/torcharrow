@@ -13,7 +13,7 @@ import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
 from tabulate import tabulate
-from torcharrow._functional import functional
+from torcharrow import functional
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.icolumn import Column
 from torcharrow.ilist_column import ListColumn, ListMethods
