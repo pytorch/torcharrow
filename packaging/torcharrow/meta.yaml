@@ -12,6 +12,10 @@ requirements:
   host:
     - python
     - setuptools
+<<<<<<< HEAD
+=======
+    {{ environ.get('CONDA_PYTORCH_BUILD_CONSTRAINT') }}
+>>>>>>> abfcc74 (update meta.yaml)
   run:
     - python
     - numpy
@@ -24,7 +28,7 @@ requirements:
     - cffi
     - glog==0.4.0
     - libsodium
-    # {{ environ.get('CONDA_PYTORCH_CONSTRAINT') }}
+    {{ environ.get('CONDA_PYTORCH_CONSTRAINT') }}
 
 build:
   string: py{{py}}
