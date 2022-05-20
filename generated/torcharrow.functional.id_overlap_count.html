@@ -10,7 +10,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>torcharrow.DataFrame &mdash; TorchArrow main documentation</title>
+  <title>torcharrow.functional.id_overlap_count &mdash; TorchArrow main documentation</title>
   
 
   
@@ -26,14 +26,14 @@
 
   
 
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!-- <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> -->
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="torcharrow.DataFrame.head" href="generated/torcharrow.DataFrame.head.html" />
-    <link rel="prev" title="torcharrow.NumericalColumn.std" href="generated/torcharrow.NumericalColumn.std.html" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="torcharrow.functional.get_max_count" href="torcharrow.functional.get_max_count.html" />
+    <link rel="prev" title="torcharrow.functional.has_id_overlap" href="torcharrow.functional.has_id_overlap.html" />
   <!-- Google Analytics -->
   
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-117752657-2"></script>
@@ -49,16 +49,16 @@
   
 
   
-  <script src="_static/js/modernizr.min.js"></script>
+  <script src="../_static/js/modernizr.min.js"></script>
 
   <!-- Preload the theme fonts -->
 
-<link rel="preload" href="_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
 
 <!-- Preload the katex fonts -->
 
@@ -219,7 +219,7 @@
 
 
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search Docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -237,11 +237,11 @@
             
               <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="torcharrow.html">torcharrow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="column.html">torcharrow.Column</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">torcharrow.DataFrame</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dtypes.html">torcharrow.dtypes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="functional.html">torcharrow.functional</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../torcharrow.html">torcharrow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../column.html">torcharrow.Column</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dataframe.html">torcharrow.DataFrame</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dtypes.html">torcharrow.dtypes</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../functional.html">torcharrow.functional</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">PyTorch Libraries</span></p>
 <ul>
@@ -285,7 +285,7 @@
   <ul class="pytorch-breadcrumbs">
     
       <li>
-        <a href="index.html">
+        <a href="../index.html">
           
             Docs
           
@@ -293,13 +293,15 @@
       </li>
 
         
-      <li>torcharrow.DataFrame</li>
+          <li><a href="../functional.html">torcharrow.functional</a> &gt;</li>
+        
+      <li>torcharrow.functional.id_overlap_count</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="_sources/dataframe.rst.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/generated/torcharrow.functional.id_overlap_count.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -325,36 +327,14 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
-  <section id="torcharrow-dataframe">
-<h1>torcharrow.DataFrame<a class="headerlink" href="#torcharrow-dataframe" title="Permalink to this headline">¶</a></h1>
-<p>UNDER CONSTRUCTION</p>
-<section id="dataframe-class-reference">
-<h2>DataFrame class reference<a class="headerlink" href="#dataframe-class-reference" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="torcharrow.DataFrame">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">torcharrow.</span></span><span class="sig-name descname"><span class="pre">DataFrame</span></span><a class="headerlink" href="#torcharrow.DataFrame" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+  <section id="torcharrow-functional-id-overlap-count">
+<h1>torcharrow.functional.id_overlap_count<a class="headerlink" href="#torcharrow-functional-id-overlap-count" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="torcharrow.functional.id_overlap_count">
+<span class="sig-prename descclassname"><span class="pre">torcharrow.functional.</span></span><span class="sig-name descname"><span class="pre">id_overlap_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torcharrow.functional.id_overlap_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO: Add docstring</p>
+</dd></dl>
 
-<table class="autosummary longtable docutils colwidths-auto # Necessary for the table generated by autosummary to look decent align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.head.html#torcharrow.DataFrame.head" title="torcharrow.DataFrame.head"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.head</span></code></a></p></td>
-<td><p>Return the first <cite>n</cite> rows.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.isin.html#torcharrow.DataFrame.isin" title="torcharrow.DataFrame.isin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.isin</span></code></a></p></td>
-<td><p>Check whether each element in the dataframe is contained in values.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.fill_null.html#torcharrow.DataFrame.fill_null" title="torcharrow.DataFrame.fill_null"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.fill_null</span></code></a></p></td>
-<td><p>Fill null values using the specified method.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.drop_null.html#torcharrow.DataFrame.drop_null" title="torcharrow.DataFrame.drop_null"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.drop_null</span></code></a></p></td>
-<td><p>Return a column/frame with rows removed where a row has any or all nulls.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.log.html#torcharrow.DataFrame.log" title="torcharrow.DataFrame.log"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.log</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-</tbody>
-</table>
-</section>
 </section>
 
 
@@ -365,10 +345,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="generated/torcharrow.DataFrame.head.html" class="btn btn-neutral float-right" title="torcharrow.DataFrame.head" accesskey="n" rel="next">Next <img src="_static/images/chevron-right-orange.svg" class="next-page"></a>
+        <a href="torcharrow.functional.get_max_count.html" class="btn btn-neutral float-right" title="torcharrow.functional.get_max_count" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-orange.svg" class="next-page"></a>
       
       
-        <a href="generated/torcharrow.NumericalColumn.std.html" class="btn btn-neutral" title="torcharrow.NumericalColumn.std" accesskey="p" rel="prev"><img src="_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
+        <a href="torcharrow.functional.has_id_overlap.html" class="btn btn-neutral" title="torcharrow.functional.has_id_overlap" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
       
     </div>
   
@@ -400,10 +380,7 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">torcharrow.DataFrame</a><ul>
-<li><a class="reference internal" href="#dataframe-class-reference">DataFrame class reference</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#">torcharrow.functional.id_overlap_count</a></li>
 </ul>
 
             </div>
@@ -418,19 +395,19 @@
   
 
      
-       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-         <script src="_static/jquery.js"></script>
-         <script src="_static/underscore.js"></script>
-         <script src="_static/doctools.js"></script>
+       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+         <script src="../_static/jquery.js"></script>
+         <script src="../_static/underscore.js"></script>
+         <script src="../_static/doctools.js"></script>
      
 
   
 
-  <script type="text/javascript" src="_static/js/vendor/popper.min.js"></script>
-  <script type="text/javascript" src="_static/js/vendor/bootstrap.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
-  <script type="text/javascript" src="_static/js/theme.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
 
   <script type="text/javascript">
       jQuery(function () {
@@ -511,7 +488,7 @@
   <div class="cookie-banner-wrapper">
   <div class="container">
     <p class="gdpr-notice">To analyze traffic and optimize your experience, we serve cookies on this site. By clicking or navigating, you agree to allow our usage of cookies. As the current maintainers of this site, Facebook’s Cookies Policy applies. Learn more, including about available controls: <a href="https://www.facebook.com/policies/cookies/">Cookies Policy</a>.</p>
-    <img class="close-button" src="_static/images/pytorch-x.svg">
+    <img class="close-button" src="../_static/images/pytorch-x.svg">
   </div>
 </div>
 
@@ -626,7 +603,7 @@
 
   <!-- End Mobile Menu -->
 
-  <script type="text/javascript" src="_static/js/vendor/anchor.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
 
   <script type="text/javascript">
     $(document).ready(function() {

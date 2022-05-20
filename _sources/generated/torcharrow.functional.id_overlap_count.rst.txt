@@ -1,0 +1,6 @@
+﻿torcharrow.functional.id\_overlap\_count
+========================================
+
+.. currentmodule:: torcharrow.functional
+
+.. autofunction:: id_overlap_count
