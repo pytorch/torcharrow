@@ -13,6 +13,7 @@ requirements:
     - python
     - setuptools
     # {{ environ.get('CONDA_PYTORCH_BUILD_CONSTRAINT') }}
+    - pytorch
   run:
     - python
     - numpy
@@ -26,6 +27,7 @@ requirements:
     - glog==0.4.0
     - libsodium
     # {{ environ.get('CONDA_PYTORCH_CONSTRAINT') }}
+    - pytorch
 
 build:
   string: py{{py}}
