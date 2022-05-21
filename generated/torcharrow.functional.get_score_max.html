@@ -207,7 +207,7 @@
               
               
                 <div class="version">
-                  main (0.1.0a0+a820577 )
+                  main (0.1.0a0+ebbfb3b )
                 </div>
               
             
@@ -331,8 +331,28 @@
 <h1>torcharrow.functional.get_score_max<a class="headerlink" href="#torcharrow-functional-get-score-max" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="torcharrow.functional.get_score_max">
-<span class="sig-prename descclassname"><span class="pre">torcharrow.functional.</span></span><span class="sig-name descname"><span class="pre">get_score_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torcharrow.functional.get_score_max" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO: Add docstring</p>
+<span class="sig-prename descclassname"><span class="pre">torcharrow.functional.</span></span><span class="sig-name descname"><span class="pre">get_score_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torcharrow.ilist_column.ListColumn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matching_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torcharrow.ilist_column.ListColumn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matching_id_scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torcharrow.ilist_column.ListColumn</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torcharrow.functional.get_score_max" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the min among of all the scores in matching_id_scores that has a corresponding id in matching_ids that is also in input_ids.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_ids</strong> (<em>First list of ids</em>) – </p></li>
+<li><p><strong>matching_ids</strong> (<em>Second list of ids</em>) – </p></li>
+<li><p><strong>matching_ids_scores</strong> (<em>scores</em><em> (</em><em>weights</em><em>) </em><em>of matching_ids</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">torcharrow</span> <span class="k">as</span> <span class="nn">ta</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">torcharrow</span> <span class="kn">import</span> <span class="n">functional</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_ids</span> <span class="o">=</span> <span class="n">ta</span><span class="o">.</span><span class="n">column</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matching_ids</span> <span class="o">=</span> <span class="n">ta</span><span class="o">.</span><span class="n">column</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matching_id_scores</span> <span class="o">=</span> <span class="n">ta</span><span class="o">.</span><span class="n">column</span><span class="p">([[</span><span class="mf">5.0</span><span class="p">,</span><span class="mf">4.0</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">functional</span><span class="o">.</span><span class="n">get_score_min</span><span class="p">(</span><span class="n">input_ids</span><span class="p">,</span> <span class="n">matching_ids</span><span class="p">,</span> <span class="n">matching_id_scores</span><span class="p">)</span>
+<span class="go">0  5.0</span>
+<span class="go">dtype: Float32(nullable=True), length: 1, null_count: 0</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
