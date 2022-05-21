@@ -137,74 +137,281 @@ def bucketize(
     return _dispatch("bucketize", value_col, borders)
 
 
-def sigrid_hash(*args):
+def sigrid_hash(value_col: NumericalColumn, salt: int, max_value: int):
     """
-    TODO: Add docstring
+    Apply hashing to an index, or a list of indicies. This is a common operation in the
+    recommendation domain in order to have valid inputs for shrunken embedding tables.
+
+    Parameters
+    ----------
+    value_col: Numeric column that defines indicies
+    salt: Value used to intialize the random hashing process
+    max_value: values will be hashed in the range of [0, max_value)
+
+    Examples
+    --------
+    >>> import torcharrow as ta
+    >>> from torcharrow import functional
+    >>> a = ta.column([1, 2, 3, 5, 8, 10, 11])
+    >>> functional.sigrid_hash(a, 0, 100)
+    0  60
+    1  54
+    2  54
+    3   4
+    4  67
+    5   2
+    6  25
+    dtype: Int64(nullable=True), length: 7, null_count: 0
     """
-    return _dispatch("sigrid_hash", *args)
+    return _dispatch("sigrid_hash", value_col, salt, max_value)
 
 
-def firstx(*args):
+def firstx(col: ListColumn, num_to_copy: int):
     """
-    TODO: Add docstring
+    Returns the first x values of the head of the input column
+
+    Parameters
+    ----------
+    col: Column that has a list of values
+    num_to_copy: Number of elements to return from the head of the list
+
+    Examples
+    --------
+    >>> import torcharrow as ta
+    >>> from torcharrow import functional
+    >>> a = ta.column([[1, 2, 3],[5,8],[13]])
+    >>> functional.firstx(a, 3)
+    0  [1, 2, 3]
+    1  [5, 8]
+    2  [13]
+    dtype: List(Int64(nullable=True), nullable=True), length: 3, null_count: 0
     """
-    return _dispatch("firstx", *args)
+    return _dispatch("firstx", col, num_to_copy)
 
 
-def has_id_overlap(*args):
+def has_id_overlap(input_ids: ListColumn, matching_ids: ListColumn):
     """
-    TODO: Add docstring
+    Returns 1.0 if the two input columns overlap, otherwise 0.0
+
+    Parameters
+    ---------
+    input_ids: First list of ids
+    matching_ids: Second list of ids
+
+    Examples
+    -------
+    >>> import torcharrow as ta
+    >>> from torcharrow import functional
+    >>> input_ids = ta.column([[1, 2, 3],[5,8],[13]])
+    >>> matching_ids = ta.column([[1],[2,3],[13]])
+    >>> functional.has_id_overlap(input_ids, matching_ids)
+    0  1
+    1  0
+    2  1
+    dtype: Float32(nullable=True), length: 3, null_count: 0
     """
-    return _dispatch("has_id_overlap", *args)
+    return _dispatch("has_id_overlap", input_ids, matching_ids)
 
 
-def id_overlap_count(*args):
+def id_overlap_count(input_ids: ListColumn, matching_ids: ListColumn):
     """
-    TODO: Add docstring
+    Returns the number of overlaps between two lists of ids
+
+    Parameters
+    ---------
+    input_ids: First list of ids
+    matching_ids: Second list of ids
+
+    Examples
+    -------
+    >>> import torcharrow as ta
+    >>> from torcharrow import functional
+    >>> input_ids = ta.column([[1, 2, 3],[5,8],[13]])
+    >>> matching_ids = ta.column([[1],[2,3],[13]])
+    >>> functional.id_overlap_count(input_ids, matching_ids)
+    0  3
+    1  0
+    2  1
+    dtype: Float32(nullable=True), length: 3, null_count: 0
     """
-    return _dispatch("id_overlap_count", *args)
+    return _dispatch("id_overlap_count", input_ids, matching_ids)
 
 
-def get_max_count(*args):
+def get_max_count(input_ids: ListColumn, matching_ids: ListColumn):
     """
-    TODO: Add docstring
+    If there are items that overlap between input_ids and matching_ids
+    contribute the maximum number of instances of overlapped ids to
+    the max count.
+
+    Parameters
+    ---------
+    input_ids: First list of ids
+    matching_ids: Second list of ids
+
+    Examples
+    -------
+    >>> import torcharrow as ta
+    >>> from torcharrow import functional
+    >>> input_ids = ta.column([[1, 1, 2, 3],[5,8],[13]])
+    >>> matching_ids = ta.column([[1,2,3],[2,3],[13,13,13,13,13]])
+    >>> functional.get_max_count(input_ids, matching_ids)
+    0  4
+    1  0
+    2  5
+    dtype: Float32(nullable=True), length: 3, null_count: 0
     """
-    return _dispatch("get_max_count", *args)
+    return _dispatch("get_max_count", input_ids, matching_ids)
 
 
-def get_jaccard_similarity(*args):
+def get_jaccard_similarity(input_ids: ListColumn, matching_ids: ListColumn):
     """
-    TODO: Add docstring
+    Return the jaccard_similarity between input_ids and matching_ids.
+    The jaccard similarity is |input_ids.intersect(matching_ids)|/|input_ids.union(matching_ids)|
+
+    Parameters
+    ---------
+    input_ids: First list of ids
+    matching_ids: Second list of ids
+
+    Examples
+    -------
+    >>> import torcharrow as ta
+    >>> from torcharrow import functional
+    >>> input_ids = ta.column([[1, 1, 2, 3],[5,8],[13]])
+    >>> matching_ids = ta.column([[1,2,3],[2,3],[13,13,13,13,13]])
+    >>> functional.get_jaccard_similarity(input_ids, matching_ids)
+    0  0.75
+    1  0
+    2  0.2
+    dtype: Float32(nullable=True), length: 3, null_count: 0
     """
-    return _dispatch("get_jaccard_similarity", *args)
+    return _dispatch("get_jaccard_similarity", input_ids, matching_ids)
 
 
-def get_cosine_similarity(*args):
+def get_cosine_similarity(
+    input_ids: ListColumn,
+    input_id_scores: ListColumn,
+    matching_ids: ListColumn,
+    matching_id_scores: ListColumn,
+):
     """
-    TODO: Add docstring
+    Return the cosine between the vector defined by input_ids weighted by input_id_scores and
+    the vector defined by matching_ids weighted by matching_id_scores
+
+    Parameters
+    ---------
+    input_ids: First list of ids
+    input_ids_scores: scores (weights) of input_ids
+    matching_ids: Second list of ids
+    matching_ids_scores: scores (weights) of matching_ids
+
+    Examples
+    --------
+    >>> import torcharrow as ta
+    >>> from torcharrow import functional
+    >>> input_ids = ta.column([[1, 2, 3]])
+    >>> input_id_scores = ta.column([[1.0,2.0,3.0]])
+    >>> matching_ids = ta.column([[1,2,3]])
+    >>> matching_id_scores = ta.column([[5.0,4.0,3.0]])
+    >>> functional.get_cosine_similarity(input_ids, input_id_scores, matching_ids, matching_id_scores)
+    0  0.831522
+    dtype: Float32(nullable=True), length: 1, null_count: 0
     """
-    return _dispatch("get_cosine_similarity", *args)
+    return _dispatch(
+        "get_cosine_similarity",
+        input_ids,
+        input_id_scores,
+        matching_ids,
+        matching_id_scores,
+    )
 
 
-def get_score_sum(*args):
+def get_score_sum(
+    input_ids: ListColumn,
+    input_id_scores: ListColumn,
+    matching_ids: ListColumn,
+    matching_id_scores: ListColumn,
+):
     """
-    TODO: Add docstring
+    Return the sum of all the scores in matching_id_scores that has a corresponding id in matching_ids that is also in input_ids.
+    Parameters
+    ---------
+    input_ids: First list of ids
+    input_ids_scores: scores (weights) of input_ids
+    matching_ids: Second list of ids
+    matching_ids_scores: scores (weights) of matching_ids
+
+    Examples
+    --------
+    >>> import torcharrow as ta
+    >>> from torcharrow import functional
+    >>> input_ids = ta.column([[1, 2, 3]])
+    >>> input_id_scores = ta.column([[1.0,2.0,3.0]])
+    >>> matching_ids = ta.column([[1,2]])
+    >>> matching_id_scores = ta.column([[5.0,4.0]])
+    >>> functional.get_score_sum(input_ids, input_id_scores, matching_ids, matching_id_scores)
+    0  9
+    dtype: Float32(nullable=True), length: 1, null_count: 0
     """
-    return _dispatch("get_score_sum", *args)
+    return _dispatch(
+        "get_score_sum", input_ids, input_id_scores, matching_ids, matching_id_scores
+    )
 
 
-def get_score_min(*args):
+def get_score_min(
+    input_ids: ListColumn,
+    matching_ids: ListColumn,
+    matching_id_scores: ListColumn,
+):
     """
-    TODO: Add docstring
+    Return the min among of all the scores in matching_id_scores that has a corresponding id in matching_ids that is also in input_ids.
+
+    Parameters
+    ---------
+    input_ids: First list of ids
+    matching_ids: Second list of ids
+    matching_ids_scores: scores (weights) of matching_ids
+
+    Examples
+    --------
+    >>> import torcharrow as ta
+    >>> from torcharrow import functional
+    >>> input_ids = ta.column([[1, 2, 3]])
+    >>> matching_ids = ta.column([[1,2]])
+    >>> matching_id_scores = ta.column([[5.0,4.0]])
+    >>> functional.get_score_min(input_ids, matching_ids, matching_id_scores)
+    0  4.0
+    dtype: Float32(nullable=True), length: 1, null_count: 0
     """
-    return _dispatch("get_score_min", *args)
+    return _dispatch("get_score_min", input_ids, matching_ids, matching_id_scores)
 
 
-def get_score_max(*args):
+def get_score_max(
+    input_ids: ListColumn,
+    matching_ids: ListColumn,
+    matching_id_scores: ListColumn,
+):
     """
-    TODO: Add docstring
+    Return the min among of all the scores in matching_id_scores that has a corresponding id in matching_ids that is also in input_ids.
+
+    Parameters
+    ---------
+    input_ids: First list of ids
+    matching_ids: Second list of ids
+    matching_ids_scores: scores (weights) of matching_ids
+
+    Examples
+    --------
+    >>> import torcharrow as ta
+    >>> from torcharrow import functional
+    >>> input_ids = ta.column([[1, 2, 3]])
+    >>> matching_ids = ta.column([[1,2]])
+    >>> matching_id_scores = ta.column([[5.0,4.0]])
+    >>> functional.get_score_min(input_ids, matching_ids, matching_id_scores)
+    0  5.0
+    dtype: Float32(nullable=True), length: 1, null_count: 0
     """
-    return _dispatch("get_score_max", *args)
+    return _dispatch("get_score_max", input_ids, matching_ids, matching_id_scores)
 
 
 ### high-level operations
