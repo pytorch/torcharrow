@@ -216,6 +216,16 @@ class DataFrame(Column):
 
     @trace
     @expression
+    def describe(
+        self,
+        percentiles=None,
+        include=None,
+        exclude=None,
+    ):
+        raise self._not_supported("describe")
+
+    @trace
+    @expression
     def isin(self, values: Union[list, dict, Column]):
         """
         Check whether each element in the dataframe is contained in values.
@@ -423,6 +433,95 @@ class DataFrame(Column):
                 *(self._format_transform_column(self[c], format) for c in columns)
             )
         return self._format_transform_result(raw_res, format, dtype, len(self))
+
+    # relational tools
+    @trace
+    @expression
+    def select(self, *args, **kwargs):
+        """
+        Analogous to SQL's `SELECT`.
+
+        Transform a dataframe by selecting old columns and new (computed)
+        columns.
+
+        The special symbol `me` can be used to refer to self.
+
+        Parameters
+        -----------
+        args : positional string arguments
+            Column names to keep in the projection. A column name of "*" is a
+            shortcut to denote all columns. A column name beginning with "-"
+            means remove this column.
+
+        kwargs : named value arguments
+            New column name expressions to add to the projection
+
+
+        Examples
+        --------
+        >>> from torcharrow import ta
+        >>> xf = ta.dataframe({
+        >>>    'A': ['a', 'b', 'a', 'b'],
+        >>>    'B': [1, 2, 3, 4],
+        >>>    'C': [10,11,12,13]})
+        >>> xf.select(*xf.columns,D=me['B']+me['C'])
+          index  A      B    C    D
+        -------  ---  ---  ---  ---
+              0  a      1   10   11
+              1  b      2   11   13
+              2  a      3   12   15
+              3  b      4   13   17
+        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64), Field('D', int64)]), count: 4, null_count: 0
+
+        Using '*' and '-colname':
+
+        >>> xf.select('*','-B',D=me['B']+me['C'])
+          index  A      C    D
+        -------  ---  ---  ---
+              0  a     10   11
+              1  b     11   13
+              2  a     12   15
+              3  b     13   17
+        dtype: Struct([Field('A', string), Field('C', int64), Field('D', int64)]), count: 4, null_count: 0
+        """
+        raise self._not_supported("select")
+
+    @trace
+    @expression
+    def where(self, *conditions):
+        """
+        Analogous to SQL's where (NOT Pandas where)
+
+        Filter a dataframe to only include rows satisfying a given set
+        of conditions. df.where(p) is equivalent to writing df[p].
+
+        Examples
+        --------
+
+        >>> from torcharrow import ta
+        >>> xf = ta.dataframe({
+        >>>    'A':['a', 'b', 'a', 'b'],
+        >>>    'B': [1, 2, 3, 4],
+        >>>    'C': [10,11,12,13]})
+        >>> xf.where(xf['B']>2)
+          index  A      B    C
+        -------  ---  ---  ---
+              0  a      3   12
+              1  b      4   13
+        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64)]), count: 2, null_count: 0
+
+        When referring to self in an expression, the special value `me` can be
+        used.
+
+        >>> from torcharrow import me
+        >>> xf.where(me['B']>2)
+          index  A      B    C
+        -------  ---  ---  ---
+              0  a      3   12
+              1  b      4   13
+        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64)]), count: 2, null_count: 0
+        """
+        raise self._not_supported("select")
 
     # interop
 

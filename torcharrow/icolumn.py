@@ -449,7 +449,7 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
 
         See Also
         --------
-        flatmap, filter, reduce
+        flatmap, filter
 
         Examples
         --------
@@ -529,11 +529,9 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
         2  6
         dtype: int64, length: 3, null_count: 0
 
-        Multi-return UDFs - functions that return more than one column
-        can be specified by returning a DataFrame (also known as a
-        struct column); providing the return dtype is mandatory.
+        Multi-return UDFs - functions that return more than one column can be specified by returning a DataFrame (also known as struct column); providing the return dtype is mandatory:
 
-        ta.dataframe({'a': [17, 29, 30], 'b': [3,5,11]}).map(divmod, columns= ['a','b'], dtype = dt.Struct([dt.Field('quotient', dt.int64), dt.Field('remainder', dt.int64)]))
+        >>> ta.dataframe({'a': [17, 29, 30], 'b': [3,5,11]}).map(divmod, columns= ['a','b'], dtype = dt.Struct([dt.Field('quotient', dt.int64), dt.Field('remainder', dt.int64)]))
           index    quotient    remainder
         -------  ----------  -----------
               0           5            2

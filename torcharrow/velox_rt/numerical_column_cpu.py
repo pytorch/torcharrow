@@ -13,7 +13,7 @@ import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
-from torcharrow._functional import functional
+from torcharrow import functional
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
 from torcharrow.icolumn import Column
@@ -507,14 +507,20 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
 
     @trace
     @expression
-    def __and__(self, other: Union[NumericalColumn, int]) -> NumericalColumn:
-        return self._checked_arithmetic_op_call(other, "bitwise_and", operator.__and__)
+    def __and__(
+        self, other: Union[NumericalColumn, DataFrameCpu, int]
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        return self._checked_arithmetic_op_call_with_df(
+            other, "bitwise_and", operator.__and__, "__rand__"
+        )
 
     @trace
     @expression
-    def __rand__(self, other: Union[int]) -> NumericalColumn:
-        return self._checked_arithmetic_op_call(
-            other, "bitwise_rand", Column._swap(operator.__and__)
+    def __rand__(
+        self, other: Union[DataFrameCpu, int]
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        return self._checked_arithmetic_op_call_with_df(
+            other, "bitwise_rand", Column._swap(operator.__and__), "__and__"
         )
 
     @trace

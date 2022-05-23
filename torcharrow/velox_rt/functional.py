@@ -7,7 +7,7 @@
 import types
 
 import torcharrow._torcharrow as ta
-from torcharrow._functional import functional as global_functional
+from torcharrow import functional as global_functional
 
 from .column import ColumnCpuMixin
 

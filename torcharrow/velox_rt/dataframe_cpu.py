@@ -1288,20 +1288,76 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
             return self._fromdata({n: other | c for (n, c) in self._field_data.items()})
 
     def __and__(self, other):
+        assert len(self) == len(other)
         if isinstance(other, DataFrameCpu):
             return self._fromdata(
-                {n: c & other[n] for (n, c) in self._field_data.items()}
+                {
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    & ColumnCpuMixin._from_velox(
+                        other.device,
+                        other.dtype.fields[i].dtype,
+                        other._data.child_at(i),
+                        True,
+                    )
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
             )
         else:
-            return self._fromdata({n: c & other for (n, c) in self._field_data.items()})
+            return self._fromdata(
+                {
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    & other
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
+            )
 
     def __rand__(self, other):
         if isinstance(other, DataFrameCpu):
+            assert len(self) == len(other)
             return self._fromdata(
-                {n: other[n] & c for (n, c) in self._field_data.items()}
+                {
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
+                        other.device,
+                        other.dtype.fields[i].dtype,
+                        other._data.child_at(i),
+                        True,
+                    )
+                    & ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
             )
         else:
-            return self._fromdata({n: other & c for (n, c) in self._field_data.items()})
+            return self._fromdata(
+                {
+                    self.dtype.fields[i].name: other
+                    & ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
+            )
 
     def __invert__(self):
         return self._fromdata({n: ~c for (n, c) in self._field_data.items()})
@@ -1865,39 +1921,6 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
     @trace
     @expression
     def where(self, *conditions):
-        """
-        Analogous to SQL's where (NOT Pandas where)
-
-        Filter a dataframe to only include rows satisfying a given set
-        of conditions. df.where(p) is equivalent to writing df[p].
-
-        Examples
-        --------
-
-        >>> from torcharrow import ta
-        >>> xf = ta.dataframe({
-        >>>    'A':['a', 'b', 'a', 'b'],
-        >>>    'B': [1, 2, 3, 4],
-        >>>    'C': [10,11,12,13]})
-        >>> xf.where(xf['B']>2)
-          index  A      B    C
-        -------  ---  ---  ---
-              0  a      3   12
-              1  b      4   13
-        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64)]), count: 2, null_count: 0
-
-        When referring to self in an expression, the special value `me` can be
-        used.
-
-        >>> from torcharrow import me
-        >>> xf.where(me['B']>2)
-          index  A      B    C
-        -------  ---  ---  ---
-              0  a      3   12
-              1  b      4   13
-        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64)]), count: 2, null_count: 0
-        """
-
         if len(conditions) == 0:
             return self
 
@@ -1912,50 +1935,6 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
     @trace
     @expression
     def select(self, *args, **kwargs):
-        """
-        Analogous to SQL's ``SELECT`.
-
-        Transform a dataframe by selecting old columns and new (computed)
-        columns.
-
-        args - positional string arguments
-            Column names to keep in the projection. A column name of "*" is a
-            shortcut to denote all columns. A column name beginning with "-"
-            means remove this column.
-
-        kwargs - named value arguments
-            New column name expressions to add to the projection
-
-        The special symbol me can  be used to refer to self.
-
-        Examples
-        --------
-        >>> from torcharrow import ta
-        >>> xf = ta.dataframe({
-        >>>    'A': ['a', 'b', 'a', 'b'],
-        >>>    'B': [1, 2, 3, 4],
-        >>>    'C': [10,11,12,13]})
-        >>> xf.select(*xf.columns,D=me['B']+me['C'])
-          index  A      B    C    D
-        -------  ---  ---  ---  ---
-              0  a      1   10   11
-              1  b      2   11   13
-              2  a      3   12   15
-              3  b      4   13   17
-        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64), Field('D', int64)]), count: 4, null_count: 0
-
-        Using '*' and '-colname':
-
-        >>> xf.select('*','-B',D=me['B']+me['C'])
-          index  A      C    D
-        -------  ---  ---  ---
-              0  a     10   11
-              1  b     11   13
-              2  a     12   15
-              3  b     13   17
-        dtype: Struct([Field('A', string), Field('C', int64), Field('D', int64)]), count: 4, null_count: 0
-        """
-
         input_columns = set(self.columns)
 
         has_star = False

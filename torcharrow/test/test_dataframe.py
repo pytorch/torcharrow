@@ -644,6 +644,15 @@ class TestDataFrame(unittest.TestCase):
         self.assertEqual(list(dfx // dfx["a"]), [(1, 2), (1, 2), (1, 1)])
         self.assertEqual(list(dfx // dfx["b"]), [(0, 1), (0, 1), (0, 1)])
 
+        # &
+        dfx = ta.dataframe({"a": [1, 2, 3], "b": [11, 22, 33]}, device=self.device)
+        dfy = dfx["a"] & dfx
+        self.assertEqual(list(dfy), [(1, 1), (2, 2), (3, 1)])
+        self.assertTrue(isinstance(dfy, DataFrameCpu))
+
+        colx = ta.column([1, 2, 3], device=self.device)
+        self.assertEqual(list(dfx & colx), [(1, 1), (2, 2), (3, 1)])
+
     def base_test_python_comparison_ops(self):
         # Use a dtype of list to prevent fast path through numerical
         # column operators to ensure we are testing the generic python
