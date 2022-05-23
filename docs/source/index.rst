@@ -8,7 +8,7 @@ This library is part of the `PyTorch
 <http://pytorch.org/>`_ project. PyTorch is an open source
 deep learning framework.
 
-TorchArrow is a torch.Tensor-like Python DataFrame library for data preprocessing in deep learning. 
+TorchArrow is a torch.Tensor-like Python DataFrame library for data preprocessing in deep learning.
 It supports multiple execution runtimes and Arrow as a common format.
 
 Features described in this documentation are classified by release status:
@@ -31,7 +31,7 @@ Features described in this documentation are classified by release status:
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: API Reference:
 
    torcharrow.rst
@@ -41,7 +41,6 @@ Features described in this documentation are classified by release status:
    functional.rst
 
 ..
-  TODO: docs about NumericColumn, StringColumn, DataFrame, dtype
   TODO: tutorial and demo
 
 .. toctree::
