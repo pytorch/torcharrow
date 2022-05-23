@@ -207,7 +207,7 @@
               
               
                 <div class="version">
-                  main (0.1.0a0+ebbfb3b )
+                  main (0.1.0a0+98e0116 )
                 </div>
               
             
@@ -327,12 +327,37 @@
               
   <section id="torcharrow-functional">
 <h1>torcharrow.functional<a class="headerlink" href="#torcharrow-functional" title="Permalink to this headline">¶</a></h1>
-<section id="velox-sql-functions">
-<h2>Velox SQL functions<a class="headerlink" href="#velox-sql-functions" title="Permalink to this headline">¶</a></h2>
-<p>UNDER CONSTRUCTION</p>
+<section id="velox-core-functions">
+<h2>Velox Core Functions<a class="headerlink" href="#velox-core-functions" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://facebookincubator.github.io/velox/functions.html">Velox core functions</a>
+are included in <cite>torcharrow.functional</cite>.</p>
+<p>Here is an example usage of Velox string function <a class="reference external" href="https://facebookincubator.github.io/velox/functions/string.html#lpad">lpad</a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">torcharrow</span> <span class="k">as</span> <span class="nn">ta</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">torcharrow</span> <span class="kn">import</span> <span class="n">functional</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">col</span> <span class="o">=</span> <span class="n">ta</span><span class="o">.</span><span class="n">column</span><span class="p">([</span><span class="s2">&quot;abc&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;yz&quot;</span><span class="p">])</span>
+<span class="go"># Velox&#39;s lpad function: https://facebookincubator.github.io/velox/functions/string.html#lpad</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">functional</span><span class="o">.</span><span class="n">lpad</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;123&quot;</span><span class="p">)</span>
+<span class="go">0  &#39;12abc&#39;</span>
+<span class="go">1  &#39;1231x&#39;</span>
+<span class="go">2  &#39;123yz&#39;</span>
+<span class="go">dtype: String(nullable=True), length: 3, null_count: 0, device: cpu</span>
+</pre></div>
+</div>
+<p>Here is another example usage of Velox array function <a class="reference external" href="https://facebookincubator.github.io/velox/functions/array.html#array_except">array_except</a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">col1</span> <span class="o">=</span> <span class="n">ta</span><span class="o">.</span><span class="n">column</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">col2</span> <span class="o">=</span> <span class="n">ta</span><span class="o">.</span><span class="n">column</span><span class="p">([[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]])</span>
+<span class="go"># Velox&#39;s array_except function: https://facebookincubator.github.io/velox/functions/array.html#array_except</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">functional</span><span class="o">.</span><span class="n">array_except</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="n">col2</span><span class="p">)</span>
+<span class="go">0  [1, 2, 3]</span>
+<span class="go">1  [3]</span>
+<span class="go">2  []</span>
+<span class="go">3  [2]</span>
+<span class="go">dtype: List(Int64(nullable=True), nullable=True), length: 4, null_count: 0</span>
+</pre></div>
+</div>
 </section>
-<section id="recommendation-preproc-operations">
-<h2>Recommendation Preproc Operations<a class="headerlink" href="#recommendation-preproc-operations" title="Permalink to this headline">¶</a></h2>
+<section id="recommendation-operations">
+<h2>Recommendation Operations<a class="headerlink" href="#recommendation-operations" title="Permalink to this headline">¶</a></h2>
 <table class="autosummary longtable docutils colwidths-auto # Necessary for the table generated by autosummary to look decent align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.functional.bucketize.html#torcharrow.functional.bucketize" title="torcharrow.functional.bucketize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bucketize</span></code></a></p></td>
@@ -427,8 +452,8 @@
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
 <li><a class="reference internal" href="#">torcharrow.functional</a><ul>
-<li><a class="reference internal" href="#velox-sql-functions">Velox SQL functions</a></li>
-<li><a class="reference internal" href="#recommendation-preproc-operations">Recommendation Preproc Operations</a></li>
+<li><a class="reference internal" href="#velox-core-functions">Velox Core Functions</a></li>
+<li><a class="reference internal" href="#recommendation-operations">Recommendation Operations</a></li>
 <li><a class="reference internal" href="#high-level-operations">High-level Operations</a></li>
 </ul>
 </li>

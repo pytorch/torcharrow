@@ -1,0 +1,6 @@
+﻿torcharrow.DataFrame.append
+===========================
+
+.. currentmodule:: torcharrow
+
+.. automethod:: DataFrame.append
