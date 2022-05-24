@@ -189,7 +189,7 @@ class NumericalColumn(Column):
             res._append(("mean", self.mean()))
             res._append(("std", self.std()))
             res._append(("min", self.min()))
-            values = self._quantile(percentiles, "midpoint")
+            values = self._quantile(percentiles / 100, "midpoint")
             for p, v in zip(percentiles, values):
                 res._append((f"{p}%", v))
             res._append(("max", self.max()))

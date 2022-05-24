@@ -1452,14 +1452,17 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
         else:
             return len(set(i for i in self if i is not None))
 
-    # quantile
     @trace
     @expression
     def _quantile(self, q, interpolation="midpoint"):
         """
-        Compute the q-th percentile of non-null data.
+        Compute the q-th quantile of non-null data.
 
         Inefficient prototype implementation.
+
+        Args:
+            q: float or array-like quantiles to compute, value must be within [0, 1]
+            interpolation: interpolation method to use
         """
 
         if interpolation != "midpoint":
@@ -1470,8 +1473,8 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
             return []
         out = []
         s = sorted(self)
-        for percent in q:
-            k = (len(self) - 1) * (percent / 100)
+        for p in q:
+            k = (len(self) - 1) * p
             f = math.floor(k)
             c = math.ceil(k)
             if f == c:
