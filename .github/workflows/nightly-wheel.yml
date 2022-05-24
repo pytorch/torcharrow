@@ -1,7 +1,8 @@
 name: TorchArrow Nightly Build and Test
 on:
-  push:
-    branches: [ main ]
+  pull_request:
+    branches:
+      - main
   workflow_call:
     secrets:
       AWS_PYTORCH_UPLOADER_ACCESS_KEY_ID:
@@ -79,7 +80,7 @@ jobs:
         run: |
           MACOSX_DEPLOYMENT_TARGET=10.15 CPU_TARGET="sse" ./csrc/velox/velox/scripts/setup-macos.sh
           pip install wheel
-          ./packaging/build_wheel.sh
+          CPU_TARGET="sse" ./packaging/build_wheel.sh
           pip install delocate
           delocate-wheel dist/*.whl -w fixed_dist
 
