@@ -759,27 +759,6 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
 
         return self._accumulate_column(operator.mul, skipna=True, initial=None)
 
-    @trace
-    @expression
-    def quantile(self, q, interpolation="midpoint"):
-        self._prototype_support_warning("quantile")
-
-        if len(self) == 0 or len(q) == 0:
-            return []
-        out = []
-        s = sorted(self)
-        for percent in q:
-            k = (len(self) - 1) * (percent / 100)
-            f = math.floor(k)
-            c = math.ceil(k)
-            if f == c:
-                out.append(s[int(k)])
-                continue
-            d0 = s[int(f)] * (c - k)
-            d1 = s[int(c)] * (k - f)
-            out.append(d0 + d1)
-        return out
-
     # unique and montonic  ----------------------------------------------------
 
     @property  # type: ignore
