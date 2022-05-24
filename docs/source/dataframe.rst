@@ -89,10 +89,9 @@ Statistics
     DataFrame.min
     DataFrame.max
     DataFrame.sum
-    DataFrame.min
+    DataFrame.mean
     DataFrame.std
     DataFrame.median
-    DataFrame.mode
     DataFrame.all
     DataFrame.any
 
