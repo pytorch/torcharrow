@@ -137,12 +137,13 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
 
     @property
     def device(self):
+        """the device on which a :class:`torcharrow.Column` is or will be allocated."""
         return self._device
 
     @property  # type: ignore
     @traceproperty
     def dtype(self) -> dt.DType:
-        """dtype of the colum/frame"""
+        """the data type of a :class:`torcharrow.Column`"""
         return self._dtype
 
     @property  # type: ignore
@@ -286,9 +287,7 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
 
     def is_valid_at(self, index):
         """
-        EXPERIMENTAL API
-
-        Return whether data at index i is valid, i.e., non-null
+        (EXPERIMENTAL API) Return whether data at index i is valid, i.e., non-null
         """
         return not self._getmask(index)
 
@@ -378,8 +377,6 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def tail(self, n=5):
         """
-        EXPERIMENTAL API
-
         Return the last `n` rows.
 
         Parameters
@@ -1069,9 +1066,7 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
         keep: ty.Literal["first", "last", False] = "first",
     ):
         """
-        EXPERIMENTAL API
-
-        Remove duplicate values from row/frame but keep the first, last, none
+        (EXPERIMENTAL API) Remove duplicate values from row/frame but keep the first, last, none
         """
         self._prototype_support_warning("drop_duplicates")
 

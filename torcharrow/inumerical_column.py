@@ -314,7 +314,6 @@ class NumericalColumn(Column):
     @trace
     @expression
     def mean(self):
-        self._check(dt.is_numerical, "mean")
         """
         Return the mean of the non-null values.
 
@@ -325,6 +324,7 @@ class NumericalColumn(Column):
         >>> s.mean()
         3.0
         """
+        self._check(dt.is_numerical, "mean")
         import pyarrow.compute as pc
 
         return pc.mean(self.to_arrow()).as_py()

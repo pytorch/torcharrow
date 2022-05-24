@@ -390,7 +390,7 @@ class DataFrame(Column):
 
         Returns DataFrame with the columns in the prescribed order.
         """
-        raise self._not_supported("rename")
+        raise self._not_supported("reorder")
 
     # functional API
 
