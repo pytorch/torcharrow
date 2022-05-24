@@ -19,6 +19,7 @@ set -eufx -o pipefail
 SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
 source $SCRIPTDIR/../csrc/velox/velox/scripts/setup-helper-functions.sh
 
+CPU_TARGET="${CPU_TARGET:-avx}"
 export COMPILER_FLAGS=$(get_cxx_flags $CPU_TARGET)
 FB_OS_VERSION=v2021.05.10.00
 NPROC=$(getconf _NPROCESSORS_ONLN)
