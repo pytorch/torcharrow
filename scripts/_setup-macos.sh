@@ -24,9 +24,12 @@
 set -e # Exit on error.
 set -x # Print commands that are executed.
 
+SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
+source $SCRIPTDIR/../csrc/velox/velox/scripts/setup-helper-functions.sh
+
 FB_OS_VERSION=v2021.05.10.00
 NPROC=$(sysctl -n hw.physicalcpu)
-COMPILER_FLAGS="-mavx2 -mfma -mavx -mf16c -masm=intel -mlzcnt"
+COMPILER_FLAGS=$(get_cxx_flags $CPU_TARGET)
 DEPENDENCY_DIR=${DEPENDENCY_DIR:-$(pwd)}
 MACOS_DEPS="ninja cmake ccache protobuf icu4c boost gflags glog libevent lz4 lzo snappy xz zstd"
 
