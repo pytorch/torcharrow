@@ -1,0 +1,6 @@
+﻿torcharrow.istring\_column.StringMethods.count
+==============================================
+
+.. currentmodule:: torcharrow.istring_column
+
+.. automethod:: StringMethods.count

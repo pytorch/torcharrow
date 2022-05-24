@@ -10,7 +10,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>torcharrow.DataFrame.mode &mdash; TorchArrow main documentation</title>
+  <title>torcharrow.Column.drop_duplicates &mdash; TorchArrow main documentation</title>
   
 
   
@@ -32,8 +32,8 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="torcharrow.DataFrame.all" href="torcharrow.DataFrame.all.html" />
-    <link rel="prev" title="torcharrow.DataFrame.median" href="torcharrow.DataFrame.median.html" />
+    <link rel="next" title="torcharrow.Column.to_tensor" href="torcharrow.Column.to_tensor.html" />
+    <link rel="prev" title="torcharrow.Column.drop_null" href="torcharrow.Column.drop_null.html" />
   <!-- Google Analytics -->
   
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-117752657-2"></script>
@@ -207,7 +207,7 @@
               
               
                 <div class="version">
-                  main (0.1.0a0+e1bbb89 )
+                  main (0.1.0a0+929c570 )
                 </div>
               
             
@@ -238,8 +238,8 @@
               <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../torcharrow.html">torcharrow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../column.html">torcharrow.Column</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../dataframe.html">torcharrow.DataFrame</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../column.html">torcharrow.Column</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dataframe.html">torcharrow.DataFrame</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../dtypes.html">torcharrow.dtypes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../functional.html">torcharrow.functional</a></li>
 </ul>
@@ -293,15 +293,15 @@
       </li>
 
         
-          <li><a href="../dataframe.html">torcharrow.DataFrame</a> &gt;</li>
+          <li><a href="../column.html">torcharrow.Column</a> &gt;</li>
         
-      <li>torcharrow.DataFrame.mode</li>
+      <li>torcharrow.Column.drop_duplicates</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/generated/torcharrow.DataFrame.mode.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/generated/torcharrow.Column.drop_duplicates.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -327,12 +327,13 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
-  <section id="torcharrow-dataframe-mode">
-<h1>torcharrow.DataFrame.mode<a class="headerlink" href="#torcharrow-dataframe-mode" title="Permalink to this headline">¶</a></h1>
+  <section id="torcharrow-column-drop-duplicates">
+<h1>torcharrow.Column.drop_duplicates<a class="headerlink" href="#torcharrow-column-drop-duplicates" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
-<dt class="sig sig-object py" id="torcharrow.DataFrame.mode">
-<span class="sig-prename descclassname"><span class="pre">DataFrame.</span></span><span class="sig-name descname"><span class="pre">mode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#torcharrow.DataFrame.mode" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="torcharrow.Column.drop_duplicates">
+<span class="sig-prename descclassname"><span class="pre">Column.</span></span><span class="sig-name descname"><span class="pre">drop_duplicates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ty.List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ty.Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'first'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'last'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">False</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'first'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torcharrow.Column.drop_duplicates" title="Permalink to this definition">¶</a></dt>
+<dd><p>(EXPERIMENTAL API) Remove duplicate values from row/frame but keep the first, last, none</p>
+</dd></dl>
 
 </section>
 
@@ -344,10 +345,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="torcharrow.DataFrame.all.html" class="btn btn-neutral float-right" title="torcharrow.DataFrame.all" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-orange.svg" class="next-page"></a>
+        <a href="torcharrow.Column.to_tensor.html" class="btn btn-neutral float-right" title="torcharrow.Column.to_tensor" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-orange.svg" class="next-page"></a>
       
       
-        <a href="torcharrow.DataFrame.median.html" class="btn btn-neutral" title="torcharrow.DataFrame.median" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
+        <a href="torcharrow.Column.drop_null.html" class="btn btn-neutral" title="torcharrow.Column.drop_null" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
       
     </div>
   
@@ -379,7 +380,7 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">torcharrow.DataFrame.mode</a></li>
+<li><a class="reference internal" href="#">torcharrow.Column.drop_duplicates</a></li>
 </ul>
 
             </div>

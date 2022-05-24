@@ -1,0 +1,6 @@
+﻿torcharrow.Column.is\_valid\_at
+===============================
+
+.. currentmodule:: torcharrow
+
+.. automethod:: Column.is_valid_at

@@ -33,7 +33,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="torcharrow.DataFrame.head" href="generated/torcharrow.DataFrame.head.html" />
-    <link rel="prev" title="torcharrow.NumericalColumn.std" href="generated/torcharrow.NumericalColumn.std.html" />
+    <link rel="prev" title="torcharrow.ilist_column.ListMethods.vmap" href="generated/torcharrow.ilist_column.ListMethods.vmap.html" />
   <!-- Google Analytics -->
   
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-117752657-2"></script>
@@ -207,7 +207,7 @@
               
               
                 <div class="version">
-                  main (0.1.0a0+e1bbb89 )
+                  main (0.1.0a0+929c570 )
                 </div>
               
             
@@ -348,13 +348,14 @@ in ML, such as feature engineering, training and inference preprocessing.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="torcharrow.DataFrame.dtype">
 <span class="sig-prename descclassname"><span class="pre">DataFrame.</span></span><span class="sig-name descname"><span class="pre">dtype</span></span><a class="headerlink" href="#torcharrow.DataFrame.dtype" title="Permalink to this definition">¶</a></dt>
-<dd><p>dtype of the colum/frame</p>
+<dd><p>the data type of a <a class="reference internal" href="column.html#torcharrow.Column" title="torcharrow.Column"><code class="xref py py-class docutils literal notranslate"><span class="pre">torcharrow.Column</span></code></a></p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="torcharrow.DataFrame.device">
 <span class="sig-prename descclassname"><span class="pre">DataFrame.</span></span><span class="sig-name descname"><span class="pre">device</span></span><a class="headerlink" href="#torcharrow.DataFrame.device" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>the device on which a <a class="reference internal" href="column.html#torcharrow.Column" title="torcharrow.Column"><code class="xref py py-class docutils literal notranslate"><span class="pre">torcharrow.Column</span></code></a> is or will be allocated.</p>
+</dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="torcharrow.DataFrame.length">
@@ -368,7 +369,7 @@ in ML, such as feature engineering, training and inference preprocessing.</p>
 <td><p>Return the first <cite>n</cite> rows.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.tail.html#torcharrow.DataFrame.tail" title="torcharrow.DataFrame.tail"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.tail</span></code></a></p></td>
-<td><p>EXPERIMENTAL API</p></td>
+<td><p>Return the last <cite>n</cite> rows.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.describe.html#torcharrow.DataFrame.describe" title="torcharrow.DataFrame.describe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.describe</span></code></a></p></td>
 <td><p></p></td>
@@ -437,7 +438,7 @@ in ML, such as feature engineering, training and inference preprocessing.</p>
 <td><p>Return a column/frame with rows removed where a row has any or all nulls.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.drop_duplicates.html#torcharrow.DataFrame.drop_duplicates" title="torcharrow.DataFrame.drop_duplicates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.drop_duplicates</span></code></a></p></td>
-<td><p>EXPERIMENTAL API</p></td>
+<td><p>(EXPERIMENTAL API) Remove duplicate values from row/frame but keep the first, last, none</p></td>
 </tr>
 </tbody>
 </table>
@@ -474,8 +475,8 @@ in ML, such as feature engineering, training and inference preprocessing.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.sum.html#torcharrow.DataFrame.sum" title="torcharrow.DataFrame.sum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.sum</span></code></a></p></td>
 <td><p>Return the sum of the non-null values for each column.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.min.html#torcharrow.DataFrame.min" title="torcharrow.DataFrame.min"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.min</span></code></a></p></td>
-<td><p>Return the minimum of the non-null values for each column.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.mean.html#torcharrow.DataFrame.mean" title="torcharrow.DataFrame.mean"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.mean</span></code></a></p></td>
+<td><p>Return the mean of the non-null values for each column.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.std.html#torcharrow.DataFrame.std" title="torcharrow.DataFrame.std"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.std</span></code></a></p></td>
 <td><p></p></td>
@@ -483,13 +484,10 @@ in ML, such as feature engineering, training and inference preprocessing.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.median.html#torcharrow.DataFrame.median" title="torcharrow.DataFrame.median"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.median</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.mode.html#torcharrow.DataFrame.mode" title="torcharrow.DataFrame.mode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.mode</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.all.html#torcharrow.DataFrame.all" title="torcharrow.DataFrame.all"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.all</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.all.html#torcharrow.DataFrame.all" title="torcharrow.DataFrame.all"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.all</span></code></a></p></td>
 <td><p>Return whether all non-null elements are True</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.any.html#torcharrow.DataFrame.any" title="torcharrow.DataFrame.any"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.any</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.any.html#torcharrow.DataFrame.any" title="torcharrow.DataFrame.any"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.any</span></code></a></p></td>
 <td><p>Return whether any non-null element is True</p></td>
 </tr>
 </tbody>
@@ -518,7 +516,7 @@ in ML, such as feature engineering, training and inference preprocessing.</p>
         <a href="generated/torcharrow.DataFrame.head.html" class="btn btn-neutral float-right" title="torcharrow.DataFrame.head" accesskey="n" rel="next">Next <img src="_static/images/chevron-right-orange.svg" class="next-page"></a>
       
       
-        <a href="generated/torcharrow.NumericalColumn.std.html" class="btn btn-neutral" title="torcharrow.NumericalColumn.std" accesskey="p" rel="prev"><img src="_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
+        <a href="generated/torcharrow.ilist_column.ListMethods.vmap.html" class="btn btn-neutral" title="torcharrow.ilist_column.ListMethods.vmap" accesskey="p" rel="prev"><img src="_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
       
     </div>
   

@@ -1,0 +1,6 @@
+﻿torcharrow.ilist\_column.ListMethods.vmap
+=========================================
+
+.. currentmodule:: torcharrow.ilist_column
+
+.. automethod:: ListMethods.vmap
