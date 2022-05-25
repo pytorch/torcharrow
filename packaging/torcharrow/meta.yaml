@@ -34,14 +34,12 @@ build:
 #GitHub Actions usually provide Mac without AVX2 support, for now just skip the test until Velox can be run without AVX2
 #pytest --no-header -v torcharrow/test
 test:
-  {% if linux %}
   imports:
     - torcharrow
   source_files:
     - torcharrow/test
   requires:
     - pytest
-  {% endif %}
 
 about:
   home: https://github.com/facebookresearch/torcharrow
