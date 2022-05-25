@@ -16,9 +16,11 @@
 # Minimal setup for Ubuntu 20.04.
 set -eufx -o pipefail
 
-# Folly must be built with the same compiler flags so that some low level types
-# are the same size.
-export COMPILER_FLAGS="-mavx2 -mfma -mavx -mf16c -masm=intel -mlzcnt"
+SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
+source $SCRIPTDIR/../csrc/velox/velox/scripts/setup-helper-functions.sh
+
+CPU_TARGET="${CPU_TARGET:-avx}"
+export COMPILER_FLAGS=$(get_cxx_flags $CPU_TARGET)
 FB_OS_VERSION=v2021.05.10.00
 NPROC=$(getconf _NPROCESSORS_ONLN)
 DEPENDENCY_DIR=${DEPENDENCY_DIR:-$(pwd)}

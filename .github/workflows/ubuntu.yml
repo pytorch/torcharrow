@@ -62,12 +62,12 @@ jobs:
       - name: Build and install folly and fmt
         # sudo doesn't preserve environment vairable; set it after sudo: https://stackoverflow.com/questions/8633461/how-to-keep-environment-variables-when-using-sudo/33183620#33183620
         run: |
-          sudo CMAKE_C_COMPILER_LAUNCHER=ccache CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache_root scripts/setup-ubuntu.sh
+          sudo CMAKE_C_COMPILER_LAUNCHER=ccache CPU_TARGET="sse" CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache_root scripts/setup-ubuntu.sh
 
       - name: Bulid TorchArrow
         run: |
           CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz
-          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache python setup.py develop --user
+          CPU_TARGET="sse" CCACHE_DIR=$GITHUB_WORKSPACE/.ccache python setup.py develop --user
 
       - name: Install dependencies for test
         run: |
