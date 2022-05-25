@@ -18,6 +18,7 @@
 
 #include "pytorch/torcharrow/csrc/velox/functions/functions.h"
 #include "velox/functions/prestosql/tests/FunctionBaseTest.h"
+#include "velox/parse/TypeResolver.h"
 
 namespace facebook::velox {
 namespace {
@@ -42,6 +43,7 @@ class ComputeScoreTest : public functions::test::FunctionBaseTest {
   std::vector<std::vector<float>> matchingIdScoresVec;
   static void SetUpTestCase() {
     torcharrow::functions::registerTorchArrowFunctions();
+    parse::registerTypeResolver();
   }
 
   virtual void SetUp() override {
