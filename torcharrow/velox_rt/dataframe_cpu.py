@@ -1743,7 +1743,7 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
             )
             res[s] = ta.column(
                 [c._count(), c.mean(), c.std(), c.min()]
-                + c._quantile(percentiles, "midpoint")
+                + c.percentile(percentiles, "midpoint")
                 + [c.max()]
             )
         return self._fromdata(res, [False] * len(res["metric"]))
@@ -2286,8 +2286,8 @@ class GroupedDataFrame:
         # a.groupby('a').agg({'b': ['min', 'mean']}) -- applied on
         # TODO
         # a.groupby('a').aggregate( a= me['a'].mean(), b_min =me['b'].min(), b_mean=me['c'].mean()))
-        # f1 = lambda x: x._quantile(0.5); f1.__name__ = "q0.5"
-        # f2 = lambda x: x._quantile(0.75); f2.__name__ = "q0.75"
+        # f1 = lambda x: x.quantile(0.5); f1.__name__ = "q0.5"
+        # f2 = lambda x: x.quantile(0.75); f2.__name__ = "q0.75"
         # a.groupby('a').agg([f1, f2])
 
         res = {}
