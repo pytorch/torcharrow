@@ -40,6 +40,9 @@ class ListMethods(abc.ABC):
         self._parent: ListColumn = parent
 
     def length(self):
+        """
+        Compute the length of each element in the Column.
+        """
         me = self._parent
         return me._vectorize(len, dt.Int64(me.dtype.nullable))
 
@@ -101,11 +104,10 @@ class ListMethods(abc.ABC):
 
     def vmap(self, fun: Callable[[Column], Column]):
         """
-        EXPERIMENTAL API
+        (EXPERIMENTAL API) Vectorizing map. Expects a callable that working on a batch (represents by a Column).
 
-        Vectorizing map. Expects a callable that working on a batch (represents by a Column).
-
-        Examples:
+        Examples
+        --------
         >>> import torcharrow as ta
         >>> a = ta.column([[1, 2, None, 3], [4, None, 5]])
 

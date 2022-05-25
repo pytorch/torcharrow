@@ -92,6 +92,10 @@ python setup.py install
 ## Documentation
 This [10 minutes tutorial](https://github.com/facebookresearch/torcharrow/blob/main/tutorial/tutorial.ipynb) provides a short introduction to TorchArrow, and you can also try it in [this Colab](https://colab.research.google.com/drive/1mQ3S6dwmU-zhBe2Tdvq_VRAnjQ3paiay). More documents on advanced topics are coming soon!
 
+## Examples
+You can find the example about integrating a TorchRec based training loop utilizing TorchArrow's on-the-fly preprocessing
+[here](https://github.com/pytorch/torchrec/tree/main/examples/torcharrow). More examples are coming soon!
+
 ## Future Plans
 We hope to sufficiently expand the library, harden APIs, and gather feedback to enable a alpha release (early 2022).
 
