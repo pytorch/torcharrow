@@ -9,7 +9,7 @@ import math
 import operator
 import statistics
 from functools import partial
-from typing import Callable, List, Optional, Union
+from typing import Callable, Iterable, List, Optional, Union
 
 import torcharrow.dtypes as dt
 
@@ -189,7 +189,7 @@ class NumericalColumn(Column):
             res._append(("mean", self.mean()))
             res._append(("std", self.std()))
             res._append(("min", self.min()))
-            values = self._quantile(percentiles, "midpoint")
+            values = self.percentile(percentiles, "midpoint")
             for p, v in zip(percentiles, values):
                 res._append((f"{p}%", v))
             res._append(("max", self.max()))
@@ -351,6 +351,66 @@ class NumericalColumn(Column):
 
         self._check(dt.is_numerical, "median")
         return statistics.median((float(i) for i in list(self._data_iter())))
+
+    @trace
+    @expression
+    def quantile(self, q: Union[float, Iterable[float]], interpolation: str = "linear"):
+        """
+        Returns an array of quantiles.
+
+        Args:
+            q: float or array-like quantiles to compute, value must be within [0, 1]
+            interpolation: How to break ties between competing data points for a given quantile.
+                Accepted values are:
+                - “linear”: compute an interpolation
+                - “lower”: always use the smallest of the two data points
+                - “higher”: always use the largest of the two data points
+                - “nearest”: select the data point that is closest to the quantile
+                - “midpoint”: compute the (unweighted) mean of the two data points
+        """
+        if isinstance(q, Iterable):
+            assert all(p >= 0 and p <= 1 for p in q)
+        else:
+            assert q >= 0 and q <= 1
+
+        import pyarrow.compute as pc
+
+        # TODO: update to return pc.quantile(self.to_arrow(), q, interpolation).as_py()
+        # after arrow 8.0.0 upgrade
+        if isinstance(q, Iterable):
+            return (
+                self.to_arrow()
+                .to_pandas()
+                .quantile(q, interpolation=interpolation)
+                .values.tolist()
+            )
+        else:
+            return (
+                self.to_arrow()
+                .to_pandas()
+                .quantile(q, interpolation=interpolation)
+                .item()
+            )
+
+    @trace
+    @expression
+    def percentile(
+        self, q: Union[float, Iterable[float]], interpolation: str = "linear"
+    ):
+        """
+        Returns an array of percentiles.
+
+        Args:
+            q: float or array-like percentiles to compute, value must be within [0, 100]
+            interpolation: see quantile
+        """
+        if isinstance(q, Iterable):
+            assert all(p >= 0 and p <= 100 for p in q)
+        else:
+            assert q >= 0 and q <= 100
+        return self.quantile(
+            [p / 100 for p in q] if isinstance(q, Iterable) else q / 100, interpolation
+        )
 
     @trace
     @expression

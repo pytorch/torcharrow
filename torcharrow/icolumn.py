@@ -1451,33 +1451,3 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
             return len(set(self))
         else:
             return len(set(i for i in self if i is not None))
-
-    # quantile
-    @trace
-    @expression
-    def _quantile(self, q, interpolation="midpoint"):
-        """
-        Compute the q-th percentile of non-null data.
-
-        Inefficient prototype implementation.
-        """
-
-        if interpolation != "midpoint":
-            raise TypeError(
-                f"quantile for '{type(self).__name__}' with parameter other than 'midpoint' not supported "
-            )
-        if len(self) == 0 or len(q) == 0:
-            return []
-        out = []
-        s = sorted(self)
-        for percent in q:
-            k = (len(self) - 1) * (percent / 100)
-            f = math.floor(k)
-            c = math.ceil(k)
-            if f == c:
-                out.append(s[int(k)])
-                continue
-            d0 = s[int(f)] * (c - k)
-            d1 = s[int(c)] * (k - f)
-            out.append(d0 + d1)
-        return out

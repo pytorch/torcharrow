@@ -470,6 +470,15 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual((C % 2 == 0)[:-1].all(), all(i % 2 == 0 for i in c))
         self.assertEqual((C % 2 == 0)[:-1].any(), any(i % 2 == 0 for i in c))
 
+        self.assertEqual(C.quantile(0.5), np.quantile(c, 0.5))
+        self.assertEqual(
+            C.quantile([0.1, 0.2, 0.9]), np.quantile(c, [0.1, 0.2, 0.9]).tolist()
+        )
+        self.assertEqual(C.percentile(25), np.percentile(c, 25))
+        self.assertEqual(
+            C.percentile([11.1, 22.2]), np.percentile(c, [11.1, 22.2]).tolist()
+        )
+
     def base_test_in_nunique(self):
         c = [1, 4, 2, 7]
         C = ta.column(c + [None])
