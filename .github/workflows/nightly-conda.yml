@@ -121,7 +121,7 @@ jobs:
         run: |
           conda activate conda_build_env
           conda install -yq conda-build -c conda-forge
-          MACOSX_DEPLOYMENT_TARGET=10.15 CPU_TARGET="sse" ./csrc/velox/velox/scripts/setup-macos.sh
+          MACOSX_DEPLOYMENT_TARGET=10.15 CPU_TARGET="sse" scripts/build_mac_dep.sh ranges_v3 fmt double_conversion folly re2
           CPU_TARGET="sse" ./packaging/build_conda.sh
 
       - name: Conda Upload
