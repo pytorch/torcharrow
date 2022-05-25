@@ -18,6 +18,7 @@
 
 #include "pytorch/torcharrow/csrc/velox/functions/functions.h"
 #include "velox/functions/prestosql/tests/FunctionBaseTest.h"
+#include "velox/parse/TypeResolver.h"
 
 namespace facebook::velox {
 namespace {
@@ -28,6 +29,7 @@ class firstXTest : public functions::test::FunctionBaseTest {
  protected:
   static void SetUpTestCase() {
     torcharrow::functions::registerTorchArrowFunctions();
+    parse::registerTypeResolver();
   }
 };
 
