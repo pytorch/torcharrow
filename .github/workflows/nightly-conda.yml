@@ -81,7 +81,7 @@ jobs:
           # source /opt/conda/etc/profile.d/conda.sh
           conda activate conda_build_env
           conda install -yq conda-build -c conda-forge
-          ./packaging/build_conda.sh
+          CPU_TARGET="sse" ./packaging/build_conda.sh
 
       - name: Conda Upload
         shell: bash -l {0}
@@ -122,7 +122,7 @@ jobs:
           conda activate conda_build_env
           conda install -yq conda-build -c conda-forge
           MACOSX_DEPLOYMENT_TARGET=10.15 CPU_TARGET="sse" ./csrc/velox/velox/scripts/setup-macos.sh
-          ./packaging/build_conda.sh
+          CPU_TARGET="sse" ./packaging/build_conda.sh
 
       - name: Conda Upload
         shell: bash -l {0}
