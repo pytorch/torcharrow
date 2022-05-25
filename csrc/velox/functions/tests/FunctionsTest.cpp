@@ -16,6 +16,7 @@
 #include <velox/vector/SimpleVector.h>
 #include "pytorch/torcharrow/csrc/velox/functions/functions.h"
 #include "velox/functions/prestosql/tests/FunctionBaseTest.h"
+#include "velox/parse/TypeResolver.h"
 
 namespace facebook::velox {
 namespace {
@@ -33,6 +34,7 @@ class FunctionsTest : public functions::test::FunctionBaseTest {
  protected:
   static void SetUpTestCase() {
     torcharrow::functions::registerTorchArrowFunctions();
+    parse::registerTypeResolver();
   }
 
   template <typename T>
@@ -242,7 +244,7 @@ TEST_F(FunctionsTest, bitwise_and) {
       "torcharrow_bitwiseand(c0, c1)",
       {1.2},
       {-3.4},
-      "Cannot resolve function call: torcharrow_bitwiseand(REAL, REAL)");
+      "Scalar function signature is not supported: torcharrow_bitwiseand(REAL, REAL).");
 }
 
 TEST_F(FunctionsTest, bitwise_or) {
@@ -279,7 +281,7 @@ TEST_F(FunctionsTest, bitwise_or) {
       "torcharrow_bitwiseor(c0, c1)",
       {1.2},
       {-3.4},
-      "Cannot resolve function call: torcharrow_bitwiseor(REAL, REAL)");
+      "Scalar function signature is not supported: torcharrow_bitwiseor(REAL, REAL).");
 }
 
 TEST_F(FunctionsTest, round) {
