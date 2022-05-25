@@ -137,12 +137,13 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
 
     @property
     def device(self):
+        """the device on which a :class:`torcharrow.Column` is or will be allocated."""
         return self._device
 
     @property  # type: ignore
     @traceproperty
     def dtype(self) -> dt.DType:
-        """dtype of the colum/frame"""
+        """the data type of a :class:`torcharrow.Column`"""
         return self._dtype
 
     @property  # type: ignore
@@ -286,9 +287,7 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
 
     def is_valid_at(self, index):
         """
-        EXPERIMENTAL API
-
-        Return whether data at index i is valid, i.e., non-null
+        (EXPERIMENTAL API) Return whether data at index i is valid, i.e., non-null
         """
         return not self._getmask(index)
 
@@ -378,8 +377,6 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
     @expression
     def tail(self, n=5):
         """
-        EXPERIMENTAL API
-
         Return the last `n` rows.
 
         Parameters
@@ -449,7 +446,7 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
 
         See Also
         --------
-        flatmap, filter, reduce
+        flatmap, filter
 
         Examples
         --------
@@ -529,11 +526,9 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
         2  6
         dtype: int64, length: 3, null_count: 0
 
-        Multi-return UDFs - functions that return more than one column
-        can be specified by returning a DataFrame (also known as a
-        struct column); providing the return dtype is mandatory.
+        Multi-return UDFs - functions that return more than one column can be specified by returning a DataFrame (also known as struct column); providing the return dtype is mandatory:
 
-        ta.dataframe({'a': [17, 29, 30], 'b': [3,5,11]}).map(divmod, columns= ['a','b'], dtype = dt.Struct([dt.Field('quotient', dt.int64), dt.Field('remainder', dt.int64)]))
+        >>> ta.dataframe({'a': [17, 29, 30], 'b': [3,5,11]}).map(divmod, columns= ['a','b'], dtype = dt.Struct([dt.Field('quotient', dt.int64), dt.Field('remainder', dt.int64)]))
           index    quotient    remainder
         -------  ----------  -----------
               0           5            2
@@ -1071,9 +1066,7 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
         keep: ty.Literal["first", "last", False] = "first",
     ):
         """
-        EXPERIMENTAL API
-
-        Remove duplicate values from row/frame but keep the first, last, none
+        (EXPERIMENTAL API) Remove duplicate values from row/frame but keep the first, last, none
         """
         self._prototype_support_warning("drop_duplicates")
 
@@ -1458,33 +1451,3 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
             return len(set(self))
         else:
             return len(set(i for i in self if i is not None))
-
-    # quantile
-    @trace
-    @expression
-    def _quantile(self, q, interpolation="midpoint"):
-        """
-        Compute the q-th percentile of non-null data.
-
-        Inefficient prototype implementation.
-        """
-
-        if interpolation != "midpoint":
-            raise TypeError(
-                f"quantile for '{type(self).__name__}' with parameter other than 'midpoint' not supported "
-            )
-        if len(self) == 0 or len(q) == 0:
-            return []
-        out = []
-        s = sorted(self)
-        for percent in q:
-            k = (len(self) - 1) * (percent / 100)
-            f = math.floor(k)
-            c = math.ceil(k)
-            if f == c:
-                out.append(s[int(k)])
-                continue
-            d0 = s[int(f)] * (c - k)
-            d1 = s[int(c)] * (k - f)
-            out.append(d0 + d1)
-        return out

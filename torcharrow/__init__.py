@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 from . import pytorch, velox_rt  # noqa  # noqa
-from ._functional import functional
 from .icolumn import Column, column, concat, if_else  # noqa
 from .idataframe import DataFrame, dataframe, me  # noqa
 from .ilist_column import ListColumn  # noqa

@@ -55,12 +55,12 @@ jobs:
           CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz -M 5G
 
       - name: Build and install other dependencies
-        run: MACOSX_DEPLOYMENT_TARGET=10.15 CMAKE_C_COMPILER_LAUNCHER=ccache CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache scripts/build_mac_dep.sh ranges_v3 fmt double_conversion folly re2
+        run: MACOSX_DEPLOYMENT_TARGET=10.15 CPU_TARGET="sse" CMAKE_C_COMPILER_LAUNCHER=ccache CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache scripts/build_mac_dep.sh ranges_v3 fmt double_conversion folly re2
 
       - name: Bulid TorchArrow
         run: |
           CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz
-          MACOSX_DEPLOYMENT_TARGET=10.15 CCACHE_DIR=$GITHUB_WORKSPACE/.ccache python setup.py develop
+          MACOSX_DEPLOYMENT_TARGET=10.15 CPU_TARGET="sse" CCACHE_DIR=$GITHUB_WORKSPACE/.ccache python setup.py develop
 
       - name: Print CCache Stats
         run: CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -s
@@ -72,6 +72,4 @@ jobs:
 
       - name : Run TorchArrow unit tests
         run: |
-          echo "Skipped"
-#          GitHub Actions usually provide Mac without AVX2 support, for now just skip the test until Velox can be run without AVX2
-#          pytest --no-header -v torcharrow/test
+          pytest --no-header -v torcharrow/test

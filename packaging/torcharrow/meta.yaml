@@ -12,7 +12,6 @@ requirements:
   host:
     - python
     - setuptools
-    {{ environ.get('CONDA_PYTORCH_BUILD_CONSTRAINT') }}
   run:
     - python
     - numpy

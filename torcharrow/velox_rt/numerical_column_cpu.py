@@ -13,7 +13,7 @@ import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
-from torcharrow._functional import functional
+from torcharrow import functional
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
 from torcharrow.icolumn import Column
@@ -507,14 +507,20 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
 
     @trace
     @expression
-    def __and__(self, other: Union[NumericalColumn, int]) -> NumericalColumn:
-        return self._checked_arithmetic_op_call(other, "bitwise_and", operator.__and__)
+    def __and__(
+        self, other: Union[NumericalColumn, DataFrameCpu, int]
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        return self._checked_arithmetic_op_call_with_df(
+            other, "bitwise_and", operator.__and__, "__rand__"
+        )
 
     @trace
     @expression
-    def __rand__(self, other: Union[int]) -> NumericalColumn:
-        return self._checked_arithmetic_op_call(
-            other, "bitwise_rand", Column._swap(operator.__and__)
+    def __rand__(
+        self, other: Union[DataFrameCpu, int]
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        return self._checked_arithmetic_op_call_with_df(
+            other, "bitwise_rand", Column._swap(operator.__and__), "__and__"
         )
 
     @trace
@@ -752,27 +758,6 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
         self._prototype_support_warning("_cumprod")
 
         return self._accumulate_column(operator.mul, skipna=True, initial=None)
-
-    @trace
-    @expression
-    def quantile(self, q, interpolation="midpoint"):
-        self._prototype_support_warning("quantile")
-
-        if len(self) == 0 or len(q) == 0:
-            return []
-        out = []
-        s = sorted(self)
-        for percent in q:
-            k = (len(self) - 1) * (percent / 100)
-            f = math.floor(k)
-            c = math.ceil(k)
-            if f == c:
-                out.append(s[int(k)])
-                continue
-            d0 = s[int(f)] * (c - k)
-            d1 = s[int(c)] * (k - f)
-            out.append(d0 + d1)
-        return out
 
     # unique and montonic  ----------------------------------------------------
 
