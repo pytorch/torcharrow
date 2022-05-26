@@ -7,5 +7,9 @@
 
 set -ex
 
+git submodule sync --recursive
 git submodule update --init --recursive
+
+echo "CPU TARGET is $SCRIPT_CXX_FLAGS"
+
 $PYTHON setup.py install --single-version-externally-managed --record=record.txt
