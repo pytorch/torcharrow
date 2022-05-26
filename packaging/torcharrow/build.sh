@@ -10,6 +10,4 @@ set -ex
 git submodule sync --recursive
 git submodule update --init --recursive
 
-echo "CPU TARGET is $CPU_TARGET"
-
 $PYTHON setup.py install --single-version-externally-managed --record=record.txt
