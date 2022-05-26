@@ -18,7 +18,7 @@ export SOURCE_ROOT_DIR="$PWD"
 setup_env 0.1
 setup_conda_pytorch_constraint
 
-export CPU_TARGET=sse
+export CPU_TARGET="sse"
 
 mkdir -p conda-bld
 conda build $CONDA_CHANNEL_FLAGS --no-anaconda-upload --output-folder conda-bld --python "$PYTHON_VERSION" packaging/torcharrow
