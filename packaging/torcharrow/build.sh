@@ -12,4 +12,4 @@ git submodule update --init --recursive
 
 echo "CPU TARGET is $CPU_TARGET"
 
-CPU_TARGET="sse" $PYTHON setup.py install --single-version-externally-managed --record=record.txt
+$PYTHON setup.py install --single-version-externally-managed --record=record.txt
