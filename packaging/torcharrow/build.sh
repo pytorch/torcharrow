@@ -10,4 +10,7 @@ set -ex
 git submodule sync --recursive
 git submodule update --init --recursive
 
+echo "MACOSX_DEPLOYMENT_TARGET is $MACOSX_DEPLOYMENT_TARGET"
+echo "CPU_TARGET is $CPU_TARGET"
+
 MACOSX_DEPLOYMENT_TARGET=10.15 CPU_TARGET="sse" $PYTHON setup.py install --single-version-externally-managed --record=record.txt
