@@ -104,6 +104,7 @@ setup_build_version() {
 setup_macos() {
   if [[ "$(uname)" == Darwin ]]; then
     export MACOSX_DEPLOYMENT_TARGET=10.15 CC=clang CXX=clang++
+    export bla=hi
   fi
 }
 

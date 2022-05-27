@@ -13,6 +13,7 @@ git submodule update --init --recursive
 echo "MACOSX_DEPLOYMENT_TARGET is $MACOSX_DEPLOYMENT_TARGET"
 echo "CPU_TARGET is $CPU_TARGET"
 echo "CU_VERSION is $CU_VERSION"
+echo "bla is $bla"
 
 # MACOSX_DEPLOYMENT_TARGET=10.15 CPU_TARGET="sse" $PYTHON setup.py install --single-version-externally-managed --record=record.txt
 $PYTHON setup.py install --single-version-externally-managed --record=record.txt
