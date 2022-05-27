@@ -30,7 +30,6 @@ build:
   string: py{{py}}
   script_env:
     - BUILD_VERSION
-    - bla
     - CPU_TARGET
 
 #GitHub Actions usually provide Mac without AVX2 support, for now just skip the test until Velox can be run without AVX2
