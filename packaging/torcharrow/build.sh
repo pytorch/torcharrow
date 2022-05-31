@@ -7,5 +7,10 @@
 
 set -ex
 
+git submodule sync --recursive
 git submodule update --init --recursive
+
+# Print out env vars for quick debugging
+env
+
 $PYTHON setup.py install --single-version-externally-managed --record=record.txt
