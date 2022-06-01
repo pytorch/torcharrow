@@ -19,10 +19,19 @@ struct bpe_tokenize {
   VELOX_DEFINE_FUNCTION_TYPES(T);
 
   FOLLY_ALWAYS_INLINE bool call(
-      velox::exec::ArrayWriter<int64_t>& result,
+      velox::exec::ArrayWriter<velox::Varchar>& result,
       const arg_type<std::shared_ptr<GPT2BPEEncoder>>& bpe_encoder,
       const arg_type<velox::Varchar>& text) {
-    result.copy_from(bpe_encoder->Encode(text.str()));
+    std::vector<int64_t> int_result = bpe_encoder->Encode(text.str());
+    std::vector<std::string> str_result;
+    str_result.reserve(int_result.size());
+    std::transform(std::begin(int_result),
+               std::end(int_result), 
+               std::back_inserter(str_result),
+               [](int64_t val) { return std::to_string(val); } 
+              );
+
+    result.copy_from(str_result);
     return true;
   }
 };
