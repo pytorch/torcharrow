@@ -89,15 +89,15 @@ class _TestTextOpsBase(unittest.TestCase):
                 "text": ["Hello World!, how are you?", "Respublica superiorem"],
                 "labels": [0, 1],
                 "tokens": [
-                    [15496, 2159, 28265, 703, 389, 345, 30],
-                    [4965, 11377, 64, 2208, 72, 29625],
+                    ["15496", "2159", "28265", "703", "389", "345", "30"],
+                    ["4965", "11377", "64", "2208", "72", "29625"],
                 ],
             },
             dtype=dt.Struct(
                 fields=[
                     dt.Field("text", dt.string),
                     dt.Field("labels", dt.int32),
-                    dt.Field("tokens", dt.List(dt.int64)),
+                    dt.Field("tokens", dt.List(dt.string)),
                 ]
             ),
         )
