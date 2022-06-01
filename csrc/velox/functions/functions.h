@@ -248,7 +248,7 @@ inline void registerTorchArrowFunctions() {
 
   velox::registerFunction<
       bpe_tokenize,
-      velox::ArrayWriterT<int64_t>,
+      velox::ArrayWriterT<velox::Varchar>,
       std::shared_ptr<GPT2BPEEncoder>,
       velox::Varchar>({"bpe_tokenize"});
 #endif
