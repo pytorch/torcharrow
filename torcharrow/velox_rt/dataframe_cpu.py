@@ -1132,11 +1132,21 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
     def __ne__(self, other):
         if isinstance(other, DataFrameCpu):
             return self._fromdata(
-                {n: c == other[n] for (n, c) in self._field_data.items()}
+                {n: c != other[n] for (n, c) in self._field_data.items()}
             )
         else:
             return self._fromdata(
-                {n: c == other for (n, c) in self._field_data.items()}
+                {
+                    self.dtype.fields[i].name: other
+                    != ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
             )
 
     @expression
