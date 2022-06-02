@@ -266,6 +266,17 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
             other = ta.column(other)
         return self._checked_binary_op_call(other, op_name)
 
+    def _checked_comparison_op_call_with_df(
+        self,
+        other: Any,
+        op_name: str,
+        inverse_operation_name: str,
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        if isinstance(other, DataFrameCpu):
+            return getattr(other, inverse_operation_name)(self)
+
+        return self._checked_comparison_op_call(other, op_name)
+
     def _checked_arithmetic_op_call(
         self,
         other: Union[NumericalColumn, int, float, bool],
@@ -478,12 +489,12 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
     @trace
     @expression
     def __eq__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "eq")
+        return self._checked_comparison_op_call_with_df(other, "eq", "__eq__")
 
     @trace
     @expression
     def __ne__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "neq")
+        return self._checked_comparison_op_call_with_df(other, "neq", "__ne__")
 
     @trace
     @expression
