@@ -76,7 +76,7 @@ pybind11_add_module(
   VariantToVector.cpp
 )
 
-set(TORCHARROW_COMPILE_DEFINITIONS)
+set(TORCHARROW_COMPILE_DEFINITIONS VELOX_DISABLE_GOOGLETEST)
 
 if(USE_TORCH)
   find_package(Torch REQUIRED)
