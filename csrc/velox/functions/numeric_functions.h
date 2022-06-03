@@ -178,6 +178,16 @@ struct torcharrow_bitwiseor {
 };
 
 template <typename T>
+struct torcharrow_bitwisexor {
+  template <typename TOutput, typename TInput = TOutput>
+  FOLLY_ALWAYS_INLINE bool
+  call(TOutput& result, const TInput& a, const TInput& b) {
+    result = a ^ b;
+    return true;
+  }
+};
+
+template <typename T>
 struct sigmoid {
   template <typename TOutput, typename TInput = TOutput>
   FOLLY_ALWAYS_INLINE bool call(TOutput& result, const TInput& x) {
