@@ -37,7 +37,6 @@ Features described in this documentation are classified by release status:
    torcharrow.rst
    column.rst
    dataframe.rst
-   dtypes.rst
    functional.rst
 
 ..

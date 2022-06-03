@@ -7,6 +7,26 @@ A :class:`torcharrow.Column` is a 1-dimension torch.Tensor like data structure c
 elements of a single data type. It also supports non-numeric types such as string, 
 list, struct.
 
+Data types
+----------
+
+TorchArrow defines the following data types for column, which is in module ``torcharrow.dtypes``
+(abbreviated as ``dt`` in table below):
+
+======================================= ===========================================
+Data type                               dtype
+======================================= ===========================================
+32-bit floating point                   ``dt.float32`` or ``dt.Float32(nullable)``
+64-bit floating point                   ``dt.float64`` or ``dt.Float64(nullable)``
+8-bit signed integer                    ``dt.int8`` or ``dt.Int8(nullable)``
+16-bit signed integer                   ``dt.int16`` or ``dt.Int16(nullable)``
+32-bit signed integer                   ``dt.int32`` or ``dt.Int32(nullable)``
+64-bit signed integer                   ``dt.int64`` or ``dt.Int64(nullable)``
+Boolean                                 ``dt.boolean`` or ``dt.Boolean(nullable)``
+String                                  ``dt.string`` or ``dt.String(nullable)``
+List                                    ``dt.List(item_dtype, nullable)``
+Struct                                  ``dt.Struct(fields, nullable)``
+======================================= ===========================================
 
 Column class reference
 ------------------------------
