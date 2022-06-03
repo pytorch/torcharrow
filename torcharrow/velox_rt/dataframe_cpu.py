@@ -1271,8 +1271,24 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
 
     def __or__(self, other):
         if isinstance(other, DataFrameCpu):
+            assert len(self) == len(other)
             return self._fromdata(
-                {n: c | other[n] for (n, c) in self._field_data.items()}
+                {
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    | ColumnCpuMixin._from_velox(
+                        other.device,
+                        other.dtype.fields[i].dtype,
+                        other._data.child_at(i),
+                        True,
+                    )
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
             )
         else:
             return self._fromdata(
@@ -1291,15 +1307,43 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
 
     def __ror__(self, other):
         if isinstance(other, DataFrameCpu):
+            assert len(self) == len(other)
             return self._fromdata(
-                {n: other[n] | c for (n, c) in self._field_data.items()}
+                {
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    | ColumnCpuMixin._from_velox(
+                        other.device,
+                        other.dtype.fields[i].dtype,
+                        other._data.child_at(i),
+                        True,
+                    )
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
             )
         else:
-            return self._fromdata({n: other | c for (n, c) in self._field_data.items()})
+            return self._fromdata(
+                {
+                    self.dtype.fields[i].name: other
+                    | ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
+            )
 
     def __and__(self, other):
-        assert len(self) == len(other)
         if isinstance(other, DataFrameCpu):
+            assert len(self) == len(other)
             return self._fromdata(
                 {
                     self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
