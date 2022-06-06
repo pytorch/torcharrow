@@ -100,6 +100,11 @@ def register_factory_methods(methods):
 
 
 def __getattr__(op_name: str):
+    # Don't wrap accesses for special module members, like __bases__
+    # as it breaks basic Python functionality like
+    # `help(torcharrow.functional)`
+    if op_name.startswith("__") or op_name == "_fields":
+        raise AttributeError
     wrapper = create_dispatch_wrapper(op_name)
     setattr(sys.modules["torcharrow.functional"], op_name, wrapper)
     return wrapper
