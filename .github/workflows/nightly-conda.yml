@@ -136,6 +136,29 @@ jobs:
           scripts/build_mac_dep.sh ranges_v3 fmt double_conversion folly re2
           ./packaging/build_conda.sh
 
+      - name: Fix Velox Dylib Paths
+        shell: bash -l {0}
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          cd conda-bld/osx-64
+          pkg_name=`ls ./torcharrow-* | sed -n -e 's/.*\(torcharrow.*\).tar.bz2/\1/p'`
+          mkdir ./${pkg_name}
+          tar -xf ./${pkg_name}.tar.bz2 -C ./${pkg_name}
+          rm ./${pkg_name}.tar.bz2
+          cd ./${pkg_name}
+
+          source ${GITHUB_WORKSPACE}/packaging/fix_conda_dylib_paths.sh
+          conda_lib_folder=lib/python${PYTHON_VERSION}/site-packages/torcharrow
+          so_name=`ls ${conda_lib_folder}/_torcharrow.* | sed -n -e 's/.*\(_torcharrow.*\.so\)/\1/p'`
+          fix_velox_dylib_paths ${conda_lib_folder}/${so_name}
+          otool -L ${conda_lib_folder}/${so_name}
+
+          tar -cjf ../${pkg_name}.tar.bz2 *
+          cd ..
+          rm -rf ./${pkg_name}
+          cd ../..
+
       - name: Conda Upload
         shell: bash -l {0}
         env:

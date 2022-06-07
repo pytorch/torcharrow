@@ -20,20 +20,22 @@ requirements:
     - typing
     - tabulate
     - pyarrow
-    - arrow
+    - arrow-cpp==8.0.0
     - cffi
-    - glog==0.4.0
+    - glog==0.6.0
     - libsodium
-    {{ environ.get('CONDA_PYTORCH_CONSTRAINT') }}
+    - libboost
+    - libevent
+    - bzip2
+    - lz4-c
 
 build:
   string: py{{py}}
   script_env:
     - BUILD_VERSION
     - CPU_TARGET
+    - PYTHON_VERSION
 
-#GitHub Actions usually provide Mac without AVX2 support, for now just skip the test until Velox can be run without AVX2
-#pytest --no-header -v torcharrow/test
 test:
   imports:
     - torcharrow
