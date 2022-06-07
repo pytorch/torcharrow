@@ -64,10 +64,16 @@ jobs:
         run: |
           sudo CMAKE_C_COMPILER_LAUNCHER=ccache CPU_TARGET="sse" CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache_root scripts/setup-ubuntu.sh
 
+      # we install torch to optionally build text operators that require pytorch
+      - name: Install torch
+        run: |
+          pip3 install torch --extra-index-url https://download.pytorch.org/whl/cpu/torch_stable.html --user
+
+
       - name: Bulid TorchArrow
         run: |
           CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz
-          CPU_TARGET="sse" CCACHE_DIR=$GITHUB_WORKSPACE/.ccache python setup.py develop --user
+          CPU_TARGET="sse" CCACHE_DIR=$GITHUB_WORKSPACE/.ccache USE_TORCH=1 python setup.py develop --user
 
       - name: Install dependencies for test
         run: |
@@ -79,13 +85,13 @@ jobs:
 
       - name : Install TorchArrow
         run: |
-          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache python setup.py install --user
+          CCACHE_DIR=$GITHUB_WORKSPACE/.ccache USE_TORCH=1 python setup.py install --user
         
       - name: Build the docs
         run: |
           cd ./docs
           pip3 install -r requirements.txt --user
-          make html 
+          make html
           cd ..
 
       - name: Deploy Docs on Push
