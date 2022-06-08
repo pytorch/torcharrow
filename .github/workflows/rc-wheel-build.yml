@@ -57,6 +57,7 @@ jobs:
         env:
           PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
+          source packaging/manylinux/python_helper.sh
           pip3 install dist/torcharrow*.whl
 
   macos-container:
