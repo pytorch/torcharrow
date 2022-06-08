@@ -46,12 +46,6 @@ jobs:
           pip install auditwheel
           auditwheel repair dist/*.whl -w fixed_dist --plat manylinux2014_x86_64
 
-      - name: Upload Wheels to Github
-        uses: actions/upload-artifact@v2
-        with:
-          name: torcharrow-artifact
-          path: dist/torcharrow*.whl
-
       - name: Install and Test TorchArrow Wheel
         shell: bash
         env:
@@ -59,6 +53,12 @@ jobs:
         run: |
           source packaging/manylinux/python_helper.sh
           pip3 install dist/torcharrow*.whl
+
+      - name: Upload Wheels to Github
+        uses: actions/upload-artifact@v2
+        with:
+          name: torcharrow-artifact
+          path: dist/torcharrow*.whl
 
   macos-container:
     runs-on: macos-latest
@@ -89,15 +89,15 @@ jobs:
           pip install delocate
           delocate-wheel dist/*.whl -w fixed_dist
 
-      - name: Upload Wheels to Github
-        uses: actions/upload-artifact@v2
-        with:
-          name: torcharrow-artifact
-          path: dist/torcharrow*.whl
-
       - name: Install and Test TorchArrow Wheel
         shell: bash
         env:
           PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
           pip3 install dist/torcharrow*.whl
+
+      - name: Upload Wheels to Github
+        uses: actions/upload-artifact@v2
+        with:
+          name: torcharrow-artifact
+          path: dist/torcharrow*.whl
