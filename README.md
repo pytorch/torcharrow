@@ -2,7 +2,7 @@
 
 **This is a prototype library currently under heavy development. It does not currently have stable releases, and as such will likely be modified significantly in backwards compatibility breaking ways until alpha release (targeting early 2022). If you have suggestions on the API or use cases you would like to be covered, please open a GitHub issue. We would love to hear thoughts and feedback.**
 
-TorchArrow is a [torch](https://github.com/pytorch/pytorch).Tensor-like Python DataFrame library for data preprocessing in deep learning. It supports multiple execution runtimes and [Arrow](https://github.com/apache/arrow) as a common format.
+TorchArrow is a [torch](https://github.com/pytorch/pytorch). Tensor-like Python DataFrame library for data preprocessing in deep learning. It supports multiple execution runtimes and [Arrow](https://github.com/apache/arrow) as a common format.
 
 It plans to provide:
 
@@ -30,7 +30,7 @@ Follow the instructions [in this Colab notebook](https://colab.research.google.c
 
 ### Nightly Binaries (Experimental)
 
-Experimental nightly binary on MacOS (requires macOS SDK >= 10.15) and Linux (requires glibc >= 2.17) for Python 3.7, 3.8, and 3.9 can be installed via pip wheels:
+Experimental nightly binary on macOS (requires macOS SDK >= 10.15) and Linux (requires glibc >= 2.17) for Python 3.7, 3.8, and 3.9 can be installed via pip wheels:
 ```
 pip install --pre torcharrow -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
 ```
@@ -50,9 +50,9 @@ git submodule update --init --recursive
 
 #### Install Dependencies
 
-On MacOS
+On macOS
 
-[HomeBrew](https://brew.sh/) is required to install development tools on MacOS.
+[HomeBrew](https://brew.sh/) is required to install development tools on macOS.
 
 ```bash
 # Install dependencies from Brew
