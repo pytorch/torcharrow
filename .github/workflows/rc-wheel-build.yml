@@ -3,13 +3,6 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-  # Use the following to trigger test on a dev PR
-  pull_request:
-   branches:
-     - main
-     # For PR created by ghstack
-     - gh/*/*/base
-
   workflow_call:
     secrets:
       AWS_PYTORCH_UPLOADER_ACCESS_KEY_ID:
@@ -35,7 +28,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@v2
         with:
-            ref: release/0.1.0
+            ref: "release/0.1.0"
             submodules: recursive
 
       - name: Build the wheel
@@ -70,7 +63,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@v2
         with:
-            ref: release/0.1.0
+            ref: "release/0.1.0"
             submodules: recursive
 
       - name: Build the wheel
