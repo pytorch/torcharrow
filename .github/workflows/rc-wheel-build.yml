@@ -52,6 +52,13 @@ jobs:
           name: torcharrow-artifact
           path: dist/torcharrow*.whl
 
+      - name: Install and Test TorchArrow Wheel
+        shell: bash
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          pip3 install dist/torcharrow*.whl
+
   macos-container:
     runs-on: macos-latest
     strategy:
@@ -86,3 +93,10 @@ jobs:
         with:
           name: torcharrow-artifact
           path: dist/torcharrow*.whl
+
+      - name: Install and Test TorchArrow Wheel
+        shell: bash
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          pip3 install dist/torcharrow*.whl
