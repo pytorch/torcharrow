@@ -8,7 +8,10 @@
 import unittest
 from typing import Any, List
 
-import torcharrow._torcharrow as ta
+# we need to import torcharrow._torcharrow after importing torch to avoid running into
+# the following error: https://github.com/pytorch/extension-cpp/issues/6#issuecomment-640191103
+import torcharrow.test.test_utils  # noqa
+import torcharrow._torcharrow as ta  # isort:skip
 
 
 class TestSimpleColumns(unittest.TestCase):
