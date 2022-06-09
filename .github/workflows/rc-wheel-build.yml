@@ -55,7 +55,7 @@ jobs:
           pip3 install dist/torcharrow*.whl
           pip3 install pytest
           pip3 install torch
-          pytest --no-header -v torcharrow/test
+          pytest torcharrow/test/integration
 
       - name: Upload Wheels to Github
         uses: actions/upload-artifact@v2
@@ -100,7 +100,7 @@ jobs:
           pip3 install dist/torcharrow*.whl
           pip3 install pytest
           pip3 install torch
-          pytest --no-header -v torcharrow/test
+          pytest torcharrow/test/integration
 
       - name: Upload Wheels to Github
         uses: actions/upload-artifact@v2
