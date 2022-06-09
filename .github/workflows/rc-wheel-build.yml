@@ -38,13 +38,13 @@ jobs:
             # ref: "release/0.1.0"
             submodules: recursive
 
-      - name: Install dependencies with APT
-        run: |
-          sudo apt-get update
-          # sudo apt install -y g++ cmake ccache ninja-build checkinstall git \
-          # libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
-          # libgflags-dev libevent-dev libre2-dev
-          sudo apt install -y libboost-all-dev
+      # - name: Install dependencies with APT
+      #   run: |
+      #     sudo apt-get update
+      #     # sudo apt install -y g++ cmake ccache ninja-build checkinstall git \
+      #     # libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
+      #     # libgflags-dev libevent-dev libre2-dev
+      #     sudo apt install -y libboost-all-dev
 
       - name: Build the wheel
         run: |
@@ -63,7 +63,7 @@ jobs:
           pip3 install dist/torcharrow*.whl
           pip3 install pytest
           pip3 install torch
-          pytest torcharrow/test/integration
+          pytest -v torcharrow/test/integration
 
       - name: Upload Wheels to Github
         uses: actions/upload-artifact@v2
