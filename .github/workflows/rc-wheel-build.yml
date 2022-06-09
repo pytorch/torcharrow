@@ -53,6 +53,9 @@ jobs:
         run: |
           source packaging/manylinux/python_helper.sh
           pip3 install dist/torcharrow*.whl
+          pip3 install pytest
+          pip3 install torch
+          pytest --no-header -v torcharrow/test
 
       - name: Upload Wheels to Github
         uses: actions/upload-artifact@v2
@@ -95,6 +98,9 @@ jobs:
           PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
           pip3 install dist/torcharrow*.whl
+          pip3 install pytest
+          pip3 install torch
+          pytest --no-header -v torcharrow/test
 
       - name: Upload Wheels to Github
         uses: actions/upload-artifact@v2
