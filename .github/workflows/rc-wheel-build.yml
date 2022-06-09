@@ -63,7 +63,8 @@ jobs:
           pip3 install dist/torcharrow*.whl
           pip3 install pytest
           pip3 install torch
-          pytest -v torcharrow/test/integration
+          # pytest -v torcharrow/test/integration
+          python torcharrow/test/integration/test_criteo.py
 
       - name: Upload Wheels to Github
         uses: actions/upload-artifact@v2
