@@ -12,7 +12,12 @@ from dataclasses import dataclass
 from typing import Any, List, Union
 
 import pyarrow as pa  # @manual=@/third-party:apache-arrow:apache-arrow-py
-import torcharrow._torcharrow as ta
+
+# when _torcharrow is built with torch, we need to import torcharrow._torcharrow after
+# importing torch to avoid running into the following error:
+# https://github.com/pytorch/extension-cpp/issues/6#issuecomment-640191103
+import torcharrow.test.test_utils  # noqa
+import torcharrow._torcharrow as ta  # isort:skip
 from pyarrow.cffi import ffi  # @manual=@/third-party:python-cffi:python-cffi-py
 
 
