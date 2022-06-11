@@ -54,17 +54,17 @@ jobs:
           pip install auditwheel
           auditwheel repair dist/*.whl -w fixed_dist --plat manylinux2014_x86_64
 
-      - name: Install and Test TorchArrow Wheel
-        shell: bash
-        env:
-          PYTHON_VERSION: ${{ matrix.python-version }}
-        run: |
-          source packaging/manylinux/python_helper.sh
-          pip3 install dist/torcharrow*.whl
-          pip3 install pytest
-          pip3 install torch
-          # pytest -v torcharrow/test/integration
-          python torcharrow/test/integration/test_criteo.py
+      # - name: Install and Test TorchArrow Wheel
+      #   shell: bash
+      #   env:
+      #     PYTHON_VERSION: ${{ matrix.python-version }}
+      #   run: |
+      #     source packaging/manylinux/python_helper.sh
+      #     pip3 install dist/torcharrow*.whl
+      #     pip3 install pytest
+      #     pip3 install torch
+      #     # pytest -v torcharrow/test/integration
+      #     python torcharrow/test/integration/test_criteo.py
 
       - name: Upload Wheels to Github
         uses: actions/upload-artifact@v2
