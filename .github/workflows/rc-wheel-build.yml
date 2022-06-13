@@ -10,13 +10,6 @@ on:
      # For PR created by ghstack
      - gh/*/*/base
 
-  workflow_call:
-    secrets:
-      AWS_PYTORCH_UPLOADER_ACCESS_KEY_ID:
-        required: true
-      AWS_PYTORCH_UPLOADER_SECRET_ACCESS_KEY:
-        required: true
-
 jobs:
   linux-container:
     runs-on: ubuntu-latest
