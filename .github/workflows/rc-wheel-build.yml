@@ -21,7 +21,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@v2
         with:
-            # ref: "release/0.1.0"
+            ref: "release/0.1.0"
             submodules: recursive
 
       - name: Build the wheel
@@ -67,7 +67,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@v2
         with:
-            # ref: "release/0.1.0"
+            ref: "release/0.1.0"
             submodules: recursive
 
       - name: Build the wheel
