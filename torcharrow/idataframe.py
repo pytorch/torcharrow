@@ -230,6 +230,16 @@ class DataFrame(Column):
         percentiles - array-like, default None
             Defines which percentiles to calculate.  If None, uses [25,50,75].
 
+        include - array-like of dtypes or None (default), optional
+            A white list of data types to include in the result. Here are the options:
+                * A list-like of dtypes : Limits the results to the provided data types.
+                * None (default) : The result will include all numeric columns.
+
+        exclude - array-like of dtypes or None (default), optional
+            An exclusion list of data types to omit from the result. Ignored for Series. Here are the options:
+                * A list-like of dtypes : Excludes the provided data types from the result.
+                * None (default) : The result will exclude nothing.
+
         Examples
         --------
         >>> import torcharrow as ta
@@ -284,7 +294,7 @@ class DataFrame(Column):
 
     def log(self) -> DataFrame:
         """
-        Return the natural logarithm of the non-null values for each column.
+        Return a DataFrame with natural logarithm value of each element.
 
         Examples
         --------

@@ -1,0 +1,92 @@
+name: TorchArrow RC Build and Test
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  linux-container:
+    runs-on: ubuntu-latest
+    container: prestocpp/velox-sse-velox-torcharrow:kpai-20220524
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - 3.7
+          - 3.8
+          - 3.9
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v2
+        with:
+            ref: "release/0.1.0"
+            submodules: recursive
+
+      - name: Build the wheel
+        run: |
+          source /opt/conda/etc/profile.d/conda.sh
+          PYTHON_VERSION=${{ matrix.python-version }} CPU_TARGET="sse" packaging/build_wheel.sh
+          conda activate env${{ matrix.python-version }}
+          pip install auditwheel
+          auditwheel repair dist/*.whl -w fixed_dist --plat manylinux2014_x86_64
+
+      - name: Install and Test TorchArrow Wheel
+        shell: bash
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          source packaging/manylinux/python_helper.sh
+          pip3 install fixed_dist/torcharrow*.whl
+          pip3 install pytest
+          pip3 install torch
+          pytest -v torcharrow/test/integration
+
+      - name: Upload Wheels to Github
+        uses: actions/upload-artifact@v2
+        with:
+          name: torcharrow-artifact
+          path: fixed_dist/torcharrow*.whl
+
+  macos-container:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - 3.7
+          - 3.8
+          - 3.9
+    steps:
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Check out source repository
+        uses: actions/checkout@v2
+        with:
+            ref: "release/0.1.0"
+            submodules: recursive
+
+      - name: Build the wheel
+        run: |
+          MACOSX_DEPLOYMENT_TARGET=10.15 CPU_TARGET="sse" ./csrc/velox/velox/scripts/setup-macos.sh
+          pip install wheel
+          CPU_TARGET="sse" ./packaging/build_wheel.sh
+          pip install delocate
+          delocate-wheel dist/*.whl -w fixed_dist
+
+      - name: Install and Test TorchArrow Wheel
+        shell: bash
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          pip3 install fixed_dist/torcharrow*.whl
+          pip3 install pytest
+          pip3 install torch
+          pytest -v torcharrow/test/integration
+
+      - name: Upload Wheels to Github
+        uses: actions/upload-artifact@v2
+        with:
+          name: torcharrow-artifact
+          path: fixed_dist/torcharrow*.whl
