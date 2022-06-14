@@ -19,7 +19,7 @@ ROOT_DIR = Path(__file__).parent.resolve()
 
 
 def _get_version():
-    version = "0.1.0a0"
+    version = open("./version.txt").read().strip()
     sha = "Unknown"
     try:
         sha = (
