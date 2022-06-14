@@ -1225,8 +1225,24 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
 
     def __le__(self, other):
         if isinstance(other, DataFrameCpu):
+            assert len(self) == len(other)
             return self._fromdata(
-                {n: c <= other[n] for (n, c) in self._field_data.items()}
+                {
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    <= ColumnCpuMixin._from_velox(
+                        other.device,
+                        other.dtype.fields[i].dtype,
+                        other._data.child_at(i),
+                        True,
+                    )
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
             )
         else:
             return self._fromdata(
@@ -1266,7 +1282,17 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
             )
         else:
             return self._fromdata(
-                {n: c >= other for (n, c) in self._field_data.items()}
+                {
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    >= other
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
             )
 
     def __or__(self, other):

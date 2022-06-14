@@ -1,12 +1,12 @@
-# TorchArrow (Warning: Unstable Prototype)
+# TorchArrow
 
-**This is a prototype library currently under heavy development. It does not currently have stable releases, and as such will likely be modified significantly in backwards compatibility breaking ways until alpha release (targeting early 2022). If you have suggestions on the API or use cases you would like to be covered, please open a GitHub issue. We would love to hear thoughts and feedback.**
+**This library is currently in the Beta stage and does not have a stable release. The API may change based on
+user feedback or performance. We are committed to bring this library to stable release, but future changes may not be
+completely backward compatible. If you have suggestions on the API or use cases you'd like to be covered, please open a
+GitHub issue. We'd love to hear thoughts and feedback.**
 
-TorchArrow is a [torch](https://github.com/pytorch/pytorch).Tensor-like Python DataFrame library for data preprocessing in deep learning. It supports multiple execution runtimes and [Arrow](https://github.com/apache/arrow) as a common format.
+TorchArrow is a machine learning preprocessing library over batch data, providing performant and Pandas-style easy-to-use API for model development. Currently it provides a Python DataFrame that allows extensible UDFs with [Velox](https://github.com/facebookincubator/velox/), with the following features:
 
-It plans to provide:
-
-* Python Dataframe library focusing on streaming-friendly APIs for data preprocessing in deep learning
 * Seamless handoff with [PyTorch](https://github.com/pytorch/pytorch) or other model authoring, such as Tensor collation and easily plugging into PyTorch DataLoader and [DataPipes](https://github.com/pytorch/data#what-are-datapipes)
 * Zero copy for external readers via [Arrow](https://github.com/apache/arrow) in-memory columnar format
 * Multiple execution runtimes support:
@@ -24,11 +24,11 @@ conda create --name torcharrow python=3.7
 conda activate torcharrow
 ```
 
-### Colab (Experimental)
+### Colab
 
 Follow the instructions [in this Colab notebook](https://colab.research.google.com/drive/1S0ldwN7qNM37E4WZnnAEnzn1DWnAQ6Vt)
 
-### Nightly Binaries (Experimental)
+### Nightly Binaries
 
 Experimental nightly binary on MacOS (requires macOS SDK >= 10.15) and Linux (requires glibc >= 2.17) for Python 3.7, 3.8, and 3.9 can be installed via pip wheels:
 ```
@@ -90,14 +90,25 @@ python setup.py install
 
 
 ## Documentation
-This [10 minutes tutorial](https://github.com/facebookresearch/torcharrow/blob/main/tutorial/tutorial.ipynb) provides a short introduction to TorchArrow, and you can also try it in [this Colab](https://colab.research.google.com/drive/1mQ3S6dwmU-zhBe2Tdvq_VRAnjQ3paiay). More documents on advanced topics are coming soon!
+You can find the API documentation [here](https://facebookresearch.github.io/torcharrow/)
+
+This [10 minutes tutorial](https://github.com/facebookresearch/torcharrow/blob/main/tutorial/tutorial.ipynb) provides a short introduction to TorchArrow, and you can also try it in [this Colab](https://colab.research.google.com/drive/1mQ3S6dwmU-zhBe2Tdvq_VRAnjQ3paiay).
 
 ## Examples
 You can find the example about integrating a TorchRec based training loop utilizing TorchArrow's on-the-fly preprocessing
 [here](https://github.com/pytorch/torchrec/tree/main/examples/torcharrow). More examples are coming soon!
 
+## Contributing
+
+We welcome PRs! See the [CONTRIBUTING](CONTRIBUTING.md) file.
+
+## Beta Usage and Feedback
+
+We'd love to hear from and work with early adopters to shape our design. Please reach out by raising an issue if you're
+interested in using this library for your project.
+
 ## Future Plans
-We hope to sufficiently expand the library, harden APIs, and gather feedback to enable a alpha release (early 2022).
+We hope to continue to expand the library, harden API, and gather feedback to enable future releases. Stay tuned!
 
 ## License
 
