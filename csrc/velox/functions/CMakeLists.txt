@@ -13,14 +13,15 @@ set(
   rec/sigrid_hash.h
   rec/firstX.h
   rec/compute_score.h
+  rec/clamp_list.h
   register_udf.cpp
-  )
+)
 
 set(
   TORCHARROW_UDF_LINK_LIBRARIES
   velox_functions_string
   velox_functions_prestosql
-  )
+)
 set(TORCHARROW_UDF_COMPILE_DEFINITIONS)
 
 if (USE_TORCH)
@@ -28,11 +29,12 @@ if (USE_TORCH)
   list(
     APPEND
     TORCHARROW_UDF_SOURCES
+    text/add_tokens.h
+    text/bpe_tokenize.h
     text/gpt2_bpe_tokenizer.h
     text/gpt2_bpe_tokenizer.cpp
     text/regex.h
     text/regex.cpp
-    text/bpe_tokenize.h
     text/vocab.h
     text/vocab.cpp
     text/vocab_ops.h

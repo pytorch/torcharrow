@@ -27,7 +27,7 @@ set -x # Print commands that are executed.
 SCRIPTDIR=$(dirname "${BASH_SOURCE[0]}")
 source $SCRIPTDIR/../csrc/velox/velox/scripts/setup-helper-functions.sh
 
-FB_OS_VERSION=v2021.05.10.00
+FB_OS_VERSION=v2022.03.14.00
 NPROC=$(sysctl -n hw.physicalcpu)
 COMPILER_FLAGS=$(get_cxx_flags $CPU_TARGET)
 DEPENDENCY_DIR=${DEPENDENCY_DIR:-$(pwd)}
@@ -107,7 +107,7 @@ function install_build_prerequisites {
 }
 
 function install_fmt {
-  github_checkout fmtlib/fmt 7.1.3
+  github_checkout fmtlib/fmt 8.0.0
   cmake_install -DFMT_TEST=OFF
 }
 
@@ -129,13 +129,13 @@ function install_folly {
 }
 
 function install_ranges_v3 {
-  github_checkout ericniebler/range-v3 master
-  cmake_install -DRANGES_ENABLE_WERROR=OFF
+  github_checkout ericniebler/range-v3 0.12.0
+  cmake_install -DRANGES_ENABLE_WERROR=OFF -DRANGE_V3_TESTS=OFF -DRANGE_V3_EXAMPLES=OFF
 }
 
 function install_re2 {
   github_checkout google/re2 2021-04-01
-  cmake_install
+  cmake_install -DRE2_BUILD_TESTING=OFF
 }
 
 function install_velox_deps {
@@ -143,7 +143,6 @@ function install_velox_deps {
     run_and_time install_build_prerequisites
   fi
   run_and_time install_ranges_v3
-  run_and_time install_googletest
   run_and_time install_fmt
   run_and_time install_double_conversion
   run_and_time install_folly

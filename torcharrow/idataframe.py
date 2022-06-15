@@ -171,14 +171,6 @@ class DataFrame(Column):
         """The column labels of the DataFrame."""
         return [f.name for f in self.dtype.fields]
 
-    @abc.abstractmethod
-    def _set_field_data(self, name: str, col: Column, empty_df: bool):
-        """
-        PRIVATE _set field data, append if field doesn't exist
-        self._dtype is already updated upon invocation
-        """
-        raise self._not_supported("_set_field_data")
-
     def __contains__(self, key: str) -> bool:
         for f in self.dtype.fields:
             if key == f.name:
@@ -186,29 +178,9 @@ class DataFrame(Column):
         return False
 
     @trace
+    @abc.abstractmethod
     def __setitem__(self, name: str, value: Any) -> None:
-        if isinstance(value, Column):
-            assert self.device == value.device
-            col = value
-        else:
-            col = ta.column(value)
-
-        empty_df = len(self.dtype.fields) == 0
-
-        # Update dtype
-        # pyre-fixme[16]: `DType` has no attribute `get_index`.
-        idx = self.dtype.get_index(name)
-        if idx is None:
-            # append column
-            new_fields = self.dtype.fields + [dt.Field(name, col.dtype)]
-        else:
-            # override column
-            new_fields = list(self.dtype.fields)
-            new_fields[idx] = dt.Field(name, col.dtype)
-        self._dtype = dt.Struct(fields=new_fields)
-
-        # Update field data
-        self._set_field_data(name, col, empty_df)
+        raise NotImplementedError
 
     @trace
     def copy(self):
@@ -453,7 +425,7 @@ class DataFrame(Column):
     # column alnternating
     @trace
     @expression
-    def drop(self, columns: List[str]):
+    def drop(self, columns: Union[str, List[str]]):
         """
         Returns DataFrame without the removed columns.
         """
@@ -658,6 +630,9 @@ class DataFrameVar(Var, DataFrame):
 
     def __init__(self, name: str, qualname: str = ""):
         super().__init__(name, qualname)
+
+    def __setitem__(self, name: str, value: Any) -> None:
+        return self._not_supported("__setitem__")
 
     def _append_null(self):
         return self._not_supported("_append_null")

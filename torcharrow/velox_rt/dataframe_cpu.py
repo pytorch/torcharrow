@@ -308,12 +308,40 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
             return self
 
     def _check_columns(self, columns: Iterable[str]):
+        if isinstance(columns, str):
+            raise TypeError(f"columns should be Iterable of str but not str")
+
         valid_names = {f.name for f in self.dtype.fields}
         for n in columns:
             if n not in valid_names:
                 raise TypeError(f"column {n} not among existing dataframe columns")
 
     # implementing abstract methods ----------------------------------------------
+
+    @trace
+    def __setitem__(self, name: str, value: Any) -> None:
+        if isinstance(value, Column):
+            assert self.device == value.device
+            col = value
+        else:
+            col = ta.column(value)
+
+        empty_df = len(self.dtype.fields) == 0
+
+        # Update dtype
+        # pyre-fixme[16]: `DType` has no attribute `get_index`.
+        idx = self.dtype.get_index(name)
+        if idx is None:
+            # append column
+            new_fields = self.dtype.fields + [dt.Field(name, col.dtype)]
+        else:
+            # override column
+            new_fields = list(self.dtype.fields)
+            new_fields[idx] = dt.Field(name, col.dtype)
+        self._dtype = dt.Struct(fields=new_fields)
+
+        # Update field data
+        self._set_field_data(name, col, empty_df)
 
     def _set_field_data(self, name: str, col: Column, empty_df: bool):
         if not empty_df and len(col) != len(self):
@@ -1572,11 +1600,13 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
     @expression
     def drop_duplicates(
         self,
-        subset: Optional[List[str]] = None,
+        subset: Optional[Union[str, List[str]]] = None,
         keep="first",
     ):
         self._prototype_support_warning("drop_duplicates")
 
+        if isinstance(subset, str):
+            subset = [subset]
         columns = subset if subset is not None else self.columns
         self._check_columns(columns)
 
@@ -1832,7 +1862,9 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
 
     @trace
     @expression
-    def drop(self, columns: List[str]):
+    def drop(self, columns: Union[str, List[str]]):
+        if isinstance(columns, str):
+            columns = [columns]
         self._check_columns(columns)
         return self._fromdata(
             {
@@ -2080,7 +2112,7 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
     @expression
     def groupby(
         self,
-        by: List[str],
+        by: Union[str, List[str]],
         sort=False,
         drop_null=True,
     ):
@@ -2156,6 +2188,8 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
         # TODO implement
         assert not sort
         assert drop_null
+        if isinstance(by, str):
+            by = [by]
         self._check_columns(by)
 
         key_columns = by

@@ -7,6 +7,7 @@
  */
 
 #include "column.h"
+#include <boost/algorithm/string.hpp>
 #include <memory>
 #include "VariantToVector.h"
 #include "bindings.h"
@@ -435,6 +436,30 @@ std::unique_ptr<OperatorHandle> OperatorHandle::fromCall(
           std::move(callTypedExprs), &TorchArrowGlobalStatic::execContext()));
 }
 
+std::string udfSignaturesToString(
+    const std::vector<const velox::exec::FunctionSignature*>& signatures) {
+  std::stringstream out;
+  for (auto i = 0; i < signatures.size(); ++i) {
+    if (i > 0) {
+      out << ", ";
+    }
+    out << signatures[i]->toString();
+  }
+  return out.str();
+}
+
+std::string udfSignaturesToString(velox::RowTypePtr inputRowType) {
+  auto children = inputRowType->children();
+  std::stringstream out;
+  for (auto i = 0; i < children.size(); ++i) {
+    if (i > 0) {
+      out << ",";
+    }
+    out << children[i]->toString();
+  }
+  return "(" + boost::algorithm::to_lower_copy(out.str()) + ")";
+}
+
 std::unique_ptr<OperatorHandle> OperatorHandle::fromUDF(
     velox::RowTypePtr inputRowType,
     const std::string& udfName) {
@@ -445,8 +470,22 @@ std::unique_ptr<OperatorHandle> OperatorHandle::fromUDF(
 
   velox::TypePtr outputType =
       velox::resolveFunction(udfName, inputRowType->children());
+
   if (outputType == nullptr) {
-    throw std::runtime_error("Request for unknown Velox UDF: " + udfName);
+    std::string signature = udfSignaturesToString(inputRowType);
+
+    auto allSignatures = velox::getFunctionSignatures();
+    auto it = allSignatures.find(udfName);
+    if (it == allSignatures.end()) {
+      throw std::runtime_error(
+          "Request for unknown Velox UDF: " + udfName + signature);
+    } else {
+      const auto& functionSignatures = it->second;
+      throw std::runtime_error(
+          "Velox UDF signature is not supported: " + signature +
+          ". Supported signatures: " +
+          udfSignaturesToString(functionSignatures));
+    }
   }
   return OperatorHandle::fromCall(inputRowType, outputType, udfName);
 }

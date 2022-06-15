@@ -32,11 +32,21 @@ Here is another example usage of Velox array function `array\_except <https://fa
     3  [2]
     dtype: List(Int64(nullable=True), nullable=True), length: 4, null_count: 0
 
+Text Operations
+-----------------------------------
+.. autosummary::
+    :toctree: generated
+    :nosignatures:
+    :template: function.rst
+
+    add_tokens
+
 Recommendation Operations
 -----------------------------------
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: function.rst
 
     bucketize
     sigrid_hash
@@ -55,5 +65,6 @@ High-level Operations
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: function.rst
 
     scale_to_0_1
