@@ -49,7 +49,7 @@ def _dispatch(op_name: str, *args):
         dispatch_key = _device_to_dispatch_key.get(device)
 
     # dispatch to backend functional namespace
-    op = get_backend_functional(dispatch_key).__getattr__(op_name)
+    op = getattr(get_backend_functional(dispatch_key), op_name)
     return op(*args)
 
 
@@ -155,6 +155,11 @@ def array_except(x: ListColumn, y: ListColumn) -> ListColumn:
     dtype: List(Int64(nullable=True), nullable=True), length: 5, null_count: 0
     """
     return _dispatch("array_except", x, y)
+
+
+def if_else(cond: NumericalColumn, x: Column, y: Column) -> Column:
+    # TODO: rename the dispatch stub name into "if_else" in all backends
+    return _dispatch("_if", cond, x, y)
 
 
 ### operations for recommendation domain
