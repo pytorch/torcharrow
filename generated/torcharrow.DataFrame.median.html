@@ -207,7 +207,7 @@
               
               
                 <div class="version">
-                  main (0.1.0a0+4d35231 )
+                  main (0.1.0a0+e086db7 )
                 </div>
               
             
@@ -331,7 +331,20 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="torcharrow.DataFrame.median">
 <span class="sig-prename descclassname"><span class="pre">DataFrame.</span></span><span class="sig-name descname"><span class="pre">median</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#torcharrow.DataFrame.median" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return the median of the non-null values for each column.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">torcharrow</span> <span class="k">as</span> <span class="nn">ta</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">ta</span><span class="o">.</span><span class="n">dataframe</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">2.0</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="mf">3.0</span><span class="p">],</span>
+<span class="go">                        &quot;b&quot;: [5.0, 7.0, None, 9.0]</span>
+<span class="go">                        })</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="go">index    a    b</span>
+<span class="go">-------  ---  ---</span>
+<span class="go">    0    2    7</span>
+<span class="go">dtype: Struct([Field(&#39;a&#39;, Float32(nullable=True)), Field(&#39;b&#39;, Float32(nullable=True))]), count: 1, null_count: 0</span>
+</pre></div>
+</div>
+</dd></dl>
 
 </section>
 

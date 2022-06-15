@@ -207,7 +207,7 @@
               
               
                 <div class="version">
-                  main (0.1.0a0+4d35231 )
+                  main (0.1.0a0+e086db7 )
                 </div>
               
             
@@ -331,7 +331,67 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="torcharrow.DataFrame.describe">
 <span class="sig-prename descclassname"><span class="pre">DataFrame.</span></span><span class="sig-name descname"><span class="pre">describe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">percentiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torcharrow.DataFrame.describe" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Generate descriptive statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array-like</strong> (<em>percentiles -</em>) – Defines which percentiles to calculate.  If None, uses [25,50,75].</p></li>
+<li><p><strong>None</strong> (<em>default</em>) – Defines which percentiles to calculate.  If None, uses [25,50,75].</p></li>
+<li><p><strong>(</strong><strong>default</strong><strong>)</strong> (<em>exclude - array-like of dtypes</em><em> or </em><em>None</em>) – <dl class="simple">
+<dt>A white list of data types to include in the result. Here are the options:</dt><dd><ul>
+<li><p>A list-like of dtypes : Limits the results to the provided data types.</p></li>
+<li><p>None (default) : The result will include all numeric columns.</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>optional</strong> – <dl class="simple">
+<dt>A white list of data types to include in the result. Here are the options:</dt><dd><ul>
+<li><p>A list-like of dtypes : Limits the results to the provided data types.</p></li>
+<li><p>None (default) : The result will include all numeric columns.</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>(</strong><strong>default</strong><strong>)</strong> – <dl class="simple">
+<dt>An exclusion list of data types to omit from the result. Ignored for Series. Here are the options:</dt><dd><ul>
+<li><p>A list-like of dtypes : Excludes the provided data types from the result.</p></li>
+<li><p>None (default) : The result will exclude nothing.</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>optional</strong> – <dl class="simple">
+<dt>An exclusion list of data types to omit from the result. Ignored for Series. Here are the options:</dt><dd><ul>
+<li><p>A list-like of dtypes : Excludes the provided data types from the result.</p></li>
+<li><p>None (default) : The result will exclude nothing.</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">torcharrow</span> <span class="k">as</span> <span class="nn">ta</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">ta</span><span class="o">.</span><span class="n">dataframe</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+<span class="go">                      &quot;b&quot;: [6, 7, 8, 9, 10]</span>
+<span class="go">                      })</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span>
+<span class="go">index  metric          a         b</span>
+<span class="go">-------  --------  -------  --------</span>
+<span class="go">    0  count     5         5</span>
+<span class="go">    1  mean      3         8</span>
+<span class="go">    2  std       1.58114   1.58114</span>
+<span class="go">    3  min       1         6</span>
+<span class="go">    4  25%       2         7</span>
+<span class="go">    5  50%       3         8</span>
+<span class="go">    6  75%       4         9</span>
+<span class="go">    7  max       5        10</span>
+<span class="go">dtype: Struct([Field(&#39;metric&#39;, string), Field(&#39;a&#39;, float32), Field(&#39;b&#39;, float32)]), count: 8, null_count: 0</span>
+</pre></div>
+</div>
+</dd></dl>
 
 </section>
 

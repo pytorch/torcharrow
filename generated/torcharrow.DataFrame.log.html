@@ -207,7 +207,7 @@
               
               
                 <div class="version">
-                  main (0.1.0a0+4d35231 )
+                  main (0.1.0a0+e086db7 )
                 </div>
               
             
@@ -331,7 +331,23 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="torcharrow.DataFrame.log">
 <span class="sig-prename descclassname"><span class="pre">DataFrame.</span></span><span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#torcharrow.DataFrame.log" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return a DataFrame with natural logarithm value of each element.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">torcharrow</span> <span class="k">as</span> <span class="nn">ta</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">ta</span><span class="o">.</span><span class="n">dataframe</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span>
+<span class="go">                        &quot;b&quot;: [5, 6, None, 8]</span>
+<span class="go">                        })</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+<span class="go">index         a        b</span>
+<span class="go">-------  --------  -------</span>
+<span class="go">    0  0         1.60944</span>
+<span class="go">    1  0.693147  1.79176</span>
+<span class="go">    2</span>
+<span class="go">    3  1.38629   2.07944</span>
+<span class="go">dtype: Struct([Field(&#39;a&#39;, Float32(nullable=True)), Field(&#39;b&#39;, Float32(nullable=True))]), count: 4, null_count: 0</span>
+</pre></div>
+</div>
+</dd></dl>
 
 </section>
 
