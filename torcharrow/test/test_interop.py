@@ -152,6 +152,7 @@ class TestInterop(unittest.TestCase):
             {
                 "int32": [[11, 12, 13, 14], [21, 22], [31], [41, 42, 43]],
                 "int64": [[11, 12, 13, 14], [21, 22], [31], [41, 42, 43]],
+                "nullable_int64": [[11, 12, 13, 14], [21, 22], [31], [41, 42, 43]],
                 "float32": [
                     [11.5, 12.5, 13.5, 14.5],
                     [21.5, 22.5],
@@ -163,6 +164,10 @@ class TestInterop(unittest.TestCase):
                 [
                     dt.Field("int32", dt.List(dt.int32)),
                     dt.Field("int64", dt.List(dt.int64)),
+                    dt.Field(
+                        "nullable_int64",
+                        dt.List(dt.Int64(nullable=True), nullable=True),
+                    ),
                     dt.Field("float32", dt.List(dt.float32)),
                 ]
             ),
@@ -173,13 +178,14 @@ class TestInterop(unittest.TestCase):
             {
                 "int32": tap.PadSequence(padding_value=-1),
                 "int64": tap.PadSequence(padding_value=-2),
+                "nullable_int64": tap.PadSequence(padding_value=-2),
                 "float32": tap.PadSequence(padding_value=-3),
             }
         )
 
-        # named tuple with 3 fields
+        # named tuple with 4 fields
         self.assertTrue(isinstance(collated_tensors, tuple))
-        self.assertEquals(len(collated_tensors), 3)
+        self.assertEquals(len(collated_tensors), 4)
 
         self.assertEquals(collated_tensors.int32.dtype, torch.int32)
         self.assertEquals(
@@ -190,6 +196,12 @@ class TestInterop(unittest.TestCase):
         self.assertEquals(collated_tensors.int64.dtype, torch.int64)
         self.assertEquals(
             collated_tensors.int64.tolist(),
+            [[11, 12, 13, 14], [21, 22, -2, -2], [31, -2, -2, -2], [41, 42, 43, -2]],
+        )
+
+        self.assertEquals(collated_tensors.nullable_int64.dtype, torch.int64)
+        self.assertEquals(
+            collated_tensors.nullable_int64.tolist(),
             [[11, 12, 13, 14], [21, 22, -2, -2], [31, -2, -2, -2], [41, 42, 43, -2]],
         )
 

@@ -499,27 +499,27 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
     @trace
     @expression
     def __lt__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "lt")
+        return self._checked_comparison_op_call_with_df(other, "lt", "__gt__")
 
     @trace
     @expression
     def __gt__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "gt")
+        return self._checked_comparison_op_call_with_df(other, "gt", "__lt__")
 
     @trace
     @expression
     def __le__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "lte")
+        return self._checked_comparison_op_call_with_df(other, "lte", "__ge__")
 
     @trace
     @expression
     def __ge__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "gte")
+        return self._checked_comparison_op_call_with_df(other, "gte", "__le__")
 
     @trace
     @expression
     def __and__(
-        self, other: Union[NumericalColumn, DataFrameCpu, int]
+        self, other: Union[DataFrameCpu, NumericalColumn, int]
     ) -> Union[NumericalColumn, DataFrameCpu]:
         return self._checked_arithmetic_op_call_with_df(
             other, "bitwise_and", operator.__and__, "__rand__"
@@ -536,14 +536,20 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
 
     @trace
     @expression
-    def __or__(self, other: Union[NumericalColumn, int]) -> NumericalColumn:
-        return self._checked_arithmetic_op_call(other, "bitwise_or", operator.__or__)
+    def __or__(
+        self, other: Union[DataFrameCpu, NumericalColumn, int]
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        return self._checked_arithmetic_op_call_with_df(
+            other, "bitwise_or", operator.__or__, "__ror__"
+        )
 
     @trace
     @expression
-    def __ror__(self, other: Union[int]) -> NumericalColumn:
-        return self._checked_arithmetic_op_call(
-            other, "bitwise_ror", Column._swap(operator.__or__)
+    def __ror__(
+        self, other: Union[DataFrameCpu, int]
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        return self._checked_arithmetic_op_call_with_df(
+            other, "bitwise_ror", Column._swap(operator.__or__), "__or__"
         )
 
     @trace

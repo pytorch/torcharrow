@@ -6,7 +6,7 @@
 
 import array as ar
 import warnings
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Union
 
 import torcharrow as ta
 import torcharrow._torcharrow as velox
@@ -201,16 +201,31 @@ class ListColumnCpu(ColumnCpuMixin, ListColumn):
         # TODO: pad_sequence also works for nest numeric list
         # pyre-fixme[16]: `DType` has no attribute `item_dtype`.
         assert dt.is_numerical(self.dtype.item_dtype)
-        assert not self.dtype.nullable
+        assert self.null_count == 0
 
         import torch
         from torch.nn.utils.rnn import pad_sequence
 
-        packed_list: pytorch.PackedList = self._to_tensor_default()
+        packed_list: Union[
+            pytorch.WithPresence, pytorch.PackedList
+        ] = self._to_tensor_default()
+
+        if isinstance(packed_list, pytorch.WithPresence):
+            # presence tensor will be provided if dtype is nullable.
+            # However, as long as there is no null value, the collation can still be done, and we just need to discard the presence tensor
+            assert torch.all(packed_list.presence)
+            packed_list = packed_list.values
+
+        flattened_values = packed_list.values
+        if isinstance(flattened_values, pytorch.WithPresence):
+            # presence tensor will be provided if item_type is nullable.
+            # However, as long as there is no null value, the collation can still be done, and we just need to discard the presence tensor
+            assert torch.all(flattened_values.presence)
+            flattened_values = flattened_values.values
 
         # pyre-fixme[11]: Annotation `tensor` is not defined as a type.
         unpad_tensors: List[torch.tensor] = [
-            packed_list.values[packed_list.offsets[i] : packed_list.offsets[i + 1]]
+            flattened_values[packed_list.offsets[i] : packed_list.offsets[i + 1]]
             for i in range(len(self))
         ]
 
