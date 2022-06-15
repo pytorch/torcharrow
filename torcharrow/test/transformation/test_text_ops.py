@@ -114,6 +114,19 @@ class _TestTextOpsBase(unittest.TestCase):
                 ]
             ),
         )
+
+        cls.base_df_add_token = ta.dataframe(
+            {
+                "text": [["Hello", "world"], ["How", "are", "you!", "OOV"]],
+                "indices": [[1, 2], [3, 4, 5, 0]],
+            },
+            dtype=dt.Struct(
+                fields=[
+                    dt.Field("text", dt.List(dt.string)),
+                    dt.Field("indices", dt.List(dt.int64)),
+                ]
+            ),
+        )
         cls.setUpTestCaseData()
 
     @classmethod
@@ -134,6 +147,16 @@ class _TestTextOpsBase(unittest.TestCase):
         tap.available and _ta.is_built_with_torch(), "Requires PyTorch"
     )
     def test_vocab_lookup_indices(self):
+        tokens = ["<unk>", "Hello", "world", "How", "are", "you!"]
+        vocab = _ta.Vocab(tokens, 0)
+        indices = [[1, 2], [3, 4, 5, 0]]
+        out_df = functional.lookup_indices(vocab, self.df_vocab["text"])
+        self.assertEqual(indices, list(out_df))
+
+    @unittest.skipUnless(
+        tap.available and _ta.is_built_with_torch(), "Requires PyTorch"
+    )
+    def test_add_token(self):
         tokens = ["<unk>", "Hello", "world", "How", "are", "you!"]
         vocab = _ta.Vocab(tokens, 0)
         indices = [[1, 2], [3, 4, 5, 0]]
