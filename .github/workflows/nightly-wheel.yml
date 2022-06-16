@@ -1,8 +1,7 @@
 name: TorchArrow Nightly Build and Test
 on:
-  pull_request:
-    branches:
-      - main
+  schedule:
+    - cron: "0 0 * * *"
   workflow_call:
     secrets:
       AWS_PYTORCH_UPLOADER_ACCESS_KEY_ID:
