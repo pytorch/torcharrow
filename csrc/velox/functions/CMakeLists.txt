@@ -28,7 +28,7 @@ if (USE_TORCH)
   list(
     APPEND
     TORCHARROW_UDF_SOURCES
-    # text/add_token.h
+    text/add_tokens.h
     text/bpe_tokenize.h
     text/gpt2_bpe_tokenizer.h
     text/gpt2_bpe_tokenizer.cpp

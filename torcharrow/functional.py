@@ -104,6 +104,25 @@ def __getattr__(op_name: str):
     setattr(sys.modules["torcharrow.functional"], op_name, wrapper)
     return wrapper
 
+### operations in for text domain
+def add_tokens(
+    input_col: Union[ListColumn, List[Union[int, str]]],
+    tokens: Union[ListColumn, List[Union[int, str]]],
+    begin: bool,
+) -> NumericalColumn:
+    """
+    Append or prepend a token to a column. 
+    This is a common operation to add EOS and BOS tokens to text.
+
+    Parameters
+    ----------
+
+    Examples
+    --------
+
+    """
+    return _dispatch("add_tokens", input_col, tokens, begin)
+
 
 ### operations in for recommendation domain
 def bucketize(

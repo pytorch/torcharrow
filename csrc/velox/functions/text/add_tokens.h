@@ -18,15 +18,11 @@ namespace facebook::torcharrow::functions
     {
         VELOX_DEFINE_FUNCTION_TYPES(T);
 
-        // solutions
-        // vector fn: reuse
-        // use opaque:
-        // input and output are strings (we can optimize using setNoCopy)
         template <typename TInput, typename TOutput, typename TTokens>
         FOLLY_ALWAYS_INLINE void call(
             TOutput &output,
-            TInput &input,
-            TTokens &tokens,
+            const TInput &input,
+            const TTokens &tokens,
             bool begin = true)
         {
             //     if (begin)
