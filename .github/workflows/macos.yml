@@ -16,9 +16,6 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Print CPU info
-        run: sysctl -a | grep machdep.cpu
-
       - name: Setup Python environment
         uses: actions/setup-python@v2
         with:
@@ -46,7 +43,7 @@ jobs:
 
       - name: Install dependencies from Brew
         run: |
-          brew install --formula ninja cmake ccache icu4c boost gflags glog libevent
+          brew install --formula ninja flex bison cmake ccache icu4c boost gflags glog libevent
 
       # Based on https://github.com/facebookincubator/velox/blob/99429407c3d524e07b32b8b19a03aa7382f819cf/.circleci/config.yml#L114-L116
       - name: Configure ccache
