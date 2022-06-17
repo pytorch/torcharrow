@@ -208,6 +208,19 @@ class TestListColumn(unittest.TestCase):
             f"Unexpected failure reason: {str(ex.exception)}",
         )
 
+    def base_test_column_from_dataframe_list(self):
+        a = ta.dataframe({"a": [1, 2, 3, 4], "b": [5, 6, 7, 8]})
+        b = ta.column([a, a])
+        self.assertEqual(
+            list(b),
+            [[(1, 5), (2, 6), (3, 7), (4, 8)], [(1, 5), (2, 6), (3, 7), (4, 8)]],
+        )
+        self.assertEqual(
+            b.dtype,
+            dt.List(dt.Struct([dt.Field("a", dt.int64), dt.Field("b", dt.int64)])),
+        )
+        self.assertTrue(isinstance(b, ta.velox_rt.list_column_cpu.ListColumnCpu))
+
 
 if __name__ == "__main__":
     unittest.main()
