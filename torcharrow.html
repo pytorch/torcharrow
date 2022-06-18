@@ -10,7 +10,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>TorchArrow Documentation &mdash; TorchArrow main documentation</title>
+  <title>torcharrow &mdash; TorchArrow main documentation</title>
   
 
   
@@ -32,7 +32,8 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="torcharrow" href="torcharrow.html" />
+    <link rel="next" title="torcharrow.column" href="generated/torcharrow.column.html" />
+    <link rel="prev" title="TorchArrow Documentation" href="index.html" />
   <!-- Google Analytics -->
   
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-117752657-2"></script>
@@ -235,8 +236,8 @@
             
             
               <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="torcharrow.html">torcharrow</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">torcharrow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="column.html">torcharrow.Column</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dataframe.html">torcharrow.DataFrame</a></li>
 <li class="toctree-l1"><a class="reference internal" href="functional.html">torcharrow.functional</a></li>
@@ -283,7 +284,7 @@
   <ul class="pytorch-breadcrumbs">
     
       <li>
-        <a href="#">
+        <a href="index.html">
           
             Docs
           
@@ -291,13 +292,13 @@
       </li>
 
         
-      <li>TorchArrow Documentation</li>
+      <li>torcharrow</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="_sources/index.rst.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
+            <a href="_sources/torcharrow.rst.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -323,80 +324,44 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
-  <section id="torcharrow-documentation">
-<h1>TorchArrow Documentation<a class="headerlink" href="#torcharrow-documentation" title="Permalink to this heading">¶</a></h1>
-<p>This library is part of the <a class="reference external" href="http://pytorch.org/">PyTorch</a> project. PyTorch is an open source
-deep learning framework.</p>
-<p>TorchArrow is a torch.Tensor-like Python DataFrame library for data preprocessing in deep learning.
-It supports multiple execution runtimes and Arrow as a common format.</p>
-<p>Features described in this documentation are classified by release status:</p>
-<blockquote>
-<div><p><em>Stable:</em>  These features will be maintained long-term and there should generally
-be no major performance limitations or gaps in documentation.
-We also expect to maintain backwards compatibility (although
-breaking changes can happen and notice will be given one release ahead
-of time).</p>
-<p><em>Beta:</em>  Features are tagged as Beta because the API may change based on
-user feedback, because the performance needs to improve, or because
-coverage across operators is not yet complete. For Beta features, we are
-committing to seeing the feature through to the Stable classification.
-We are not, however, committing to backwards compatibility.</p>
-<p><em>Prototype:</em>  These features are typically not available as part of
-binary distributions like PyPI or Conda, except sometimes behind run-time
-flags, and are at an early stage for feedback and testing.</p>
-</div></blockquote>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="torcharrow.html">torcharrow</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="torcharrow.html#creation-and-conversion-ops">Creation and Conversion Ops</a></li>
-<li class="toctree-l2"><a class="reference internal" href="torcharrow.html#mutating-ops">Mutating Ops</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="column.html">torcharrow.Column</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="column.html#data-types">Data types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="column.html#column-class-reference">Column class reference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="column.html#numericalcolumn-class-reference">NumericalColumn class reference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="column.html#stringcolumn-class-reference">StringColumn class reference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="column.html#listcolumn-class-reference">ListColumn class reference</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="dataframe.html">torcharrow.DataFrame</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#dataframe-class-and-general-apis">DataFrame Class and General APIs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#functional-api">Functional API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#relational-api">Relational API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#data-cleaning">Data Cleaning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#conversions">Conversions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#statistics">Statistics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#arithmtic-operations">Arithmtic Operations</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="functional.html">torcharrow.functional</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="functional.html#velox-core-functions">Velox Core Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="functional.html#recommendation-operations">Recommendation Operations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="functional.html#high-level-operations">High-level Operations</a></li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">PyTorch Libraries</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/docs">PyTorch</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/audio">torchaudio</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/text">torchtext</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/vision">torchvision</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/data">torchdata</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/elastic/">TorchElastic</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/serve">TorchServe</a></li>
-<li class="toctree-l1"><a class="reference external" href="http://pytorch.org/xla/">PyTorch on XLA Devices</a></li>
-</ul>
-</div>
-<section id="indices">
-<h2>Indices<a class="headerlink" href="#indices" title="Permalink to this heading">¶</a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-</ul>
+  <section id="torcharrow">
+<h1>torcharrow<a class="headerlink" href="#torcharrow" title="Permalink to this heading">¶</a></h1>
+<p>The torcharrow package contains data structures for two-dimensional, potentially heterogeneous tabular data,
+denoted as dataframe.
+It also defines relational operations over these dataframes.
+Additionally, it provides utilities for conversion with other formats (especially zero-copy conversion with Arrow arrays),
+and other useful utilities.</p>
+<section id="creation-and-conversion-ops">
+<h2>Creation and Conversion Ops<a class="headerlink" href="#creation-and-conversion-ops" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils # Necessary for the table generated by autosummary to look decent align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.column.html#torcharrow.column" title="torcharrow.column"><code class="xref py py-obj docutils literal notranslate"><span class="pre">column</span></code></a>([data, dtype, device])</p></td>
+<td><p>Creates a TorchArrow Column.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.dataframe.html#torcharrow.dataframe" title="torcharrow.dataframe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataframe</span></code></a>([data, dtype, columns, device])</p></td>
+<td><p>Creates a TorchArrow DataFrame.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.from_arrow.html#torcharrow.from_arrow" title="torcharrow.from_arrow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_arrow</span></code></a>(data[, dtype, device])</p></td>
+<td><p>Convert arrow array/table to a TorchArrow Column/DataFrame.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.Column.to_arrow.html#torcharrow.Column.to_arrow" title="torcharrow.Column.to_arrow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Column.to_arrow</span></code></a>()</p></td>
+<td><p>Convert self to arrow array</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="mutating-ops">
+<h2>Mutating Ops<a class="headerlink" href="#mutating-ops" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils # Necessary for the table generated by autosummary to look decent align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.concat.html#torcharrow.concat" title="torcharrow.concat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concat</span></code></a>(columns)</p></td>
+<td><p>Returns concatenated columns.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.if_else.html#torcharrow.if_else" title="torcharrow.if_else"><code class="xref py py-obj docutils literal notranslate"><span class="pre">if_else</span></code></a>(cond, left, right)</p></td>
+<td><p>Return a column of elements where each of them is selected from either <cite>left</cite> column or <cite>righ</cite> column, depending on the value in the corresponding position in <cite>cond</cite> column.</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 </section>
 
@@ -408,8 +373,10 @@ flags, and are at an early stage for feedback and testing.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="torcharrow.html" class="btn btn-neutral float-right" title="torcharrow" accesskey="n" rel="next">Next <img src="_static/images/chevron-right-orange.svg" class="next-page"></a>
+        <a href="generated/torcharrow.column.html" class="btn btn-neutral float-right" title="torcharrow.column" accesskey="n" rel="next">Next <img src="_static/images/chevron-right-orange.svg" class="next-page"></a>
       
+      
+        <a href="index.html" class="btn btn-neutral" title="TorchArrow Documentation" accesskey="p" rel="prev"><img src="_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
       
     </div>
   
@@ -441,8 +408,9 @@ flags, and are at an early stage for feedback and testing.</p>
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">TorchArrow Documentation</a><ul>
-<li><a class="reference internal" href="#indices">Indices</a></li>
+<li><a class="reference internal" href="#">torcharrow</a><ul>
+<li><a class="reference internal" href="#creation-and-conversion-ops">Creation and Conversion Ops</a></li>
+<li><a class="reference internal" href="#mutating-ops">Mutating Ops</a></li>
 </ul>
 </li>
 </ul>

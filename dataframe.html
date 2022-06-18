@@ -10,7 +10,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>TorchArrow Documentation &mdash; TorchArrow main documentation</title>
+  <title>torcharrow.DataFrame &mdash; TorchArrow main documentation</title>
   
 
   
@@ -32,7 +32,8 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="torcharrow" href="torcharrow.html" />
+    <link rel="next" title="torcharrow.DataFrame.head" href="generated/torcharrow.DataFrame.head.html" />
+    <link rel="prev" title="torcharrow.ilist_column.ListMethods.vmap" href="generated/torcharrow.ilist_column.ListMethods.vmap.html" />
   <!-- Google Analytics -->
   
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-117752657-2"></script>
@@ -235,10 +236,10 @@
             
             
               <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="torcharrow.html">torcharrow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="column.html">torcharrow.Column</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dataframe.html">torcharrow.DataFrame</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">torcharrow.DataFrame</a></li>
 <li class="toctree-l1"><a class="reference internal" href="functional.html">torcharrow.functional</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">PyTorch Libraries</span></p>
@@ -283,7 +284,7 @@
   <ul class="pytorch-breadcrumbs">
     
       <li>
-        <a href="#">
+        <a href="index.html">
           
             Docs
           
@@ -291,13 +292,13 @@
       </li>
 
         
-      <li>TorchArrow Documentation</li>
+      <li>torcharrow.DataFrame</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="_sources/index.rst.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
+            <a href="_sources/dataframe.rst.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -323,80 +324,183 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
-  <section id="torcharrow-documentation">
-<h1>TorchArrow Documentation<a class="headerlink" href="#torcharrow-documentation" title="Permalink to this heading">¶</a></h1>
-<p>This library is part of the <a class="reference external" href="http://pytorch.org/">PyTorch</a> project. PyTorch is an open source
-deep learning framework.</p>
-<p>TorchArrow is a torch.Tensor-like Python DataFrame library for data preprocessing in deep learning.
-It supports multiple execution runtimes and Arrow as a common format.</p>
-<p>Features described in this documentation are classified by release status:</p>
-<blockquote>
-<div><p><em>Stable:</em>  These features will be maintained long-term and there should generally
-be no major performance limitations or gaps in documentation.
-We also expect to maintain backwards compatibility (although
-breaking changes can happen and notice will be given one release ahead
-of time).</p>
-<p><em>Beta:</em>  Features are tagged as Beta because the API may change based on
-user feedback, because the performance needs to improve, or because
-coverage across operators is not yet complete. For Beta features, we are
-committing to seeing the feature through to the Stable classification.
-We are not, however, committing to backwards compatibility.</p>
-<p><em>Prototype:</em>  These features are typically not available as part of
-binary distributions like PyPI or Conda, except sometimes behind run-time
-flags, and are at an early stage for feedback and testing.</p>
-</div></blockquote>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="torcharrow.html">torcharrow</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="torcharrow.html#creation-and-conversion-ops">Creation and Conversion Ops</a></li>
-<li class="toctree-l2"><a class="reference internal" href="torcharrow.html#mutating-ops">Mutating Ops</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="column.html">torcharrow.Column</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="column.html#data-types">Data types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="column.html#column-class-reference">Column class reference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="column.html#numericalcolumn-class-reference">NumericalColumn class reference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="column.html#stringcolumn-class-reference">StringColumn class reference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="column.html#listcolumn-class-reference">ListColumn class reference</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="dataframe.html">torcharrow.DataFrame</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#dataframe-class-and-general-apis">DataFrame Class and General APIs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#functional-api">Functional API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#relational-api">Relational API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#data-cleaning">Data Cleaning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#conversions">Conversions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#statistics">Statistics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#arithmtic-operations">Arithmtic Operations</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="functional.html">torcharrow.functional</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="functional.html#velox-core-functions">Velox Core Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="functional.html#recommendation-operations">Recommendation Operations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="functional.html#high-level-operations">High-level Operations</a></li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">PyTorch Libraries</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/docs">PyTorch</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/audio">torchaudio</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/text">torchtext</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/vision">torchvision</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/data">torchdata</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/elastic/">TorchElastic</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/serve">TorchServe</a></li>
-<li class="toctree-l1"><a class="reference external" href="http://pytorch.org/xla/">PyTorch on XLA Devices</a></li>
-</ul>
-</div>
-<section id="indices">
-<h2>Indices<a class="headerlink" href="#indices" title="Permalink to this heading">¶</a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-</ul>
+  <section id="torcharrow-dataframe">
+<h1>torcharrow.DataFrame<a class="headerlink" href="#torcharrow-dataframe" title="Permalink to this heading">¶</a></h1>
+<p><a class="reference internal" href="#torcharrow.DataFrame" title="torcharrow.DataFrame"><code class="xref py py-class docutils literal notranslate"><span class="pre">torcharrow.DataFrame</span></code></a> is a Python DataFrame library (built on the Apache Arrow columnar memory format)
+for loading, joining, aggregating, filtering, and otherwise manipulating data.
+<a class="reference internal" href="#torcharrow.DataFrame" title="torcharrow.DataFrame"><code class="xref py py-class docutils literal notranslate"><span class="pre">torcharrow.DataFrame</span></code></a> also provides a Pandas-like API that naturally fits into the Python ML ecosystem,
+and will be familiar to data scientist and ML engineers, so they can use it to express tabular data workflows
+in ML, such as feature engineering, training and inference preprocessing.</p>
+<section id="dataframe-class-and-general-apis">
+<h2>DataFrame Class and General APIs<a class="headerlink" href="#dataframe-class-and-general-apis" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="torcharrow.DataFrame">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">torcharrow.</span></span><span class="sig-name descname"><span class="pre">DataFrame</span></span><a class="headerlink" href="#torcharrow.DataFrame" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="torcharrow.DataFrame.columns">
+<span class="sig-prename descclassname"><span class="pre">DataFrame.</span></span><span class="sig-name descname"><span class="pre">columns</span></span><a class="headerlink" href="#torcharrow.DataFrame.columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>The column labels of the DataFrame.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="torcharrow.DataFrame.dtype">
+<span class="sig-prename descclassname"><span class="pre">DataFrame.</span></span><span class="sig-name descname"><span class="pre">dtype</span></span><a class="headerlink" href="#torcharrow.DataFrame.dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>the data type of a <a class="reference internal" href="column.html#torcharrow.Column" title="torcharrow.Column"><code class="xref py py-class docutils literal notranslate"><span class="pre">torcharrow.Column</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="torcharrow.DataFrame.device">
+<span class="sig-prename descclassname"><span class="pre">DataFrame.</span></span><span class="sig-name descname"><span class="pre">device</span></span><a class="headerlink" href="#torcharrow.DataFrame.device" title="Permalink to this definition">¶</a></dt>
+<dd><p>the device on which a <a class="reference internal" href="column.html#torcharrow.Column" title="torcharrow.Column"><code class="xref py py-class docutils literal notranslate"><span class="pre">torcharrow.Column</span></code></a> is or will be allocated.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="torcharrow.DataFrame.length">
+<span class="sig-prename descclassname"><span class="pre">DataFrame.</span></span><span class="sig-name descname"><span class="pre">length</span></span><a class="headerlink" href="#torcharrow.DataFrame.length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of rows including null values</p>
+</dd></dl>
+
+<table class="autosummary longtable docutils # Necessary for the table generated by autosummary to look decent align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.head.html#torcharrow.DataFrame.head" title="torcharrow.DataFrame.head"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.head</span></code></a></p></td>
+<td><p>Return the first <cite>n</cite> rows.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.tail.html#torcharrow.DataFrame.tail" title="torcharrow.DataFrame.tail"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.tail</span></code></a></p></td>
+<td><p>Return the last <cite>n</cite> rows.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.describe.html#torcharrow.DataFrame.describe" title="torcharrow.DataFrame.describe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.describe</span></code></a></p></td>
+<td><p>Generate descriptive statistics.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.drop.html#torcharrow.DataFrame.drop" title="torcharrow.DataFrame.drop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.drop</span></code></a></p></td>
+<td><p>Returns DataFrame without the removed columns.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.rename.html#torcharrow.DataFrame.rename" title="torcharrow.DataFrame.rename"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.rename</span></code></a></p></td>
+<td><p>Returns DataFrame with column names remapped.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.reorder.html#torcharrow.DataFrame.reorder" title="torcharrow.DataFrame.reorder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.reorder</span></code></a></p></td>
+<td><p>(EXPERIMENTAL API) Returns DataFrame with the columns in the prescribed order.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.append.html#torcharrow.DataFrame.append" title="torcharrow.DataFrame.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.append</span></code></a></p></td>
+<td><p>Returns column/dataframe with values appended.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.isin.html#torcharrow.DataFrame.isin" title="torcharrow.DataFrame.isin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.isin</span></code></a></p></td>
+<td><p>Check whether each element in the dataframe is contained in values.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functional-api">
+<h2>Functional API<a class="headerlink" href="#functional-api" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils # Necessary for the table generated by autosummary to look decent align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.map.html#torcharrow.DataFrame.map" title="torcharrow.DataFrame.map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.map</span></code></a></p></td>
+<td><p>Maps rows according to input correspondence.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.filter.html#torcharrow.DataFrame.filter" title="torcharrow.DataFrame.filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.filter</span></code></a></p></td>
+<td><p>Select rows where predicate is True.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.flatmap.html#torcharrow.DataFrame.flatmap" title="torcharrow.DataFrame.flatmap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.flatmap</span></code></a></p></td>
+<td><p>Maps rows to list of rows according to input correspondence dtype required if result type != item type.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.transform.html#torcharrow.DataFrame.transform" title="torcharrow.DataFrame.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.transform</span></code></a></p></td>
+<td><p>Like map() but invokes the callable on mini-batches of rows at a time.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="relational-api">
+<h2>Relational API<a class="headerlink" href="#relational-api" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils # Necessary for the table generated by autosummary to look decent align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.select.html#torcharrow.DataFrame.select" title="torcharrow.DataFrame.select"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.select</span></code></a></p></td>
+<td><p>Analogous to SQL's <cite>SELECT</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.where.html#torcharrow.DataFrame.where" title="torcharrow.DataFrame.where"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.where</span></code></a></p></td>
+<td><p>Analogous to SQL's where (NOT Pandas where)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.sort.html#torcharrow.DataFrame.sort" title="torcharrow.DataFrame.sort"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.sort</span></code></a></p></td>
+<td><p>Sort a column/a dataframe in ascending or descending order.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="data-cleaning">
+<h2>Data Cleaning<a class="headerlink" href="#data-cleaning" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils # Necessary for the table generated by autosummary to look decent align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.fill_null.html#torcharrow.DataFrame.fill_null" title="torcharrow.DataFrame.fill_null"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.fill_null</span></code></a></p></td>
+<td><p>Fill null values using the specified method.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.drop_null.html#torcharrow.DataFrame.drop_null" title="torcharrow.DataFrame.drop_null"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.drop_null</span></code></a></p></td>
+<td><p>Return a column/frame with rows removed where a row has any or all nulls.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.drop_duplicates.html#torcharrow.DataFrame.drop_duplicates" title="torcharrow.DataFrame.drop_duplicates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.drop_duplicates</span></code></a></p></td>
+<td><p>(EXPERIMENTAL API) Remove duplicate values from row/frame but keep the first, last, none</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="conversions">
+<h2>Conversions<a class="headerlink" href="#conversions" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils # Necessary for the table generated by autosummary to look decent align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.to_arrow.html#torcharrow.DataFrame.to_arrow" title="torcharrow.DataFrame.to_arrow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.to_arrow</span></code></a></p></td>
+<td><p>Convert self to arrow table</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.to_tensor.html#torcharrow.DataFrame.to_tensor" title="torcharrow.DataFrame.to_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.to_tensor</span></code></a></p></td>
+<td><p>Convert to PyTorch containers (Tensor, PackedList, PackedMap, etc)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.to_pylist.html#torcharrow.DataFrame.to_pylist" title="torcharrow.DataFrame.to_pylist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.to_pylist</span></code></a></p></td>
+<td><p>Convert to plain Python container (list of scalars or containers)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.to_pandas.html#torcharrow.DataFrame.to_pandas" title="torcharrow.DataFrame.to_pandas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.to_pandas</span></code></a></p></td>
+<td><p>Convert self to Pandas DataFrame</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="statistics">
+<h2>Statistics<a class="headerlink" href="#statistics" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils # Necessary for the table generated by autosummary to look decent align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.min.html#torcharrow.DataFrame.min" title="torcharrow.DataFrame.min"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.min</span></code></a></p></td>
+<td><p>Return the minimum of the non-null values for each column.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.max.html#torcharrow.DataFrame.max" title="torcharrow.DataFrame.max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.max</span></code></a></p></td>
+<td><p>Return the maximal of the non-null values for each column.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.sum.html#torcharrow.DataFrame.sum" title="torcharrow.DataFrame.sum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.sum</span></code></a></p></td>
+<td><p>Return the sum of the non-null values for each column.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.mean.html#torcharrow.DataFrame.mean" title="torcharrow.DataFrame.mean"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.mean</span></code></a></p></td>
+<td><p>Return the mean of the non-null values for each column.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.std.html#torcharrow.DataFrame.std" title="torcharrow.DataFrame.std"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.std</span></code></a></p></td>
+<td><p>Return the standard deviation of the non-null values for each column.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.median.html#torcharrow.DataFrame.median" title="torcharrow.DataFrame.median"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.median</span></code></a></p></td>
+<td><p>Return the median of the non-null values for each column.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.all.html#torcharrow.DataFrame.all" title="torcharrow.DataFrame.all"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.all</span></code></a></p></td>
+<td><p>Return whether all non-null elements are True</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.any.html#torcharrow.DataFrame.any" title="torcharrow.DataFrame.any"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.any</span></code></a></p></td>
+<td><p>Return whether any non-null element is True</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="arithmtic-operations">
+<h2>Arithmtic Operations<a class="headerlink" href="#arithmtic-operations" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils # Necessary for the table generated by autosummary to look decent align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.DataFrame.log.html#torcharrow.DataFrame.log" title="torcharrow.DataFrame.log"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataFrame.log</span></code></a></p></td>
+<td><p>Return a DataFrame with natural logarithm value of each element.</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 </section>
 
@@ -408,8 +512,10 @@ flags, and are at an early stage for feedback and testing.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="torcharrow.html" class="btn btn-neutral float-right" title="torcharrow" accesskey="n" rel="next">Next <img src="_static/images/chevron-right-orange.svg" class="next-page"></a>
+        <a href="generated/torcharrow.DataFrame.head.html" class="btn btn-neutral float-right" title="torcharrow.DataFrame.head" accesskey="n" rel="next">Next <img src="_static/images/chevron-right-orange.svg" class="next-page"></a>
       
+      
+        <a href="generated/torcharrow.ilist_column.ListMethods.vmap.html" class="btn btn-neutral" title="torcharrow.ilist_column.ListMethods.vmap" accesskey="p" rel="prev"><img src="_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
       
     </div>
   
@@ -441,8 +547,14 @@ flags, and are at an early stage for feedback and testing.</p>
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">TorchArrow Documentation</a><ul>
-<li><a class="reference internal" href="#indices">Indices</a></li>
+<li><a class="reference internal" href="#">torcharrow.DataFrame</a><ul>
+<li><a class="reference internal" href="#dataframe-class-and-general-apis">DataFrame Class and General APIs</a></li>
+<li><a class="reference internal" href="#functional-api">Functional API</a></li>
+<li><a class="reference internal" href="#relational-api">Relational API</a></li>
+<li><a class="reference internal" href="#data-cleaning">Data Cleaning</a></li>
+<li><a class="reference internal" href="#conversions">Conversions</a></li>
+<li><a class="reference internal" href="#statistics">Statistics</a></li>
+<li><a class="reference internal" href="#arithmtic-operations">Arithmtic Operations</a></li>
 </ul>
 </li>
 </ul>

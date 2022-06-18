@@ -10,7 +10,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>TorchArrow Documentation &mdash; TorchArrow main documentation</title>
+  <title>torcharrow.functional &mdash; TorchArrow main documentation</title>
   
 
   
@@ -32,7 +32,8 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="torcharrow" href="torcharrow.html" />
+    <link rel="next" title="torcharrow.functional.bucketize" href="generated/torcharrow.functional.bucketize.html" />
+    <link rel="prev" title="torcharrow.DataFrame.log" href="generated/torcharrow.DataFrame.log.html" />
   <!-- Google Analytics -->
   
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-117752657-2"></script>
@@ -235,11 +236,11 @@
             
             
               <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="torcharrow.html">torcharrow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="column.html">torcharrow.Column</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dataframe.html">torcharrow.DataFrame</a></li>
-<li class="toctree-l1"><a class="reference internal" href="functional.html">torcharrow.functional</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">torcharrow.functional</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">PyTorch Libraries</span></p>
 <ul>
@@ -283,7 +284,7 @@
   <ul class="pytorch-breadcrumbs">
     
       <li>
-        <a href="#">
+        <a href="index.html">
           
             Docs
           
@@ -291,13 +292,13 @@
       </li>
 
         
-      <li>TorchArrow Documentation</li>
+      <li>torcharrow.functional</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="_sources/index.rst.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
+            <a href="_sources/functional.rst.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -323,80 +324,86 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
-  <section id="torcharrow-documentation">
-<h1>TorchArrow Documentation<a class="headerlink" href="#torcharrow-documentation" title="Permalink to this heading">¶</a></h1>
-<p>This library is part of the <a class="reference external" href="http://pytorch.org/">PyTorch</a> project. PyTorch is an open source
-deep learning framework.</p>
-<p>TorchArrow is a torch.Tensor-like Python DataFrame library for data preprocessing in deep learning.
-It supports multiple execution runtimes and Arrow as a common format.</p>
-<p>Features described in this documentation are classified by release status:</p>
-<blockquote>
-<div><p><em>Stable:</em>  These features will be maintained long-term and there should generally
-be no major performance limitations or gaps in documentation.
-We also expect to maintain backwards compatibility (although
-breaking changes can happen and notice will be given one release ahead
-of time).</p>
-<p><em>Beta:</em>  Features are tagged as Beta because the API may change based on
-user feedback, because the performance needs to improve, or because
-coverage across operators is not yet complete. For Beta features, we are
-committing to seeing the feature through to the Stable classification.
-We are not, however, committing to backwards compatibility.</p>
-<p><em>Prototype:</em>  These features are typically not available as part of
-binary distributions like PyPI or Conda, except sometimes behind run-time
-flags, and are at an early stage for feedback and testing.</p>
-</div></blockquote>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="torcharrow.html">torcharrow</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="torcharrow.html#creation-and-conversion-ops">Creation and Conversion Ops</a></li>
-<li class="toctree-l2"><a class="reference internal" href="torcharrow.html#mutating-ops">Mutating Ops</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="column.html">torcharrow.Column</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="column.html#data-types">Data types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="column.html#column-class-reference">Column class reference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="column.html#numericalcolumn-class-reference">NumericalColumn class reference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="column.html#stringcolumn-class-reference">StringColumn class reference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="column.html#listcolumn-class-reference">ListColumn class reference</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="dataframe.html">torcharrow.DataFrame</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#dataframe-class-and-general-apis">DataFrame Class and General APIs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#functional-api">Functional API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#relational-api">Relational API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#data-cleaning">Data Cleaning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#conversions">Conversions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#statistics">Statistics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dataframe.html#arithmtic-operations">Arithmtic Operations</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="functional.html">torcharrow.functional</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="functional.html#velox-core-functions">Velox Core Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="functional.html#recommendation-operations">Recommendation Operations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="functional.html#high-level-operations">High-level Operations</a></li>
-</ul>
-</li>
-</ul>
+  <section id="torcharrow-functional">
+<h1>torcharrow.functional<a class="headerlink" href="#torcharrow-functional" title="Permalink to this heading">¶</a></h1>
+<section id="velox-core-functions">
+<h2>Velox Core Functions<a class="headerlink" href="#velox-core-functions" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference external" href="https://facebookincubator.github.io/velox/functions.html">Velox core functions</a>
+are included in <cite>torcharrow.functional</cite>.</p>
+<p>Here is an example usage of Velox string function <a class="reference external" href="https://facebookincubator.github.io/velox/functions/string.html#lpad">lpad</a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">torcharrow</span> <span class="k">as</span> <span class="nn">ta</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">torcharrow</span> <span class="kn">import</span> <span class="n">functional</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">col</span> <span class="o">=</span> <span class="n">ta</span><span class="o">.</span><span class="n">column</span><span class="p">([</span><span class="s2">&quot;abc&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;yz&quot;</span><span class="p">])</span>
+<span class="go"># Velox&#39;s lpad function: https://facebookincubator.github.io/velox/functions/string.html#lpad</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">functional</span><span class="o">.</span><span class="n">lpad</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;123&quot;</span><span class="p">)</span>
+<span class="go">0  &#39;12abc&#39;</span>
+<span class="go">1  &#39;1231x&#39;</span>
+<span class="go">2  &#39;123yz&#39;</span>
+<span class="go">dtype: String(nullable=True), length: 3, null_count: 0, device: cpu</span>
+</pre></div>
 </div>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">PyTorch Libraries</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/docs">PyTorch</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/audio">torchaudio</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/text">torchtext</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/vision">torchvision</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/data">torchdata</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/elastic/">TorchElastic</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://pytorch.org/serve">TorchServe</a></li>
-<li class="toctree-l1"><a class="reference external" href="http://pytorch.org/xla/">PyTorch on XLA Devices</a></li>
-</ul>
+<p>Here is another example usage of Velox array function <a class="reference external" href="https://facebookincubator.github.io/velox/functions/array.html#array_except">array_except</a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">col1</span> <span class="o">=</span> <span class="n">ta</span><span class="o">.</span><span class="n">column</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">col2</span> <span class="o">=</span> <span class="n">ta</span><span class="o">.</span><span class="n">column</span><span class="p">([[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]])</span>
+<span class="go"># Velox&#39;s array_except function: https://facebookincubator.github.io/velox/functions/array.html#array_except</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">functional</span><span class="o">.</span><span class="n">array_except</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="n">col2</span><span class="p">)</span>
+<span class="go">0  [1, 2, 3]</span>
+<span class="go">1  [3]</span>
+<span class="go">2  []</span>
+<span class="go">3  [2]</span>
+<span class="go">dtype: List(Int64(nullable=True), nullable=True), length: 4, null_count: 0</span>
+</pre></div>
 </div>
-<section id="indices">
-<h2>Indices<a class="headerlink" href="#indices" title="Permalink to this heading">¶</a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-</ul>
+</section>
+<section id="recommendation-operations">
+<h2>Recommendation Operations<a class="headerlink" href="#recommendation-operations" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils # Necessary for the table generated by autosummary to look decent align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.functional.bucketize.html#torcharrow.functional.bucketize" title="torcharrow.functional.bucketize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bucketize</span></code></a></p></td>
+<td><p>Apply bucketization for input feature.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.functional.sigrid_hash.html#torcharrow.functional.sigrid_hash" title="torcharrow.functional.sigrid_hash"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sigrid_hash</span></code></a></p></td>
+<td><p>Apply hashing to an index, or a list of indicies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.functional.firstx.html#torcharrow.functional.firstx" title="torcharrow.functional.firstx"><code class="xref py py-obj docutils literal notranslate"><span class="pre">firstx</span></code></a></p></td>
+<td><p>Returns the first x values of the head of the input column</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.functional.has_id_overlap.html#torcharrow.functional.has_id_overlap" title="torcharrow.functional.has_id_overlap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_id_overlap</span></code></a></p></td>
+<td><p>Returns 1.0 if the two input columns overlap, otherwise 0.0</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.functional.id_overlap_count.html#torcharrow.functional.id_overlap_count" title="torcharrow.functional.id_overlap_count"><code class="xref py py-obj docutils literal notranslate"><span class="pre">id_overlap_count</span></code></a></p></td>
+<td><p>Returns the number of overlaps between two lists of ids</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.functional.get_max_count.html#torcharrow.functional.get_max_count" title="torcharrow.functional.get_max_count"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_max_count</span></code></a></p></td>
+<td><p>If there are items that overlap between input_ids and matching_ids contribute the maximum number of instances of overlapped ids to the max count.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.functional.get_jaccard_similarity.html#torcharrow.functional.get_jaccard_similarity" title="torcharrow.functional.get_jaccard_similarity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_jaccard_similarity</span></code></a></p></td>
+<td><p>Return the jaccard_similarity between input_ids and matching_ids.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.functional.get_cosine_similarity.html#torcharrow.functional.get_cosine_similarity" title="torcharrow.functional.get_cosine_similarity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cosine_similarity</span></code></a></p></td>
+<td><p>Return the cosine between the vector defined by input_ids weighted by input_id_scores and the vector defined by matching_ids weighted by matching_id_scores</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.functional.get_score_sum.html#torcharrow.functional.get_score_sum" title="torcharrow.functional.get_score_sum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_score_sum</span></code></a></p></td>
+<td><p>Return the sum of all the scores in matching_id_scores that has a corresponding id in matching_ids that is also in input_ids.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/torcharrow.functional.get_score_min.html#torcharrow.functional.get_score_min" title="torcharrow.functional.get_score_min"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_score_min</span></code></a></p></td>
+<td><p>Return the min among of all the scores in matching_id_scores that has a corresponding id in matching_ids that is also in input_ids.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.functional.get_score_max.html#torcharrow.functional.get_score_max" title="torcharrow.functional.get_score_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_score_max</span></code></a></p></td>
+<td><p>Return the min among of all the scores in matching_id_scores that has a corresponding id in matching_ids that is also in input_ids.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="high-level-operations">
+<h2>High-level Operations<a class="headerlink" href="#high-level-operations" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils # Necessary for the table generated by autosummary to look decent align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/torcharrow.functional.scale_to_0_1.html#torcharrow.functional.scale_to_0_1" title="torcharrow.functional.scale_to_0_1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scale_to_0_1</span></code></a></p></td>
+<td><p>Return the column data scaled to range [0,1].</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 </section>
 
@@ -408,8 +415,10 @@ flags, and are at an early stage for feedback and testing.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="torcharrow.html" class="btn btn-neutral float-right" title="torcharrow" accesskey="n" rel="next">Next <img src="_static/images/chevron-right-orange.svg" class="next-page"></a>
+        <a href="generated/torcharrow.functional.bucketize.html" class="btn btn-neutral float-right" title="torcharrow.functional.bucketize" accesskey="n" rel="next">Next <img src="_static/images/chevron-right-orange.svg" class="next-page"></a>
       
+      
+        <a href="generated/torcharrow.DataFrame.log.html" class="btn btn-neutral" title="torcharrow.DataFrame.log" accesskey="p" rel="prev"><img src="_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
       
     </div>
   
@@ -441,8 +450,10 @@ flags, and are at an early stage for feedback and testing.</p>
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">TorchArrow Documentation</a><ul>
-<li><a class="reference internal" href="#indices">Indices</a></li>
+<li><a class="reference internal" href="#">torcharrow.functional</a><ul>
+<li><a class="reference internal" href="#velox-core-functions">Velox Core Functions</a></li>
+<li><a class="reference internal" href="#recommendation-operations">Recommendation Operations</a></li>
+<li><a class="reference internal" href="#high-level-operations">High-level Operations</a></li>
 </ul>
 </li>
 </ul>
