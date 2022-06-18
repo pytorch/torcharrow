@@ -40,6 +40,7 @@ Column class reference
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: class.rst
 
     Column.head
     Column.tail
@@ -73,6 +74,7 @@ NumericalColumn class reference
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: class.rst
 
     NumericalColumn.abs
     NumericalColumn.ceil
@@ -96,6 +98,7 @@ StringColumn class reference
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: class.rst
 
     istring_column.StringMethods.length
     istring_column.StringMethods.slice
@@ -131,6 +134,7 @@ ListColumn class reference
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: class.rst
 
     ilist_column.ListMethods.length
     ilist_column.ListMethods.slice

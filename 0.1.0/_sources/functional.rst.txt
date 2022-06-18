@@ -37,6 +37,7 @@ Recommendation Operations
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: function.rst
 
     bucketize
     sigrid_hash
@@ -55,5 +56,6 @@ High-level Operations
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: function.rst
 
     scale_to_0_1
