@@ -1,0 +1,6 @@
+﻿torcharrow.ilist\_column.ListMethods.length
+===========================================
+
+.. currentmodule:: torcharrow.ilist_column
+
+.. automethod:: ListMethods.length

@@ -1,0 +1,6 @@
+﻿torcharrow.DataFrame.median
+===========================
+
+.. currentmodule:: torcharrow
+
+.. automethod:: DataFrame.median

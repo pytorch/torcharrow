@@ -1,0 +1,6 @@
+﻿torcharrow.NumericalColumn.mean
+===============================
+
+.. currentmodule:: torcharrow
+
+.. automethod:: NumericalColumn.mean

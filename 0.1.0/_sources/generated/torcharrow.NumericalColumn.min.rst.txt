@@ -1,0 +1,6 @@
+﻿torcharrow.NumericalColumn.min
+==============================
+
+.. currentmodule:: torcharrow
+
+.. automethod:: NumericalColumn.min

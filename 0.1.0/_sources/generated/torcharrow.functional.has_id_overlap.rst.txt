@@ -1,0 +1,6 @@
+﻿torcharrow.functional.has\_id\_overlap
+======================================
+
+.. currentmodule:: torcharrow.functional
+
+.. autofunction:: has_id_overlap
