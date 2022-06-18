@@ -1,6 +1,0 @@
-﻿torcharrow.Column.flatmap
-=========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: Column.flatmap

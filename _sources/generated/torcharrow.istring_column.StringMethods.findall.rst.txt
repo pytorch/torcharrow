@@ -1,6 +1,0 @@
-﻿torcharrow.istring\_column.StringMethods.findall
-================================================
-
-.. currentmodule:: torcharrow.istring_column
-
-.. automethod:: StringMethods.findall

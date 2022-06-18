@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.all
-========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.all

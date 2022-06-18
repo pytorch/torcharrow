@@ -1,6 +1,0 @@
-﻿torcharrow.istring\_column.StringMethods.lower
-==============================================
-
-.. currentmodule:: torcharrow.istring_column
-
-.. automethod:: StringMethods.lower

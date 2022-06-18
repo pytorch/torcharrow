@@ -1,6 +1,0 @@
-﻿torcharrow.functional.get\_max\_count
-=====================================
-
-.. currentmodule:: torcharrow.functional
-
-.. autofunction:: get_max_count

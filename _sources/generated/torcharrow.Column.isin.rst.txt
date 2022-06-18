@@ -1,6 +1,0 @@
-﻿torcharrow.Column.isin
-======================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: Column.isin

@@ -1,6 +1,0 @@
-﻿torcharrow.concat
-=================
-
-.. currentmodule:: torcharrow
-
-.. autofunction:: concat

@@ -1,6 +1,0 @@
-﻿torcharrow.functional.get\_cosine\_similarity
-=============================================
-
-.. currentmodule:: torcharrow.functional
-
-.. autofunction:: get_cosine_similarity

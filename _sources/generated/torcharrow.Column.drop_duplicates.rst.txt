@@ -1,6 +1,0 @@
-﻿torcharrow.Column.drop\_duplicates
-==================================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: Column.drop_duplicates

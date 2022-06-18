@@ -1,6 +1,0 @@
-﻿torcharrow.if\_else
-===================
-
-.. currentmodule:: torcharrow
-
-.. autofunction:: if_else

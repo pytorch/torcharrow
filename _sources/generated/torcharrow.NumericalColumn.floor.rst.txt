@@ -1,6 +1,0 @@
-﻿torcharrow.NumericalColumn.floor
-================================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: NumericalColumn.floor

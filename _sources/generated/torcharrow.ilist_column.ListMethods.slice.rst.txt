@@ -1,6 +1,0 @@
-﻿torcharrow.ilist\_column.ListMethods.slice
-==========================================
-
-.. currentmodule:: torcharrow.ilist_column
-
-.. automethod:: ListMethods.slice

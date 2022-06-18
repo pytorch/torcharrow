@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.rename
-===========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.rename

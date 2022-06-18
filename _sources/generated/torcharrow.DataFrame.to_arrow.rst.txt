@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.to\_arrow
-==============================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.to_arrow

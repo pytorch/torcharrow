@@ -1,6 +1,0 @@
-﻿torcharrow.functional.bucketize
-===============================
-
-.. currentmodule:: torcharrow.functional
-
-.. autofunction:: bucketize

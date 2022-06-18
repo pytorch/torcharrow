@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.where
-==========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.where

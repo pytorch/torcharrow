@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.min
-========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.min

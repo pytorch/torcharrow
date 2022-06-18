@@ -1,6 +1,0 @@
-﻿torcharrow.Column.drop\_null
-============================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: Column.drop_null

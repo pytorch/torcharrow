@@ -1,6 +1,0 @@
-﻿torcharrow.NumericalColumn.round
-================================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: NumericalColumn.round

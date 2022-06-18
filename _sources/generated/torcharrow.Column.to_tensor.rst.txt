@@ -1,6 +1,0 @@
-﻿torcharrow.Column.to\_tensor
-============================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: Column.to_tensor

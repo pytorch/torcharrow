@@ -1,6 +1,0 @@
-﻿torcharrow.Column.map
-=====================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: Column.map

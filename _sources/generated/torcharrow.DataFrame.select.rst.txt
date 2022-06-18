@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.select
-===========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.select

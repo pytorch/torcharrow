@@ -1,6 +1,0 @@
-﻿torcharrow.NumericalColumn.std
-==============================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: NumericalColumn.std

@@ -1,6 +1,0 @@
-﻿torcharrow.Column.tail
-======================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: Column.tail

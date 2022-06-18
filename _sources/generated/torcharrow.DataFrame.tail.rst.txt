@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.tail
-=========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.tail

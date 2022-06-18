@@ -1,6 +1,0 @@
-﻿torcharrow.NumericalColumn.describe
-===================================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: NumericalColumn.describe

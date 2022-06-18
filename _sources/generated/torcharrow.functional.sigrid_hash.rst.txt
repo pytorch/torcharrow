@@ -1,6 +1,0 @@
-﻿torcharrow.functional.sigrid\_hash
-==================================
-
-.. currentmodule:: torcharrow.functional
-
-.. autofunction:: sigrid_hash

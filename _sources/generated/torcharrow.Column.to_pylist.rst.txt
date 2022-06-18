@@ -1,6 +1,0 @@
-﻿torcharrow.Column.to\_pylist
-============================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: Column.to_pylist

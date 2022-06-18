@@ -1,6 +1,0 @@
-﻿torcharrow.Column.cast
-======================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: Column.cast

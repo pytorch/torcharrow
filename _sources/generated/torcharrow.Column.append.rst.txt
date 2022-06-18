@@ -1,6 +1,0 @@
-﻿torcharrow.Column.append
-========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: Column.append

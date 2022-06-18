@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.drop\_duplicates
-=====================================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.drop_duplicates
