@@ -52,7 +52,8 @@ setup_wheel_python() {
 
 }
 
-setup_build_version 0.0.4
+version=$(cat "version.txt")
+setup_build_version "$version"
 setup_wheel_python
 python setup.py clean
 if [[ "$(uname)" == Darwin ]]; then
@@ -64,4 +65,3 @@ else
   echo "Unsupported"
   exit 1
 fi
-
