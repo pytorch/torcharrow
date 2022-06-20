@@ -1,6 +1,0 @@
-﻿torcharrow.NumericalColumn.log
-==============================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: NumericalColumn.log

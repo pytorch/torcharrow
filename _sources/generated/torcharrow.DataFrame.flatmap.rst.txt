@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.flatmap
-============================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.flatmap

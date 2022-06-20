@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.fill\_null
-===============================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.fill_null

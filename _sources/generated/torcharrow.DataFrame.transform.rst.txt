@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.transform
-==============================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.transform

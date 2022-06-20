@@ -1,6 +1,0 @@
-﻿torcharrow.column
-=================
-
-.. currentmodule:: torcharrow
-
-.. autofunction:: column

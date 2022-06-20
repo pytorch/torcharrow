@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.to\_tensor
-===============================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.to_tensor

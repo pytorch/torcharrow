@@ -1,6 +1,0 @@
-﻿torcharrow.functional.get\_score\_min
-=====================================
-
-.. currentmodule:: torcharrow.functional
-
-.. autofunction:: get_score_min

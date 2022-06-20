@@ -1,6 +1,0 @@
-﻿torcharrow.functional.get\_jaccard\_similarity
-==============================================
-
-.. currentmodule:: torcharrow.functional
-
-.. autofunction:: get_jaccard_similarity

@@ -1,6 +1,0 @@
-﻿torcharrow.NumericalColumn.max
-==============================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: NumericalColumn.max

@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.head
-=========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.head

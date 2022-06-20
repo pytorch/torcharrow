@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.filter
-===========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.filter

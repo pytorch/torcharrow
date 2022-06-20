@@ -1,6 +1,0 @@
-﻿torcharrow.Column.to\_arrow
-===========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: Column.to_arrow

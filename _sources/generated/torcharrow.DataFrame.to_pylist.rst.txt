@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.to\_pylist
-===============================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.to_pylist

@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.std
-========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.std

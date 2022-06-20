@@ -1,6 +1,0 @@
-﻿torcharrow.functional.scale\_to\_0\_1
-=====================================
-
-.. currentmodule:: torcharrow.functional
-
-.. autofunction:: scale_to_0_1

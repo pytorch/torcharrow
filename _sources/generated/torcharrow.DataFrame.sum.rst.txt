@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.sum
-========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.sum

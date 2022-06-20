@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.mean
-=========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.mean

@@ -1,6 +1,0 @@
-﻿torcharrow.NumericalColumn.sum
-==============================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: NumericalColumn.sum

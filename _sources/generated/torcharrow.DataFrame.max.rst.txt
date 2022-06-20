@@ -1,6 +1,0 @@
-﻿torcharrow.DataFrame.max
-========================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: DataFrame.max

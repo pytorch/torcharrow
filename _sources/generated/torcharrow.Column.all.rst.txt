@@ -1,6 +1,0 @@
-﻿torcharrow.Column.all
-=====================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: Column.all

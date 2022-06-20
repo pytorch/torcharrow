@@ -1,6 +1,0 @@
-﻿torcharrow.from\_arrow
-======================
-
-.. currentmodule:: torcharrow
-
-.. autofunction:: from_arrow

@@ -1,6 +1,0 @@
-﻿torcharrow.NumericalColumn.median
-=================================
-
-.. currentmodule:: torcharrow
-
-.. automethod:: NumericalColumn.median

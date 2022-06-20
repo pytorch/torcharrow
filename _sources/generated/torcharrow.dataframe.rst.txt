@@ -1,6 +1,0 @@
-﻿torcharrow.dataframe
-====================
-
-.. currentmodule:: torcharrow
-
-.. autofunction:: dataframe
