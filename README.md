@@ -30,7 +30,7 @@ Follow the instructions [in this Colab notebook](https://colab.research.google.c
 
 ### Nightly Binaries
 
-Experimental nightly binary on MacOS (requires macOS SDK >= 10.15) and Linux (requires glibc >= 2.17) for Python 3.7, 3.8, and 3.9 can be installed via pip wheels:
+Experimental nightly binary on macOS (requires macOS SDK >= 10.15) and Linux (requires glibc >= 2.17) for Python 3.7, 3.8, and 3.9 can be installed via pip wheels:
 ```
 pip install --pre torcharrow -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
 ```
@@ -50,9 +50,9 @@ git submodule update --init --recursive
 
 #### Install Dependencies
 
-On MacOS
+On macOS
 
-[HomeBrew](https://brew.sh/) is required to install development tools on MacOS.
+[HomeBrew](https://brew.sh/) is required to install development tools on macOS.
 
 ```bash
 # Install dependencies from Brew
