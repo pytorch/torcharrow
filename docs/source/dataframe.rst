@@ -25,6 +25,7 @@ DataFrame Class and General APIs
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: class.rst
 
     DataFrame.head
     DataFrame.tail
@@ -42,6 +43,7 @@ Functional API
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: function.rst
 
     DataFrame.map
     DataFrame.filter
@@ -54,6 +56,7 @@ Relational API
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: function.rst
 
     DataFrame.select
     DataFrame.where
@@ -64,6 +67,7 @@ Data Cleaning
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: function.rst
 
     DataFrame.fill_null
     DataFrame.drop_null
@@ -74,6 +78,7 @@ Conversions
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: function.rst
 
     DataFrame.to_arrow
     DataFrame.to_tensor
@@ -85,6 +90,7 @@ Statistics
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: function.rst
 
     DataFrame.min
     DataFrame.max
@@ -100,5 +106,6 @@ Arithmtic Operations
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: function.rst
 
     DataFrame.log
