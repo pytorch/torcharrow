@@ -1,0 +1,6 @@
+﻿torcharrow.DataFrame.sort
+=========================
+
+.. currentmodule:: torcharrow
+
+.. automethod:: DataFrame.sort

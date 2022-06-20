@@ -1,0 +1,6 @@
+﻿torcharrow.NumericalColumn.abs
+==============================
+
+.. currentmodule:: torcharrow
+
+.. automethod:: NumericalColumn.abs

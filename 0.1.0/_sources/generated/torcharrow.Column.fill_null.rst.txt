@@ -1,0 +1,6 @@
+﻿torcharrow.Column.fill\_null
+============================
+
+.. currentmodule:: torcharrow
+
+.. automethod:: Column.fill_null

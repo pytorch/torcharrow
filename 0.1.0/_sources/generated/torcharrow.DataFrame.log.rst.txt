@@ -1,0 +1,6 @@
+﻿torcharrow.DataFrame.log
+========================
+
+.. currentmodule:: torcharrow
+
+.. automethod:: DataFrame.log
