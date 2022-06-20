@@ -1,0 +1,6 @@
+﻿torcharrow.DataFrame.map
+========================
+
+.. currentmodule:: torcharrow
+
+.. automethod:: DataFrame.map

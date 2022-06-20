@@ -1,0 +1,6 @@
+﻿torcharrow.functional.firstx
+============================
+
+.. currentmodule:: torcharrow.functional
+
+.. autofunction:: firstx

@@ -1,0 +1,6 @@
+﻿torcharrow.functional.get\_score\_max
+=====================================
+
+.. currentmodule:: torcharrow.functional
+
+.. autofunction:: get_score_max

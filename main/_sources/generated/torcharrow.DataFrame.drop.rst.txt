@@ -1,0 +1,6 @@
+﻿torcharrow.DataFrame.drop
+=========================
+
+.. currentmodule:: torcharrow
+
+.. automethod:: DataFrame.drop

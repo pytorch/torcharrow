@@ -1,0 +1,6 @@
+﻿torcharrow.DataFrame.reorder
+============================
+
+.. currentmodule:: torcharrow
+
+.. automethod:: DataFrame.reorder
