@@ -14,6 +14,7 @@ jobs:
           - 3.7
           - 3.8
           - 3.9
+          - "3.10"
     steps:
       - name: Check out source repository
         uses: actions/checkout@v2
@@ -23,10 +24,11 @@ jobs:
 
       - name: Build the wheel
         run: |
+          pip3 install --upgrade pip
           source /opt/conda/etc/profile.d/conda.sh
           PYTHON_VERSION=${{ matrix.python-version }} CPU_TARGET="sse" packaging/build_wheel.sh
           conda activate env${{ matrix.python-version }}
-          pip install auditwheel
+          pip3 install auditwheel
           auditwheel repair dist/*.whl -w fixed_dist --plat manylinux2014_x86_64
 
       - name: Install and Test TorchArrow Wheel
@@ -46,6 +48,17 @@ jobs:
           name: torcharrow-artifact
           path: fixed_dist/torcharrow*.whl
 
+      - name: Upload Official Wheels to PYPI
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          pip3 install setuptools-rust
+          pip3 install twine
+          twine upload \
+            --username __token__ \
+            --password "$PYPI_TOKEN" \
+            fixed_dist/torcharrow*.whl
+
   macos-container:
     runs-on: macos-latest
     strategy:
@@ -55,6 +68,7 @@ jobs:
           - 3.7
           - 3.8
           - 3.9
+          - "3.10"
     steps:
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
@@ -69,6 +83,7 @@ jobs:
 
       - name: Build the wheel
         run: |
+          pip3 install --upgrade pip
           MACOSX_DEPLOYMENT_TARGET=10.15 CPU_TARGET="sse" ./csrc/velox/velox/scripts/setup-macos.sh
           pip install wheel
           CPU_TARGET="sse" ./packaging/build_wheel.sh
@@ -90,3 +105,13 @@ jobs:
         with:
           name: torcharrow-artifact
           path: fixed_dist/torcharrow*.whl
+
+      - name: Upload Official Wheels to PYPI
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          pip3 install twine
+          twine upload \
+            --username __token__ \
+            --password "$PYPI_TOKEN" \
+            fixed_dist/torcharrow*.whl
