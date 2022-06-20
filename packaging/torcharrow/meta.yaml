@@ -19,7 +19,7 @@ requirements:
     - pandas
     - typing
     - tabulate
-    - pyarrow==8.0.0
+    - pyarrow
     - arrow-cpp==8.0.0
     - cffi
     - glog==0.6.0
