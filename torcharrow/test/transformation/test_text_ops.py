@@ -12,8 +12,9 @@ from pathlib import Path
 import torcharrow as ta
 import torcharrow._torcharrow as _ta
 import torcharrow.dtypes as dt
-import torcharrow.pytorch as tap
+
 from torcharrow import functional
+from torcharrow.test.test_utils import pytorch_available
 
 
 _ASSET_DIR = (Path(__file__).parent.parent / "asset").resolve()
@@ -80,7 +81,7 @@ def init_bpe_encoder():
 class _TestTextOpsBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if not (tap.available and _ta.is_built_with_torch()):
+        if not (pytorch_available and _ta.is_built_with_torch()):
             raise unittest.SkipTest("Requires PyTorch")
 
         cls.tokenizer = init_bpe_encoder()
@@ -124,14 +125,14 @@ class _TestTextOpsBase(unittest.TestCase):
         raise unittest.SkipTest("abstract base test")
 
     @unittest.skipUnless(
-        tap.available and _ta.is_built_with_torch(), "Requires PyTorch"
+        pytorch_available and _ta.is_built_with_torch(), "Requires PyTorch"
     )
     def test_bpe_encode(self):
         out_df = functional.bpe_tokenize(self.tokenizer, self.df_bpe["text"])
         self.assertEqual(list(out_df), list(self.df_bpe["tokens"]))
 
     @unittest.skipUnless(
-        tap.available and _ta.is_built_with_torch(), "Requires PyTorch"
+        pytorch_available and _ta.is_built_with_torch(), "Requires PyTorch"
     )
     def test_vocab_lookup_indices(self):
         tokens = ["<unk>", "Hello", "world", "How", "are", "you!"]

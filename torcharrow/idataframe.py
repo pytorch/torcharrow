@@ -222,6 +222,43 @@ class DataFrame(Column):
         include=None,
         exclude=None,
     ):
+        """
+        Generate descriptive statistics.
+
+        Parameters
+        ----------
+        percentiles - array-like, default None
+            Defines which percentiles to calculate.  If None, uses [25,50,75].
+
+        include - array-like of dtypes or None (default), optional
+            A white list of data types to include in the result. Here are the options:
+                * A list-like of dtypes : Limits the results to the provided data types.
+                * None (default) : The result will include all numeric columns.
+
+        exclude - array-like of dtypes or None (default), optional
+            An exclusion list of data types to omit from the result. Ignored for Series. Here are the options:
+                * A list-like of dtypes : Excludes the provided data types from the result.
+                * None (default) : The result will exclude nothing.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.dataframe({"a": [1, 2, 3, 4, 5],
+                              "b": [6, 7, 8, 9, 10]
+                              })
+        >>> df.describe()
+        index  metric          a         b
+        -------  --------  -------  --------
+            0  count     5         5
+            1  mean      3         8
+            2  std       1.58114   1.58114
+            3  min       1         6
+            4  25%       2         7
+            5  50%       3         8
+            6  75%       4         9
+            7  max       5        10
+        dtype: Struct([Field('metric', string), Field('a', float32), Field('b', float32)]), count: 8, null_count: 0
+        """
         raise self._not_supported("describe")
 
     @trace
@@ -256,6 +293,24 @@ class DataFrame(Column):
         raise self._not_supported("isin")
 
     def log(self) -> DataFrame:
+        """
+        Return a DataFrame with natural logarithm value of each element.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.dataframe({"a": [1,2,None,4],
+                                "b": [5, 6, None, 8]
+                                })
+        >>> df.min()
+        index         a        b
+        -------  --------  -------
+            0  0         1.60944
+            1  0.693147  1.79176
+            2
+            3  1.38629   2.07944
+        dtype: Struct([Field('a', Float32(nullable=True)), Field('b', Float32(nullable=True))]), count: 4, null_count: 0
+        """
         raise self._not_supported("log")
 
     # aggregation
@@ -343,11 +398,41 @@ class DataFrame(Column):
     @trace
     @expression
     def std(self):
+        """
+        Return the standard deviation of the non-null values for each column.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.dataframe({"a": [1.0,2.0,None,3.0],
+                                "b": [5.0, 7.0, None, 9.0]
+                                })
+        >>> df.mean()
+        index    a    b
+        -------  ---  ---
+            0    1    2
+        dtype: Struct([Field('a', Float32(nullable=True)), Field('b', Float32(nullable=True))]), count: 1, null_count: 0
+        """
         raise self._not_supported("std")
 
     @trace
     @expression
     def median(self):
+        """
+        Return the median of the non-null values for each column.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.dataframe({"a": [1.0,2.0,None,3.0],
+                                "b": [5.0, 7.0, None, 9.0]
+                                })
+        >>> df.mean()
+        index    a    b
+        -------  ---  ---
+            0    2    7
+        dtype: Struct([Field('a', Float32(nullable=True)), Field('b', Float32(nullable=True))]), count: 1, null_count: 0
+        """
         raise self._not_supported("median")
 
     @trace
@@ -386,9 +471,7 @@ class DataFrame(Column):
     @expression
     def reorder(self, columns: List[str]):
         """
-        EXPERIMENTAL API
-
-        Returns DataFrame with the columns in the prescribed order.
+        (EXPERIMENTAL API) Returns DataFrame with the columns in the prescribed order.
         """
         raise self._not_supported("reorder")
 
