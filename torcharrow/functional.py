@@ -7,7 +7,9 @@
 import sys
 from functools import partial
 from types import ModuleType
-from typing import Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Set, Union, cast
+
+import torcharrow.dtypes as dt
 
 from torcharrow.icolumn import Column
 from torcharrow.ilist_column import ListColumn
@@ -134,7 +136,9 @@ def array_constructor(*args) -> ListColumn:
     return _dispatch("array_constructor", *args)
 
 
-def array_except(x: ListColumn, y: ListColumn) -> ListColumn:
+def array_except(
+    x: ListColumn, y: Union[ListColumn, List[Union[int, float]]]
+) -> ListColumn:
     """
     Returns the list of the elements in list x but not in list y, without duplicates.
 
@@ -157,7 +161,9 @@ def array_except(x: ListColumn, y: ListColumn) -> ListColumn:
     return _dispatch("array_except", x, y)
 
 
-def if_else(cond: NumericalColumn, x: Column, y: Column) -> Column:
+def if_else(
+    cond: NumericalColumn, x: Union[Column, Any], y: Union[Column, Any]
+) -> Column:
     # TODO: rename the dispatch stub name into "if_else" in all backends
     return _dispatch("_if", cond, x, y)
 
@@ -484,3 +490,33 @@ def scale_to_0_1(col: NumericalColumn) -> NumericalColumn:
     else:
         # TODO: we should add explicit stub to sigmoid
         return sys.modules["torcharrow.functional"].sigmoid(col)
+
+
+def bucketize_dense_to_sparse(
+    value_col: NumericalColumn,
+    borders: Union[ListColumn, List[Union[int, float]]],
+) -> ListColumn:
+    """
+    Converts a dense feature value to sparse feature, based on the bucket borders provided.
+    In case dense feature value isn't present, empty sparse feature will be returned.
+    """
+    # First, bucketize the input dense feature based on provided bucket borders
+    bucketized_col: NumericalColumn = bucketize(value_col, borders)
+
+    # Wrap the bucket id into a sparse feature
+    sparse_feature_col: ListColumn = array_constructor(bucketized_col)
+
+    result_col = if_else(
+        ~sys.modules["torcharrow.functional"].is_null(value_col), sparse_feature_col, []
+    )
+
+    return cast(ListColumn, result_col)
+
+    # Hack: Replace NULL value with a special token (-1) so the element can be removed in the last step with array_except
+    # TODO: We can direclty remove NULL once lambda is supported with `filter(sparse, x -> x IS NOT NULL)`
+    bucketized_col = bucketized_col.fill_null(-1)
+
+    # Remove the special value from sparse feature (which indicates NULL)
+    return array_except(
+        sparse_feature_col, [dt.np_typeof_dtype(bucketized_col.dtype)(-1)]
+    )
