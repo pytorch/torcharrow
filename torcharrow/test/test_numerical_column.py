@@ -305,6 +305,23 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(list(c > 2), [False, False, True])
         self.assertEqual(list(c > d), [False, False, False])
 
+        df = ta.dataframe({"a": [1.0, 2.0, 3.0], "b": [1.0, 3.0, 2.0]})
+        self.assertEqual(
+            list(df["a"] < df), [(False, False), (False, True), (False, False)]
+        )
+
+        self.assertEqual(
+            list(df["a"] > df), [(False, False), (False, False), (False, True)]
+        )
+
+        self.assertEqual(
+            list(df["a"] <= df), [(True, True), (True, True), (True, False)]
+        )
+
+        self.assertEqual(
+            list(df["a"] >= df), [(True, True), (True, False), (True, True)]
+        )
+
         # +,-,*,/,//,**,%
 
         self.assertEqual(list(-c), [0, -1, -3])

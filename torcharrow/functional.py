@@ -100,9 +100,61 @@ def register_factory_methods(methods):
 
 
 def __getattr__(op_name: str):
+    # Don't wrap accesses for special module members, like __bases__
+    # as it breaks basic Python functionality like
+    # `help(torcharrow.functional)`
+    if op_name.startswith("__") or op_name == "_fields":
+        raise AttributeError
     wrapper = create_dispatch_wrapper(op_name)
     setattr(sys.modules["torcharrow.functional"], op_name, wrapper)
     return wrapper
+
+
+# Velox core functions
+# Not a comprehensive list yet
+def array_constructor(*args) -> ListColumn:
+    """
+    Construct the array given the input columns.
+    All input columns are expected to have the same dtype.
+
+    Example
+    --------
+    >>> import torcharrow as ta
+    >>> from torcharrow import functional
+    >>> a = ta.column([1, 2, 3, 10, -1])
+    >>> b = ta.column([2, 3, 5, 29, None])
+    >>> functional.array_constructor(a, b)
+    0  [1, 2]
+    1  [2, 3]
+    2  [3, 5]
+    3  [10, 29]
+    4  [-1, None]
+    dtype: List(Int64(nullable=True), nullable=True), length: 5, null_count: 0
+    """
+    return _dispatch("array_constructor", *args)
+
+
+def array_except(x: ListColumn, y: ListColumn) -> ListColumn:
+    """
+    Returns the list of the elements in list x but not in list y, without duplicates.
+
+    See Also
+    --------
+    Velox core function `array_except <https://facebookincubator.github.io/velox/functions/array.html#array_except>`_
+
+    Example
+    --------
+    >>> x = ta.column([[1, 2, 3], [1, 2, 3], [1, 2, 2], [1, 2, 2], [1, None, None]])
+    >>> y = ta.column([[4, 5, 6], [1, 2],    [1, 1, 2], [1, 3, 4], [1, 1, None]])
+    >>> functional.array_except(x, y)
+    0  [1, 2, 3]
+    1  [3]
+    2  []
+    3  [2]
+    4  []
+    dtype: List(Int64(nullable=True), nullable=True), length: 5, null_count: 0
+    """
+    return _dispatch("array_except", x, y)
 
 
 ### operations for text domain
@@ -142,7 +194,7 @@ def add_tokens(
     return _dispatch("add_tokens", input_col, tokens, begin)
 
 
-### operations in for recommendation domain
+### operations for recommendation domain
 def bucketize(
     value_col: NumericalColumn,
     borders: Union[ListColumn, List[Union[int, float]]],

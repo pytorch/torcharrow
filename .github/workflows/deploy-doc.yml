@@ -1,0 +1,39 @@
+name: Deploy Doc
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Python environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
+      - name: Check out source repository
+        uses: actions/checkout@v2
+        with:
+            ref: "release/0.1.0"
+            submodules: recursive
+
+      - name: Install TorchArrow
+        run: |
+          pip install --pre torcharrow -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
+
+      - name: Build the docs
+        run: |
+          cd ./docs
+          pip install -r requirements.txt --user
+          make html
+          cd ..
+
+      - name: Deploy Docs on Push
+        uses: JamesIves/github-pages-deploy-action@v4.2.5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages # The branch the action should deploy to.
+          folder: docs/build/html # The folder the action should deploy.
+          target-folder: 0.1.0

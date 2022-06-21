@@ -12,7 +12,7 @@ on:
 jobs:
   linux-container:
     runs-on: ubuntu-latest
-    container: prestocpp/velox-sse-velox-torcharrow:kpai-20220524
+    container: prestocpp/velox-sse-velox-torcharrow:kpai-20220615
     strategy:
       fail-fast: false
       matrix:

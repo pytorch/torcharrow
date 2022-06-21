@@ -499,22 +499,22 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
     @trace
     @expression
     def __lt__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "lt")
+        return self._checked_comparison_op_call_with_df(other, "lt", "__gt__")
 
     @trace
     @expression
     def __gt__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "gt")
+        return self._checked_comparison_op_call_with_df(other, "gt", "__lt__")
 
     @trace
     @expression
     def __le__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "lte")
+        return self._checked_comparison_op_call_with_df(other, "lte", "__ge__")
 
     @trace
     @expression
     def __ge__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "gte")
+        return self._checked_comparison_op_call_with_df(other, "gte", "__le__")
 
     @trace
     @expression

@@ -3,8 +3,8 @@
 torcharrow.Column
 ==========================
 
-A :class:`torcharrow.Column` is a 1-dimension torch.Tensor like data structure containing 
-elements of a single data type. It also supports non-numeric types such as string, 
+A :class:`torcharrow.Column` is a 1-dimension torch.Tensor like data structure containing
+elements of a single data type. It also supports non-numeric types such as string,
 list, struct.
 
 Data types
@@ -40,6 +40,7 @@ Column class reference
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: class.rst
 
     Column.head
     Column.tail
@@ -63,7 +64,7 @@ Column class reference
     Column.to_arrow
     Column.to_tensor
     Column.to_pylist
-    Column.to_pandas    
+    Column.to_pandas
 
 
 NumericalColumn class reference
@@ -73,6 +74,7 @@ NumericalColumn class reference
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: class.rst
 
     NumericalColumn.abs
     NumericalColumn.ceil
@@ -96,34 +98,35 @@ StringColumn class reference
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: class.rst
 
-    torcharrow.istring_column.StringMethods.length
-    torcharrow.istring_column.StringMethods.slice
-    torcharrow.istring_column.StringMethods.split
-    torcharrow.istring_column.StringMethods.strip
+    istring_column.StringMethods.length
+    istring_column.StringMethods.slice
+    istring_column.StringMethods.split
+    istring_column.StringMethods.strip
 
-    torcharrow.istring_column.StringMethods.isalpha
-    torcharrow.istring_column.StringMethods.isnumeric
-    torcharrow.istring_column.StringMethods.isalnum
-    torcharrow.istring_column.StringMethods.isdigit
-    torcharrow.istring_column.StringMethods.isdecimal
-    torcharrow.istring_column.StringMethods.isspace
-    torcharrow.istring_column.StringMethods.islower
-    torcharrow.istring_column.StringMethods.isupper
-    torcharrow.istring_column.StringMethods.istitle
+    istring_column.StringMethods.isalpha
+    istring_column.StringMethods.isnumeric
+    istring_column.StringMethods.isalnum
+    istring_column.StringMethods.isdigit
+    istring_column.StringMethods.isdecimal
+    istring_column.StringMethods.isspace
+    istring_column.StringMethods.islower
+    istring_column.StringMethods.isupper
+    istring_column.StringMethods.istitle
 
-    torcharrow.istring_column.StringMethods.lower
-    torcharrow.istring_column.StringMethods.upper
+    istring_column.StringMethods.lower
+    istring_column.StringMethods.upper
 
-    torcharrow.istring_column.StringMethods.startswith
-    torcharrow.istring_column.StringMethods.endswith
-    torcharrow.istring_column.StringMethods.count
-    torcharrow.istring_column.StringMethods.find
-    torcharrow.istring_column.StringMethods.replace
-    torcharrow.istring_column.StringMethods.match
-    torcharrow.istring_column.StringMethods.contains
-    torcharrow.istring_column.StringMethods.findall
-    
+    istring_column.StringMethods.startswith
+    istring_column.StringMethods.endswith
+    istring_column.StringMethods.count
+    istring_column.StringMethods.find
+    istring_column.StringMethods.replace
+    istring_column.StringMethods.match
+    istring_column.StringMethods.contains
+    istring_column.StringMethods.findall
+
 ListColumn class reference
 -----------------------------------
 .. class:: ListColumn()
@@ -131,7 +134,8 @@ ListColumn class reference
 .. autosummary::
     :toctree: generated
     :nosignatures:
+    :template: class.rst
 
-    torcharrow.ilist_column.ListMethods.length
-    torcharrow.ilist_column.ListMethods.slice
-    torcharrow.ilist_column.ListMethods.vmap
+    ilist_column.ListMethods.length
+    ilist_column.ListMethods.slice
+    ilist_column.ListMethods.vmap
