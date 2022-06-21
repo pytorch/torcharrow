@@ -247,6 +247,17 @@ class TestSimpleColumns(unittest.TestCase):
         )
         self.assert_SimpleColumn(widthBucket, [3, 2, 0])
 
+    def test_special_form(self) -> None:
+        # Test Velox special form function, such as if and coalesce
+        cond = self.construct_simple_column(
+            ta.VeloxType_BOOLEAN(), [True, False, True, False]
+        )
+        x = self.construct_simple_column(ta.VeloxType_BIGINT(), [1, 2, 3, 4])
+        y = self.construct_simple_column(ta.VeloxType_BIGINT(), [10, 20, 30, 40])
+
+        if_else = ta.generic_udf_dispatch("if", cond, x, y)
+        self.assert_SimpleColumn(if_else, [1, 20, 3, 40])
+
     def test_factory(self) -> None:
         col = ta.factory_udf_dispatch("rand", 42)
         self.assertEqual(col.type().kind(), ta.TypeKind.DOUBLE)

@@ -438,9 +438,27 @@ std::unique_ptr<OperatorHandle> OperatorHandle::fromCall(
 std::unique_ptr<OperatorHandle> OperatorHandle::fromUDF(
     velox::RowTypePtr inputRowType,
     const std::string& udfName) {
+  // Velox special form functions cannot be resovled via velox::resolveFunction
+  //  and thus requires special handling when resolving return type
+  // See also:
+  // https://github.com/facebookincubator/velox/blob/main/velox/parse/TypeResolver.cpp#L54
   if (udfName == "coalesce") {
     return OperatorHandle::fromCall(
-        inputRowType, inputRowType->childAt(0), udfName);
+        inputRowType,
+        // Based on:
+        // https://github.com/facebookincubator/velox/blob/main/velox/parse/TypeResolver.cpp#L79-L83
+        inputRowType->childAt(0),
+        udfName);
+  }
+
+  if (udfName == "if") {
+    return OperatorHandle::fromCall(
+        inputRowType,
+        // Based on:
+        // https://github.com/facebookincubator/velox/blob/main/velox/parse/TypeResolver.cpp#L58-L61
+        !inputRowType->childAt(1)->containsUnknown() ? inputRowType->childAt(1)
+                                                     : inputRowType->childAt(2),
+        udfName);
   }
 
   velox::TypePtr outputType =
