@@ -9,8 +9,6 @@ import unittest
 from functools import lru_cache
 from pathlib import Path
 
-from black import out
-
 import torcharrow as ta
 import torcharrow._torcharrow as _ta
 import torcharrow.dtypes as dt
@@ -107,7 +105,7 @@ class _TestTextOpsBase(unittest.TestCase):
         cls.base_df_vocab = ta.dataframe(
             {
                 "text": [["Hello", "world"], ["How", "are", "you!", "OOV"]],
-                "indices": [[1, 2], [3, 4, 5, 0]],
+                "indices": [[1, 2], [3, 4, 5]],
             },
             dtype=dt.Struct(
                 fields=[
@@ -155,20 +153,32 @@ class _TestTextOpsBase(unittest.TestCase):
         out_df = functional.lookup_indices(vocab, self.df_vocab["text"])
         self.assertEqual(indices, list(out_df))
 
-    # @unittest.skipUnless(
-    #     tap.available and _ta.is_built_with_torch(), "Requires PyTorch"
-    # )
-    def test_add_token(self):
-        tokens = ["<bos>", "Hello", "world", "<eos>", "<bos>", "How", "are", "you!", "<eos>"]
+    @unittest.skipUnless(
+        tap.available and _ta.is_built_with_torch(), "Requires PyTorch"
+    )
+    def test_add_indices(self):
         indices = [[0, 1, 2, 6], [0, 3, 4, 5, 6]]
 
-        out_indices = functional.add_tokens(self.base_df_add_token["indices"], [0], begin=True)
-        out_indices = functional.add_tokens(out_indices, [6], False)
+        out_indices = functional.add_indices(
+            self.base_df_add_token["indices"], [0], begin=True
+        )
+        out_indices = functional.add_indices(out_indices, [6], begin=False)
         self.assertEqual(indices, list(out_indices))
 
-        # out_tokens = functional.add_tokens(self.base_df_add_token["text"], ["<bos>"], True)
-        # out_tokens = functional.add_tokens(out_tokens, ["<eos>"], False)
-        # self.assertEqual(tokens, list(out_tokens))
+    @unittest.skipUnless(
+        tap.available and _ta.is_built_with_torch(), "Requires PyTorch"
+    )
+    def test_add_tokens(self):
+        tokens = [
+            ["<bos>", "Hello", "world", "<eos>"],
+            ["<bos>", "How", "are", "you!", "<eos>"],
+        ]
+
+        out_tokens = functional.add_tokens(
+            self.base_df_add_token["text"], ["<bos>"], True
+        )
+        out_tokens = functional.add_tokens(out_tokens, ["<eos>"], False)
+        self.assertEqual(tokens, list(out_tokens))
 
 
 class TestTextOpsCpu(_TestTextOpsBase):

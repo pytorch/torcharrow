@@ -104,22 +104,40 @@ def __getattr__(op_name: str):
     setattr(sys.modules["torcharrow.functional"], op_name, wrapper)
     return wrapper
 
-### operations in for text domain
-def add_tokens(
-    input_col: Union[ListColumn, List[Union[int, str]]],
-    tokens: Union[ListColumn, List[Union[int, str]]],
+
+### operations for text domain
+def add_indices(
+    input_col: Union[ListColumn, List[int]],
+    indices: Union[ListColumn, List[int]],
     begin: bool,
 ) -> NumericalColumn:
     """
-    Append or prepend a token to a column. 
-    This is a common operation to add EOS and BOS tokens to text.
+    Append or prepend a list of indices to a column. 
+    This is a common operation to add index of EOS and BOS tokens to text.
 
     Parameters
     ----------
+    input_col: Column that has a list of input indices
+    indices: Column that has a list of indices to append or prepend
+    begin: Boolean to determine whether to prepend or append the indices
+    """
+    return _dispatch("add_indices", input_col, indices, begin)
 
-    Examples
-    --------
 
+def add_tokens(
+    input_col: Union[ListColumn, List[str]],
+    tokens: Union[ListColumn, List[str]],
+    begin: bool,
+) -> NumericalColumn:
+    """
+    Append or prepend a list of indices to a column. 
+    This is a common operation to add index of EOS and BOS tokens to text.
+
+    Parameters
+    ----------
+    input_col: Column that has a list of input tokens
+    tokens: Column that has a list of tokens to append or prepend
+    begin: Boolean to determine whether to prepend or append the tokens
     """
     return _dispatch("add_tokens", input_col, tokens, begin)
 
