@@ -107,12 +107,12 @@ class CriteoIntegrationTest(unittest.TestCase):
         for _ in range(type(self).NUM_ROWS):
             label = 1 if random.randrange(100) < 4 else 0
             dense_features_struct = tuple(
-                random.randrange(1000) if random.randrange(100) < 98 else None
+                random.randrange(1000) if random.randrange(100) < 80 else None
                 for j in range(INT_FEATURE_COUNT)
             )
             sparse_features_struct = tuple(
                 random.randrange(-(2**31), 2**31)
-                if random.randrange(100) < 80
+                if random.randrange(100) < 98
                 else None
                 for j in range(CAT_FEATURE_COUNT)
             )
