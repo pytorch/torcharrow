@@ -315,6 +315,31 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
 
     # implementing abstract methods ----------------------------------------------
 
+    @trace
+    def __setitem__(self, name: str, value: Any) -> None:
+        if isinstance(value, Column):
+            assert self.device == value.device
+            col = value
+        else:
+            col = ta.column(value)
+
+        empty_df = len(self.dtype.fields) == 0
+
+        # Update dtype
+        # pyre-fixme[16]: `DType` has no attribute `get_index`.
+        idx = self.dtype.get_index(name)
+        if idx is None:
+            # append column
+            new_fields = self.dtype.fields + [dt.Field(name, col.dtype)]
+        else:
+            # override column
+            new_fields = list(self.dtype.fields)
+            new_fields[idx] = dt.Field(name, col.dtype)
+        self._dtype = dt.Struct(fields=new_fields)
+
+        # Update field data
+        self._set_field_data(name, col, empty_df)
+
     def _set_field_data(self, name: str, col: Column, empty_df: bool):
         if not empty_df and len(col) != len(self):
             raise TypeError("all columns/lists must have equal length")
