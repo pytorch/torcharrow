@@ -59,7 +59,7 @@ jobs:
           sudo apt-get update
           sudo apt install -y g++ cmake ccache ninja-build checkinstall git \
           libssl-dev libboost-all-dev libdouble-conversion-dev libgoogle-glog-dev \
-          libgflags-dev libevent-dev libre2-dev
+          libgflags-dev libevent-dev libre2-dev libfl-dev libbison-dev
 
       # Based on https://github.com/facebookincubator/velox/blob/99429407c3d524e07b32b8b19a03aa7382f819cf/.circleci/config.yml#L114-L116
       - name: Configure ccache
@@ -69,14 +69,20 @@ jobs:
           CCACHE_DIR=$GITHUB_WORKSPACE/.ccache ccache -sz -M 1G
 
       - name: Build and install folly and fmt
+        env:
+          CMAKE_C_COMPILER_LAUNCHER: ccache
+          CMAKE_CXX_COMPILER_LAUNCHER: ccache
+          CCACHE_DIR: $GITHUB_WORKSPACE/.ccache_root
+          CPU_TARGET: sse
         # sudo doesn't preserve environment vairable; set it after sudo: https://stackoverflow.com/questions/8633461/how-to-keep-environment-variables-when-using-sudo/33183620#33183620
         run: |
-          sudo CMAKE_C_COMPILER_LAUNCHER=ccache CMAKE_CXX_COMPILER_LAUNCHER=ccache CCACHE_DIR=$GITHUB_WORKSPACE/.ccache_root scripts/setup-ubuntu.sh
+          sudo scripts/setup-ubuntu.sh
 
       - name: Conda Build
         shell: bash -l {0}
         env:
           PYTHON_VERSION: ${{ matrix.python-version }}
+          CPU_TARGET: sse
         run: |
           # source /opt/conda/etc/profile.d/conda.sh
           conda activate conda_build_env
@@ -114,15 +120,44 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Install dependencies from Brew
+        run: |
+          brew install --formula ninja flex bison cmake ccache icu4c boost gflags glog libevent
+
       - name: Conda Build
         shell: bash -l {0}
         env:
           PYTHON_VERSION: ${{ matrix.python-version }}
+          MACOSX_DEPLOYMENT_TARGET: 10.15
+          CPU_TARGET: sse
         run: |
           conda activate conda_build_env
           conda install -yq conda-build -c conda-forge
-          MACOSX_DEPLOYMENT_TARGET=10.15 ./csrc/velox/velox/scripts/setup-macos.sh
+          scripts/build_mac_dep.sh ranges_v3 fmt double_conversion folly re2
           ./packaging/build_conda.sh
+
+      - name: Fix Velox Dylib Paths
+        shell: bash -l {0}
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          cd conda-bld/osx-64
+          pkg_name=`ls ./torcharrow-* | sed -n -e 's/.*\(torcharrow.*\).tar.bz2/\1/p'`
+          mkdir ./${pkg_name}
+          tar -xf ./${pkg_name}.tar.bz2 -C ./${pkg_name}
+          rm ./${pkg_name}.tar.bz2
+          cd ./${pkg_name}
+
+          source ${GITHUB_WORKSPACE}/packaging/fix_conda_dylib_paths.sh
+          conda_lib_folder=lib/python${PYTHON_VERSION}/site-packages/torcharrow
+          so_name=`ls ${conda_lib_folder}/_torcharrow.* | sed -n -e 's/.*\(_torcharrow.*\.so\)/\1/p'`
+          fix_velox_dylib_paths ${conda_lib_folder}/${so_name}
+          otool -L ${conda_lib_folder}/${so_name}
+
+          tar -cjf ../${pkg_name}.tar.bz2 *
+          cd ..
+          rm -rf ./${pkg_name}
+          cd ../..
 
       - name: Conda Upload
         shell: bash -l {0}

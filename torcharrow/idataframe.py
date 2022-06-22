@@ -171,14 +171,6 @@ class DataFrame(Column):
         """The column labels of the DataFrame."""
         return [f.name for f in self.dtype.fields]
 
-    @abc.abstractmethod
-    def _set_field_data(self, name: str, col: Column, empty_df: bool):
-        """
-        PRIVATE _set field data, append if field doesn't exist
-        self._dtype is already updated upon invocation
-        """
-        raise self._not_supported("_set_field_data")
-
     def __contains__(self, key: str) -> bool:
         for f in self.dtype.fields:
             if key == f.name:
@@ -186,33 +178,60 @@ class DataFrame(Column):
         return False
 
     @trace
+    @abc.abstractmethod
     def __setitem__(self, name: str, value: Any) -> None:
-        if isinstance(value, Column):
-            assert self.device == value.device
-            col = value
-        else:
-            col = ta.column(value)
-
-        empty_df = len(self.dtype.fields) == 0
-
-        # Update dtype
-        # pyre-fixme[16]: `DType` has no attribute `get_index`.
-        idx = self.dtype.get_index(name)
-        if idx is None:
-            # append column
-            new_fields = self.dtype.fields + [dt.Field(name, col.dtype)]
-        else:
-            # override column
-            new_fields = list(self.dtype.fields)
-            new_fields[idx] = dt.Field(name, col.dtype)
-        self._dtype = dt.Struct(fields=new_fields)
-
-        # Update field data
-        self._set_field_data(name, col, empty_df)
+        raise NotImplementedError
 
     @trace
     def copy(self):
         raise self._not_supported("copy")
+
+    @trace
+    @expression
+    def describe(
+        self,
+        percentiles=None,
+        include=None,
+        exclude=None,
+    ):
+        """
+        Generate descriptive statistics.
+
+        Parameters
+        ----------
+        percentiles - array-like, default None
+            Defines which percentiles to calculate.  If None, uses [25,50,75].
+
+        include - array-like of dtypes or None (default), optional
+            A white list of data types to include in the result. Here are the options:
+                * A list-like of dtypes : Limits the results to the provided data types.
+                * None (default) : The result will include all numeric columns.
+
+        exclude - array-like of dtypes or None (default), optional
+            An exclusion list of data types to omit from the result. Ignored for Series. Here are the options:
+                * A list-like of dtypes : Excludes the provided data types from the result.
+                * None (default) : The result will exclude nothing.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.dataframe({"a": [1, 2, 3, 4, 5],
+                              "b": [6, 7, 8, 9, 10]
+                              })
+        >>> df.describe()
+        index  metric          a         b
+        -------  --------  -------  --------
+            0  count     5         5
+            1  mean      3         8
+            2  std       1.58114   1.58114
+            3  min       1         6
+            4  25%       2         7
+            5  50%       3         8
+            6  75%       4         9
+            7  max       5        10
+        dtype: Struct([Field('metric', string), Field('a', float32), Field('b', float32)]), count: 8, null_count: 0
+        """
+        raise self._not_supported("describe")
 
     @trace
     @expression
@@ -246,6 +265,24 @@ class DataFrame(Column):
         raise self._not_supported("isin")
 
     def log(self) -> DataFrame:
+        """
+        Return a DataFrame with natural logarithm value of each element.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.dataframe({"a": [1,2,None,4],
+                                "b": [5, 6, None, 8]
+                                })
+        >>> df.min()
+        index         a        b
+        -------  --------  -------
+            0  0         1.60944
+            1  0.693147  1.79176
+            2
+            3  1.38629   2.07944
+        dtype: Struct([Field('a', Float32(nullable=True)), Field('b', Float32(nullable=True))]), count: 4, null_count: 0
+        """
         raise self._not_supported("log")
 
     # aggregation
@@ -333,11 +370,41 @@ class DataFrame(Column):
     @trace
     @expression
     def std(self):
+        """
+        Return the standard deviation of the non-null values for each column.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.dataframe({"a": [1.0,2.0,None,3.0],
+                                "b": [5.0, 7.0, None, 9.0]
+                                })
+        >>> df.mean()
+        index    a    b
+        -------  ---  ---
+            0    1    2
+        dtype: Struct([Field('a', Float32(nullable=True)), Field('b', Float32(nullable=True))]), count: 1, null_count: 0
+        """
         raise self._not_supported("std")
 
     @trace
     @expression
     def median(self):
+        """
+        Return the median of the non-null values for each column.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.dataframe({"a": [1.0,2.0,None,3.0],
+                                "b": [5.0, 7.0, None, 9.0]
+                                })
+        >>> df.mean()
+        index    a    b
+        -------  ---  ---
+            0    2    7
+        dtype: Struct([Field('a', Float32(nullable=True)), Field('b', Float32(nullable=True))]), count: 1, null_count: 0
+        """
         raise self._not_supported("median")
 
     @trace
@@ -376,11 +443,9 @@ class DataFrame(Column):
     @expression
     def reorder(self, columns: List[str]):
         """
-        EXPERIMENTAL API
-
-        Returns DataFrame with the columns in the prescribed order.
+        (EXPERIMENTAL API) Returns DataFrame with the columns in the prescribed order.
         """
-        raise self._not_supported("rename")
+        raise self._not_supported("reorder")
 
     # functional API
 
@@ -423,6 +488,95 @@ class DataFrame(Column):
                 *(self._format_transform_column(self[c], format) for c in columns)
             )
         return self._format_transform_result(raw_res, format, dtype, len(self))
+
+    # relational tools
+    @trace
+    @expression
+    def select(self, *args, **kwargs):
+        """
+        Analogous to SQL's `SELECT`.
+
+        Transform a dataframe by selecting old columns and new (computed)
+        columns.
+
+        The special symbol `me` can be used to refer to self.
+
+        Parameters
+        -----------
+        args : positional string arguments
+            Column names to keep in the projection. A column name of "*" is a
+            shortcut to denote all columns. A column name beginning with "-"
+            means remove this column.
+
+        kwargs : named value arguments
+            New column name expressions to add to the projection
+
+
+        Examples
+        --------
+        >>> from torcharrow import ta
+        >>> xf = ta.dataframe({
+        >>>    'A': ['a', 'b', 'a', 'b'],
+        >>>    'B': [1, 2, 3, 4],
+        >>>    'C': [10,11,12,13]})
+        >>> xf.select(*xf.columns,D=me['B']+me['C'])
+          index  A      B    C    D
+        -------  ---  ---  ---  ---
+              0  a      1   10   11
+              1  b      2   11   13
+              2  a      3   12   15
+              3  b      4   13   17
+        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64), Field('D', int64)]), count: 4, null_count: 0
+
+        Using '*' and '-colname':
+
+        >>> xf.select('*','-B',D=me['B']+me['C'])
+          index  A      C    D
+        -------  ---  ---  ---
+              0  a     10   11
+              1  b     11   13
+              2  a     12   15
+              3  b     13   17
+        dtype: Struct([Field('A', string), Field('C', int64), Field('D', int64)]), count: 4, null_count: 0
+        """
+        raise self._not_supported("select")
+
+    @trace
+    @expression
+    def where(self, *conditions):
+        """
+        Analogous to SQL's where (NOT Pandas where)
+
+        Filter a dataframe to only include rows satisfying a given set
+        of conditions. df.where(p) is equivalent to writing df[p].
+
+        Examples
+        --------
+
+        >>> from torcharrow import ta
+        >>> xf = ta.dataframe({
+        >>>    'A':['a', 'b', 'a', 'b'],
+        >>>    'B': [1, 2, 3, 4],
+        >>>    'C': [10,11,12,13]})
+        >>> xf.where(xf['B']>2)
+          index  A      B    C
+        -------  ---  ---  ---
+              0  a      3   12
+              1  b      4   13
+        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64)]), count: 2, null_count: 0
+
+        When referring to self in an expression, the special value `me` can be
+        used.
+
+        >>> from torcharrow import me
+        >>> xf.where(me['B']>2)
+          index  A      B    C
+        -------  ---  ---  ---
+              0  a      3   12
+              1  b      4   13
+        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64)]), count: 2, null_count: 0
+        """
+        raise self._not_supported("select")
 
     # interop
 
@@ -476,6 +630,9 @@ class DataFrameVar(Var, DataFrame):
 
     def __init__(self, name: str, qualname: str = ""):
         super().__init__(name, qualname)
+
+    def __setitem__(self, name: str, value: Any) -> None:
+        return self._not_supported("__setitem__")
 
     def _append_null(self):
         return self._not_supported("_append_null")

@@ -37,6 +37,9 @@ class StringMethods(ABC):
 
     @abstractmethod
     def length(self):
+        """
+        Compute the length of each element in the Column.
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -203,6 +206,7 @@ class StringMethods(ABC):
 
     @abstractmethod
     def find(self, sub):
+        """Return lowest indices in each strings in the Column."""
         raise NotImplementedError
 
     @abstractmethod

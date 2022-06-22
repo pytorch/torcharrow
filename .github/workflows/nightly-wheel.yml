@@ -12,7 +12,7 @@ on:
 jobs:
   linux-container:
     runs-on: ubuntu-latest
-    container: prestocpp/velox-velox-torcharrow:kpai-20220301
+    container: prestocpp/velox-sse-velox-torcharrow:kpai-20220615
     strategy:
       fail-fast: false
       matrix:
@@ -32,7 +32,7 @@ jobs:
       - name: Build the wheel
         run: |
           source /opt/conda/etc/profile.d/conda.sh
-          PYTHON_VERSION=${{ matrix.python-version }} packaging/build_wheel.sh
+          PYTHON_VERSION=${{ matrix.python-version }} CPU_TARGET="sse" packaging/build_wheel.sh
           conda activate env${{ matrix.python-version }}
           pip install auditwheel
           auditwheel repair dist/*.whl -w fixed_dist --plat manylinux2014_x86_64
@@ -77,9 +77,9 @@ jobs:
 
       - name: Build the wheel
         run: |
-          MACOSX_DEPLOYMENT_TARGET=10.15 ./csrc/velox/velox/scripts/setup-macos.sh
+          MACOSX_DEPLOYMENT_TARGET=10.15 CPU_TARGET="sse" ./csrc/velox/velox/scripts/setup-macos.sh
           pip install wheel
-          ./packaging/build_wheel.sh
+          CPU_TARGET="sse" ./packaging/build_wheel.sh
           pip install delocate
           delocate-wheel dist/*.whl -w fixed_dist
 

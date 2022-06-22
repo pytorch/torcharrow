@@ -122,6 +122,17 @@ inline void registerTorchArrowFunctions() {
   velox::registerFunction<torcharrow_bitwiseor, int64_t, int64_t, int64_t>(
       {"torcharrow_bitwiseor"});
 
+  velox::registerFunction<torcharrow_bitwisexor, bool, bool, bool>(
+      {"torcharrow_bitwisexor"});
+  velox::registerFunction<torcharrow_bitwisexor, int8_t, int8_t, int8_t>(
+      {"torcharrow_bitwisexor"});
+  velox::registerFunction<torcharrow_bitwisexor, int16_t, int16_t, int16_t>(
+      {"torcharrow_bitwisexor"});
+  velox::registerFunction<torcharrow_bitwisexor, int32_t, int32_t, int32_t>(
+      {"torcharrow_bitwisexor"});
+  velox::registerFunction<torcharrow_bitwisexor, int64_t, int64_t, int64_t>(
+      {"torcharrow_bitwisexor"});
+
   // Round
   velox::registerFunction<torcharrow_round, float, float>({"torcharrow_round"});
   velox::registerFunction<torcharrow_round, double, double>(
@@ -248,7 +259,7 @@ inline void registerTorchArrowFunctions() {
 
   velox::registerFunction<
       bpe_tokenize,
-      velox::ArrayWriterT<int64_t>,
+      velox::ArrayWriterT<velox::Varchar>,
       std::shared_ptr<GPT2BPEEncoder>,
       velox::Varchar>({"bpe_tokenize"});
 #endif

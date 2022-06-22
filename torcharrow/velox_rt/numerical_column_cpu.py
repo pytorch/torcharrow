@@ -13,7 +13,7 @@ import torcharrow as ta
 import torcharrow._torcharrow as velox
 import torcharrow.dtypes as dt
 import torcharrow.pytorch as pytorch
-from torcharrow._functional import functional
+from torcharrow import functional
 from torcharrow.dispatcher import Dispatcher
 from torcharrow.expression import expression
 from torcharrow.icolumn import Column
@@ -266,6 +266,17 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
             other = ta.column(other)
         return self._checked_binary_op_call(other, op_name)
 
+    def _checked_comparison_op_call_with_df(
+        self,
+        other: Any,
+        op_name: str,
+        inverse_operation_name: str,
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        if isinstance(other, DataFrameCpu):
+            return getattr(other, inverse_operation_name)(self)
+
+        return self._checked_comparison_op_call(other, op_name)
+
     def _checked_arithmetic_op_call(
         self,
         other: Union[NumericalColumn, int, float, bool],
@@ -478,37 +489,37 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
     @trace
     @expression
     def __eq__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "eq")
+        return self._checked_comparison_op_call_with_df(other, "eq", "__eq__")
 
     @trace
     @expression
     def __ne__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "neq")
+        return self._checked_comparison_op_call_with_df(other, "neq", "__ne__")
 
     @trace
     @expression
     def __lt__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "lt")
+        return self._checked_comparison_op_call_with_df(other, "lt", "__gt__")
 
     @trace
     @expression
     def __gt__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "gt")
+        return self._checked_comparison_op_call_with_df(other, "gt", "__lt__")
 
     @trace
     @expression
     def __le__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "lte")
+        return self._checked_comparison_op_call_with_df(other, "lte", "__ge__")
 
     @trace
     @expression
     def __ge__(self, other: Union[NumericalColumn, List[int], List[float], int, float]):
-        return self._checked_comparison_op_call(other, "gte")
+        return self._checked_comparison_op_call_with_df(other, "gte", "__le__")
 
     @trace
     @expression
     def __and__(
-        self, other: Union[NumericalColumn, DataFrameCpu, int]
+        self, other: Union[DataFrameCpu, NumericalColumn, int]
     ) -> Union[NumericalColumn, DataFrameCpu]:
         return self._checked_arithmetic_op_call_with_df(
             other, "bitwise_and", operator.__and__, "__rand__"
@@ -525,14 +536,20 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
 
     @trace
     @expression
-    def __or__(self, other: Union[NumericalColumn, int]) -> NumericalColumn:
-        return self._checked_arithmetic_op_call(other, "bitwise_or", operator.__or__)
+    def __or__(
+        self, other: Union[DataFrameCpu, NumericalColumn, int]
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        return self._checked_arithmetic_op_call_with_df(
+            other, "bitwise_or", operator.__or__, "__ror__"
+        )
 
     @trace
     @expression
-    def __ror__(self, other: Union[int]) -> NumericalColumn:
-        return self._checked_arithmetic_op_call(
-            other, "bitwise_ror", Column._swap(operator.__or__)
+    def __ror__(
+        self, other: Union[DataFrameCpu, int]
+    ) -> Union[NumericalColumn, DataFrameCpu]:
+        return self._checked_arithmetic_op_call_with_df(
+            other, "bitwise_ror", Column._swap(operator.__or__), "__or__"
         )
 
     @trace
@@ -758,27 +775,6 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
         self._prototype_support_warning("_cumprod")
 
         return self._accumulate_column(operator.mul, skipna=True, initial=None)
-
-    @trace
-    @expression
-    def quantile(self, q, interpolation="midpoint"):
-        self._prototype_support_warning("quantile")
-
-        if len(self) == 0 or len(q) == 0:
-            return []
-        out = []
-        s = sorted(self)
-        for percent in q:
-            k = (len(self) - 1) * (percent / 100)
-            f = math.floor(k)
-            c = math.ceil(k)
-            if f == c:
-                out.append(s[int(k)])
-                continue
-            d0 = s[int(f)] * (c - k)
-            d1 = s[int(c)] * (k - f)
-            out.append(d0 + d1)
-        return out
 
     # unique and montonic  ----------------------------------------------------
 

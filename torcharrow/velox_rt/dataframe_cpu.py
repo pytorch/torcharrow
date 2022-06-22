@@ -315,6 +315,31 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
 
     # implementing abstract methods ----------------------------------------------
 
+    @trace
+    def __setitem__(self, name: str, value: Any) -> None:
+        if isinstance(value, Column):
+            assert self.device == value.device
+            col = value
+        else:
+            col = ta.column(value)
+
+        empty_df = len(self.dtype.fields) == 0
+
+        # Update dtype
+        # pyre-fixme[16]: `DType` has no attribute `get_index`.
+        idx = self.dtype.get_index(name)
+        if idx is None:
+            # append column
+            new_fields = self.dtype.fields + [dt.Field(name, col.dtype)]
+        else:
+            # override column
+            new_fields = list(self.dtype.fields)
+            new_fields[idx] = dt.Field(name, col.dtype)
+        self._dtype = dt.Struct(fields=new_fields)
+
+        # Update field data
+        self._set_field_data(name, col, empty_df)
+
     def _set_field_data(self, name: str, col: Column, empty_df: bool):
         if not empty_df and len(col) != len(self):
             raise TypeError("all columns/lists must have equal length")
@@ -1132,11 +1157,21 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
     def __ne__(self, other):
         if isinstance(other, DataFrameCpu):
             return self._fromdata(
-                {n: c == other[n] for (n, c) in self._field_data.items()}
+                {n: c != other[n] for (n, c) in self._field_data.items()}
             )
         else:
             return self._fromdata(
-                {n: c == other for (n, c) in self._field_data.items()}
+                {
+                    self.dtype.fields[i].name: other
+                    != ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
             )
 
     @expression
@@ -1215,8 +1250,24 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
 
     def __le__(self, other):
         if isinstance(other, DataFrameCpu):
+            assert len(self) == len(other)
             return self._fromdata(
-                {n: c <= other[n] for (n, c) in self._field_data.items()}
+                {
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    <= ColumnCpuMixin._from_velox(
+                        other.device,
+                        other.dtype.fields[i].dtype,
+                        other._data.child_at(i),
+                        True,
+                    )
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
             )
         else:
             return self._fromdata(
@@ -1256,13 +1307,39 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
             )
         else:
             return self._fromdata(
-                {n: c >= other for (n, c) in self._field_data.items()}
+                {
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    >= other
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
             )
 
     def __or__(self, other):
         if isinstance(other, DataFrameCpu):
+            assert len(self) == len(other)
             return self._fromdata(
-                {n: c | other[n] for (n, c) in self._field_data.items()}
+                {
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    | ColumnCpuMixin._from_velox(
+                        other.device,
+                        other.dtype.fields[i].dtype,
+                        other._data.child_at(i),
+                        True,
+                    )
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
             )
         else:
             return self._fromdata(
@@ -1281,15 +1358,43 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
 
     def __ror__(self, other):
         if isinstance(other, DataFrameCpu):
+            assert len(self) == len(other)
             return self._fromdata(
-                {n: other[n] | c for (n, c) in self._field_data.items()}
+                {
+                    self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    | ColumnCpuMixin._from_velox(
+                        other.device,
+                        other.dtype.fields[i].dtype,
+                        other._data.child_at(i),
+                        True,
+                    )
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
             )
         else:
-            return self._fromdata({n: other | c for (n, c) in self._field_data.items()})
+            return self._fromdata(
+                {
+                    self.dtype.fields[i].name: other
+                    | ColumnCpuMixin._from_velox(
+                        self.device,
+                        self.dtype.fields[i].dtype,
+                        self._data.child_at(i),
+                        True,
+                    )
+                    for i in range(self._data.children_size())
+                },
+                self._mask,
+            )
 
     def __and__(self, other):
-        assert len(self) == len(other)
         if isinstance(other, DataFrameCpu):
+            assert len(self) == len(other)
             return self._fromdata(
                 {
                     self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
@@ -1743,7 +1848,7 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
             )
             res[s] = ta.column(
                 [c._count(), c.mean(), c.std(), c.min()]
-                + c._quantile(percentiles, "midpoint")
+                + c.percentile(percentiles, "midpoint")
                 + [c.max()]
             )
         return self._fromdata(res, [False] * len(res["metric"]))
@@ -1921,39 +2026,6 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
     @trace
     @expression
     def where(self, *conditions):
-        """
-        Analogous to SQL's where (NOT Pandas where)
-
-        Filter a dataframe to only include rows satisfying a given set
-        of conditions. df.where(p) is equivalent to writing df[p].
-
-        Examples
-        --------
-
-        >>> from torcharrow import ta
-        >>> xf = ta.dataframe({
-        >>>    'A':['a', 'b', 'a', 'b'],
-        >>>    'B': [1, 2, 3, 4],
-        >>>    'C': [10,11,12,13]})
-        >>> xf.where(xf['B']>2)
-          index  A      B    C
-        -------  ---  ---  ---
-              0  a      3   12
-              1  b      4   13
-        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64)]), count: 2, null_count: 0
-
-        When referring to self in an expression, the special value `me` can be
-        used.
-
-        >>> from torcharrow import me
-        >>> xf.where(me['B']>2)
-          index  A      B    C
-        -------  ---  ---  ---
-              0  a      3   12
-              1  b      4   13
-        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64)]), count: 2, null_count: 0
-        """
-
         if len(conditions) == 0:
             return self
 
@@ -1968,50 +2040,6 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
     @trace
     @expression
     def select(self, *args, **kwargs):
-        """
-        Analogous to SQL's ``SELECT`.
-
-        Transform a dataframe by selecting old columns and new (computed)
-        columns.
-
-        args - positional string arguments
-            Column names to keep in the projection. A column name of "*" is a
-            shortcut to denote all columns. A column name beginning with "-"
-            means remove this column.
-
-        kwargs - named value arguments
-            New column name expressions to add to the projection
-
-        The special symbol me can  be used to refer to self.
-
-        Examples
-        --------
-        >>> from torcharrow import ta
-        >>> xf = ta.dataframe({
-        >>>    'A': ['a', 'b', 'a', 'b'],
-        >>>    'B': [1, 2, 3, 4],
-        >>>    'C': [10,11,12,13]})
-        >>> xf.select(*xf.columns,D=me['B']+me['C'])
-          index  A      B    C    D
-        -------  ---  ---  ---  ---
-              0  a      1   10   11
-              1  b      2   11   13
-              2  a      3   12   15
-              3  b      4   13   17
-        dtype: Struct([Field('A', string), Field('B', int64), Field('C', int64), Field('D', int64)]), count: 4, null_count: 0
-
-        Using '*' and '-colname':
-
-        >>> xf.select('*','-B',D=me['B']+me['C'])
-          index  A      C    D
-        -------  ---  ---  ---
-              0  a     10   11
-              1  b     11   13
-              2  a     12   15
-              3  b     13   17
-        dtype: Struct([Field('A', string), Field('C', int64), Field('D', int64)]), count: 4, null_count: 0
-        """
-
         input_columns = set(self.columns)
 
         has_star = False
@@ -2363,8 +2391,8 @@ class GroupedDataFrame:
         # a.groupby('a').agg({'b': ['min', 'mean']}) -- applied on
         # TODO
         # a.groupby('a').aggregate( a= me['a'].mean(), b_min =me['b'].min(), b_mean=me['c'].mean()))
-        # f1 = lambda x: x._quantile(0.5); f1.__name__ = "q0.5"
-        # f2 = lambda x: x._quantile(0.75); f2.__name__ = "q0.75"
+        # f1 = lambda x: x.quantile(0.5); f1.__name__ = "q0.5"
+        # f2 = lambda x: x.quantile(0.75); f2.__name__ = "q0.75"
         # a.groupby('a').agg([f1, f2])
 
         res = {}

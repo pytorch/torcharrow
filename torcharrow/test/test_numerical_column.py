@@ -281,6 +281,15 @@ class TestNumericalColumn(unittest.TestCase):
             ((1 == c) == ta.column([False, True, False], device=self.device)).all()
         )
 
+        df = ta.dataframe({"a": [1.0, 2.0, 3.0], "b": [11.0, 22.0, 33.0]})
+        self.assertEqual(
+            list(df["a"] == df), [(True, False), (True, False), (True, False)]
+        )
+
+        self.assertEqual(
+            list(df["a"] != df), [(False, True), (False, True), (False, True)]
+        )
+
         # validate comparing non-equal length columns fails
         with self.assertRaises(TypeError):
             assert c == c.append([None])
@@ -295,6 +304,23 @@ class TestNumericalColumn(unittest.TestCase):
         self.assertEqual(list(c >= d), [False, False, False])
         self.assertEqual(list(c > 2), [False, False, True])
         self.assertEqual(list(c > d), [False, False, False])
+
+        df = ta.dataframe({"a": [1.0, 2.0, 3.0], "b": [1.0, 3.0, 2.0]})
+        self.assertEqual(
+            list(df["a"] < df), [(False, False), (False, True), (False, False)]
+        )
+
+        self.assertEqual(
+            list(df["a"] > df), [(False, False), (False, False), (False, True)]
+        )
+
+        self.assertEqual(
+            list(df["a"] <= df), [(True, True), (True, True), (True, False)]
+        )
+
+        self.assertEqual(
+            list(df["a"] >= df), [(True, True), (True, False), (True, True)]
+        )
 
         # +,-,*,/,//,**,%
 
@@ -469,6 +495,15 @@ class TestNumericalColumn(unittest.TestCase):
         )
         self.assertEqual((C % 2 == 0)[:-1].all(), all(i % 2 == 0 for i in c))
         self.assertEqual((C % 2 == 0)[:-1].any(), any(i % 2 == 0 for i in c))
+
+        self.assertEqual(C.quantile(0.5), np.quantile(c, 0.5))
+        self.assertEqual(
+            C.quantile([0.1, 0.2, 0.9]), np.quantile(c, [0.1, 0.2, 0.9]).tolist()
+        )
+        self.assertEqual(C.percentile(25), np.percentile(c, 25))
+        self.assertEqual(
+            C.percentile([11.1, 22.2]), np.percentile(c, [11.1, 22.2]).tolist()
+        )
 
     def base_test_in_nunique(self):
         c = [1, 4, 2, 7]

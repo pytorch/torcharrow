@@ -770,12 +770,12 @@ class RowColumn : public BaseColumn {
       velox::vector_size_t length)
       : BaseColumn(other, offset, length) {}
 
-  std::unique_ptr<BaseColumn> childAt(velox::ChannelIndex index) {
+  std::unique_ptr<BaseColumn> childAt(velox::column_index_t index) {
     auto dataPtr = _delegate.get()->as<velox::RowVector>();
     return createColumn(dataPtr->childAt(index), _offset, _length);
   }
 
-  void setChild(velox::ChannelIndex index, const BaseColumn& new_child) {
+  void setChild(velox::column_index_t index, const BaseColumn& new_child) {
     auto dataPtr = _delegate.get()->as<velox::RowVector>();
     dataPtr->children()[index] = new_child._delegate;
   }

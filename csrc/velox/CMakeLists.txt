@@ -21,11 +21,20 @@ set(VELOX_ROOT ${CMAKE_BINARY_DIR}/csrc/velox/velox)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Be consistent with Velox CXX_FLAGS: https://github.com/facebookincubator/velox/blob/1bdf9fc2a0ba7e9351cc6d092aa5c0e4e0f78708/CMakeLists.txt#L125-L127
-# velox/common/base/SimdUtil.h requires AVX
-# TODO: only need to retain -mavx2?
+execute_process(
+  COMMAND
+    bash -c
+    "( source ${CMAKE_CURRENT_SOURCE_DIR}/velox/scripts/setup-helper-functions.sh && echo -n $(get_cxx_flags $ENV{CPU_TARGET}))"
+  OUTPUT_VARIABLE SCRIPT_CXX_FLAGS
+  RESULT_VARIABLE COMMAND_STATUS)
+
+if (COMMAND_STATUS EQUAL "1")
+    message(FATAL_ERROR "Unable to determine compiler flags!")
+endif()
+
+message("Setting CMAKE_CXX_FLAGS=${SCRIPT_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -mavx2 -mfma -mavx -mf16c -mbmi2 -mbmi")
+    "${CMAKE_CXX_FLAGS} ${SCRIPT_CXX_FLAGS}")
 
 # Setup CCache
 # Based off on:
@@ -67,7 +76,7 @@ pybind11_add_module(
   VariantToVector.cpp
 )
 
-set(TORCHARROW_COMPILE_DEFINITIONS)
+set(TORCHARROW_COMPILE_DEFINITIONS VELOX_DISABLE_GOOGLETEST)
 
 if(USE_TORCH)
   find_package(Torch REQUIRED)
