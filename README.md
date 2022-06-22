@@ -41,7 +41,7 @@ If you are installing from source, you will need Python 3.7 or later and a C++17
 
 #### Get the TorchArrow Source
 ```bash
-git clone --recursive https://github.com/facebookresearch/torcharrow
+git clone --recursive https://github.com/pytorch/torcharrow
 cd torcharrow
 # if you are updating an existing checkout
 git submodule sync --recursive
@@ -90,9 +90,9 @@ python setup.py install
 
 
 ## Documentation
-You can find the API documentation [here](https://facebookresearch.github.io/torcharrow/)
+You can find the API documentation [here](https://pytorch.org/torcharrow/).
 
-This [10 minutes tutorial](https://github.com/facebookresearch/torcharrow/blob/main/tutorial/tutorial.ipynb) provides a short introduction to TorchArrow, and you can also try it in [this Colab](https://colab.research.google.com/drive/1mQ3S6dwmU-zhBe2Tdvq_VRAnjQ3paiay).
+This [10 minutes tutorial](https://github.com/pytorch/torcharrow/blob/main/tutorial/tutorial.ipynb) provides a short introduction to TorchArrow, and you can also try it in [this Colab](https://colab.research.google.com/drive/1mQ3S6dwmU-zhBe2Tdvq_VRAnjQ3paiay).
 
 ## Examples
 You can find the example about integrating a TorchRec based training loop utilizing TorchArrow's on-the-fly preprocessing
