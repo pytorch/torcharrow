@@ -11,6 +11,7 @@
 #include <velox/functions/Registerer.h>
 #include "numeric_functions.h"
 #include "rec/bucketize.h" // @manual
+#include "rec/clamp_list.h" // @manual
 #include "rec/compute_score.h" // @manual
 #include "rec/firstX.h" // @manual
 #include "rec/sigrid_hash.h" // @manual
@@ -367,6 +368,34 @@ inline void registerTorchArrowFunctions() {
       velox::Array<int64_t>,
       velox::Array<int64_t>,
       velox::Array<float>>({"get_score_max"});
+
+  velox::registerFunction<
+      ClampListFunction,
+      velox::Array<int32_t>,
+      velox::Array<int32_t>,
+      int32_t,
+      int32_t>({"clamp_list"});
+
+  velox::registerFunction<
+      ClampListFunction,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>,
+      int64_t,
+      int64_t>({"clamp_list"});
+
+  velox::registerFunction<
+      ClampListFunction,
+      velox::Array<float>,
+      velox::Array<float>,
+      float,
+      float>({"clamp_list"});
+
+  velox::registerFunction<
+      ClampListFunction,
+      velox::Array<double>,
+      velox::Array<double>,
+      double,
+      double>({"clamp_list"});
 
   // TODO: consider to refactor registration code with helper functions
   // to save some lines, like https://fburl.com/code/dk6zi7t3
