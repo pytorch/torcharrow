@@ -51,7 +51,12 @@ class TestFunctionalCpu(unittest.TestCase):
         # Validate that invoking unknown UDFs errors nicely.
         with self.assertRaises(RuntimeError) as ex:
             assert functional.idontexist(str_col)
-        self.assertEqual(str(ex.exception), "Request for unknown Velox UDF: idontexist")
+        self.assertTrue(str(ex.exception).startswith("Request for unknown Velox UDF: idontexist"))
+
+        # Validate that invoking unknown UDFs with unsupported signatures errors nicely too.
+        with self.assertRaises(RuntimeError) as ex:
+            assert functional.firstx(str_col, 1)
+        self.assertTrue(str(ex.exception).startswith("Velox UDF signature is not supported"))
 
     def test_factory_dispatch(self):
         rand_col = functional.rand(size=42)
