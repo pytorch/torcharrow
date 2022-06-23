@@ -13,14 +13,15 @@ set(
   rec/sigrid_hash.h
   rec/firstX.h
   rec/compute_score.h
+  rec/clamp_list.h
   register_udf.cpp
-  )
+)
 
 set(
   TORCHARROW_UDF_LINK_LIBRARIES
   velox_functions_string
   velox_functions_prestosql
-  )
+)
 set(TORCHARROW_UDF_COMPILE_DEFINITIONS)
 
 if (USE_TORCH)
