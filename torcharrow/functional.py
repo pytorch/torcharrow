@@ -110,6 +110,35 @@ def __getattr__(op_name: str):
     return wrapper
 
 
+### operations in for text domain
+def add_tokens(
+    input_col: Union[ListColumn, List[Union[int, str]]],
+    tokens: Union[ListColumn, List[Union[int, str]]],
+    begin: bool,
+) -> NumericalColumn:
+    """
+    Append or prepend a list of tokens/indices to a column.
+    This is a common operation to add EOS and BOS tokens to text.
+
+    Parameters
+    ----------
+    input_col: List of input tokens/indices
+    tokens: List of tokens/indices to append or prepend
+    begin: Boolean to determine whether to prepend or append the tokens/indices
+
+    Examples
+    --------
+    >>> import torcharrow as ta
+    >>> from torcharrow import functional
+    >>> a = ta.column([[1, 2], [3, 4, 5]])
+    >>> functional.add_tokens(a, [0], begin=True)
+    0  [0, 1, 2]
+    1  [0, 3, 4, 5]
+    dtype: List(Int64(nullable=True), nullable=True), length: 2, null_count: 0
+    """
+    return _dispatch("add_tokens", input_col, tokens, begin)
+
+
 # Velox core functions
 # Not a comprehensive list yet
 def array_constructor(*args) -> ListColumn:

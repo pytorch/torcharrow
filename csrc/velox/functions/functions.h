@@ -16,6 +16,7 @@
 #include "rec/sigrid_hash.h" // @manual
 #include "string_functions.h"
 #ifdef USE_TORCH
+#include "text/add_tokens.h" // @manual
 #include "text/bpe_tokenize.h" // @manual
 #include "text/vocab_ops.h" // @manual
 #endif
@@ -262,6 +263,19 @@ inline void registerTorchArrowFunctions() {
       velox::ArrayWriterT<velox::Varchar>,
       std::shared_ptr<GPT2BPEEncoder>,
       velox::Varchar>({"bpe_tokenize"});
+
+  velox::registerFunction<
+      add_tokens,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>,
+      bool>({"add_tokens"});
+  velox::registerFunction<
+      add_tokens,
+      velox::Array<velox::Varchar>,
+      velox::Array<velox::Varchar>,
+      velox::Array<velox::Varchar>,
+      bool>({"add_tokens"});
 #endif
 
   //   sigrid_hash

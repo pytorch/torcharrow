@@ -115,6 +115,19 @@ class _TestTextOpsBase(unittest.TestCase):
                 ]
             ),
         )
+
+        cls.base_df_add_token = ta.dataframe(
+            {
+                "text": [["Hello", "world"], ["How", "are", "you!"]],
+                "indices": [[1, 2], [3, 4, 5]],
+            },
+            dtype=dt.Struct(
+                fields=[
+                    dt.Field("text", dt.List(dt.string)),
+                    dt.Field("indices", dt.List(dt.int64)),
+                ]
+            ),
+        )
         cls.setUpTestCaseData()
 
     @classmethod
@@ -140,6 +153,30 @@ class _TestTextOpsBase(unittest.TestCase):
         indices = [[1, 2], [3, 4, 5, 0]]
         out_df = functional.lookup_indices(vocab, self.df_vocab["text"])
         self.assertEqual(indices, list(out_df))
+
+    @unittest.skipUnless(
+        pytorch_available and _ta.is_built_with_torch(), "Requires PyTorch"
+    )
+    def test_add_tokens(self):
+        tokens = [
+            ["<bos>", "Hello", "world", "<eos>"],
+            ["<bos>", "How", "are", "you!", "<eos>"],
+        ]
+        indices = [[0, 1, 2, 6], [0, 3, 4, 5, 6]]
+
+        # adding indices
+        out_indices = functional.add_tokens(
+            self.base_df_add_token["indices"], [0], begin=True
+        )
+        out_indices = functional.add_tokens(out_indices, [6], begin=False)
+        self.assertEqual(indices, list(out_indices))
+
+        # adding tokens
+        out_tokens = functional.add_tokens(
+            self.base_df_add_token["text"], ["<bos>"], begin=True
+        )
+        out_tokens = functional.add_tokens(out_tokens, ["<eos>"], begin=False)
+        self.assertEqual(tokens, list(out_tokens))
 
 
 class TestTextOpsCpu(_TestTextOpsBase):
