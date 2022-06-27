@@ -34,7 +34,8 @@ bool is_whitespace(const std::string& input) {
 }
 
 template <class Key_, class Value_>
-c10::Dict<Key_, Value_> _map_to_c10_dict(std::unordered_map<Key_, Value_> m) {
+c10::Dict<Key_, Value_> _map_to_c10_dict(
+    const std::unordered_map<Key_, Value_>& m) {
   c10::Dict<Key_, Value_> d;
   for (const auto& item : m)
     d.insert(item.first, item.second);
@@ -42,14 +43,15 @@ c10::Dict<Key_, Value_> _map_to_c10_dict(std::unordered_map<Key_, Value_> m) {
 }
 
 template <class Key_, class Value_>
-std::unordered_map<Key_, Value_> _c10_dict_to_map(c10::Dict<Key_, Value_> d) {
+std::unordered_map<Key_, Value_> _c10_dict_to_map(
+    const c10::Dict<Key_, Value_>& d) {
   std::unordered_map<Key_, Value_> m;
   for (const auto& item : d)
     m[item.key()] = item.value();
   return m;
 }
 
-std::vector<std::string> gpt2_bpe_pre_tokenizer(std::string input) {
+std::vector<std::string> gpt2_bpe_pre_tokenizer(const std::string& input) {
   // Python implementation:
   // https://github.com/pytorch/fairseq/blob/main/fairseq/data/encoders/gpt2_bpe_utils.py#L69
   // Original regex contains a negative lookahead pattern, which is not
@@ -102,16 +104,16 @@ std::vector<std::string> gpt2_bpe_pre_tokenizer(std::string input) {
 }
 
 std::pair<std::string, std::string> split_tokens(
-    std::string s,
-    std::string delimiter) {
+    const std::string& s,
+    const std::string& delimiter) {
   auto pos = s.find(delimiter);
   TORCH_CHECK(pos != std::string::npos, "Expected `s`to contain `delimiter`");
   return std::make_pair(s.substr(0, pos), s.substr(pos + delimiter.length()));
 }
 
 int list_str_index(
-    std::vector<std::string> list,
-    std::string element,
+    const std::vector<std::string>& list,
+    const std::string& element,
     int start) {
   // Equivalent to: list.index(element, start)
   for (std::size_t i = start; i < list.size(); ++i) {
@@ -130,7 +132,7 @@ std::string concatenate_strings(const std::vector<std::string>& list) {
 }
 
 std::vector<std::string> get_pairs(
-    std::vector<std::string> token_list,
+    const std::vector<std::string>& token_list,
     const std::string& separator) {
   // For example: ["he", "l", "l", "o"]
   //    ==> ["he\u0001l", "l\u0001l", "l\u0001o"]
@@ -175,7 +177,7 @@ GPT2BPEEncoder::GPT2BPEEncoder(
           _map_to_c10_dict<int64_t, std::string>(byte_encoder),
           caching_enabled) {}
 
-std::vector<std::string> GPT2BPEEncoder::ByteEncode_(std::string token) {
+std::vector<std::string> GPT2BPEEncoder::ByteEncode_(const std::string& token) {
   // Equivalent to: (self.byte_encoder[b] for b in token.encode('utf-8')
   std::vector<std::string> encoded;
   for (auto& ch : token) {
@@ -184,14 +186,15 @@ std::vector<std::string> GPT2BPEEncoder::ByteEncode_(std::string token) {
   return encoded;
 }
 
-int64_t GPT2BPEEncoder::GetBPEMergeRank_(std::string pair) {
+int64_t GPT2BPEEncoder::GetBPEMergeRank_(const std::string& pair) {
   if (bpe_merge_ranks_.contains(pair)) {
     return bpe_merge_ranks_.at(pair);
   }
   return inf_;
 }
 
-std::string GPT2BPEEncoder::FindBestPair_(std::vector<std::string> pairs) {
+std::string GPT2BPEEncoder::FindBestPair_(
+    const std::vector<std::string>& pairs) {
   // Equivalent to:
   //    min(pairs, key = lambda pair: self.bpe_merge_ranks.get(pair,
   //    float('inf')))
@@ -277,7 +280,8 @@ std::vector<std::string> GPT2BPEEncoder::BPE_(
   return tok_list;
 }
 
-std::vector<std::string> GPT2BPEEncoder::PreTokenize_(std::string input) {
+std::vector<std::string> GPT2BPEEncoder::PreTokenize_(
+    const std::string& input) {
   return gpt2_bpe_pre_tokenizer(input);
 }
 
@@ -327,8 +331,8 @@ GPT2BPEEncoderStatesTorchbind _serialize_gpt2_bpe_encoder_torchbind(
 }
 
 c10::intrusive_ptr<GPT2BPEEncoder> _deserialize_gpt2_bpe_encoder_pybind(
-    GPT2BPEEncoderStatesPybind states) {
-  auto state_size = std::tuple_size<decltype(states)>::value;
+    const GPT2BPEEncoderStatesPybind& states) {
+  auto state_size = std::tuple_size<GPT2BPEEncoderStatesPybind>::value;
   TORCH_CHECK(
       state_size == 5,
       "Expected deserialized GPT2BPEEncoder to have 5 states but found " +
@@ -342,8 +346,8 @@ c10::intrusive_ptr<GPT2BPEEncoder> _deserialize_gpt2_bpe_encoder_pybind(
 }
 
 c10::intrusive_ptr<GPT2BPEEncoder> _deserialize_gpt2_bpe_encoder_torchbind(
-    GPT2BPEEncoderStatesTorchbind states) {
-  auto state_size = std::tuple_size<decltype(states)>::value;
+    const GPT2BPEEncoderStatesTorchbind& states) {
+  auto state_size = std::tuple_size<GPT2BPEEncoderStatesTorchbind>::value;
   TORCH_CHECK(
       state_size == 5,
       "Expected deserialized GPT2BPEEncoder to have 5 states but found " +
