@@ -42,42 +42,42 @@ typedef std::tuple<
 
 // Applies regex based pre-tokenization step for GPT-2 BPE tokenizer
 // and returns a list of tokens.
-std::vector<std::string> gpt2_bpe_pre_tokenizer(std::string input);
+std::vector<std::string> gpt2_bpe_pre_tokenizer(const std::string& input);
 
 // Concatenate a vector of strings to a single string
 std::string concatenate_strings(const std::vector<std::string>& list);
 
 // Return set of token pairs in a word, separated by the `separator`.
 std::vector<std::string> get_pairs(
-    std::vector<std::string> token_list,
+    const std::vector<std::string>& token_list,
     const std::string& separator);
 
 // Split a string into 2 parts separated by a `separator`.
 std::pair<std::string, std::string> split_tokens(
-    std::string s,
-    std::string delimiter);
+    const std::string& s,
+    const std::string& delimiter);
 
 // Find index of `element` in a list of strings.
 int list_str_index(
-    std::vector<std::string> list,
-    std::string element,
+    const std::vector<std::string>& list,
+    const std::string& element,
     int start);
 
 struct GPT2BPEEncoder : torch::CustomClassHolder {
  private:
   const int64_t inf_;
   // Encode byte into an unicode character.
-  std::vector<std::string> ByteEncode_(std::string token);
-  int64_t GetBPEMergeRank_(std::string pair);
+  std::vector<std::string> ByteEncode_(const std::string& token);
+  int64_t GetBPEMergeRank_(const std::string& pair);
 
  protected:
   c10::Dict<std::string, std::vector<std::string>> cache_;
-  virtual std::vector<std::string> PreTokenize_(std::string input);
+  virtual std::vector<std::string> PreTokenize_(const std::string& input);
   // Return a list of bpe tokens.
   virtual std::vector<std::string> BPE_(
       const std::vector<std::string>& token_list);
   // Return the token pair(e.g bpe merge) with lowest rank.
-  std::string FindBestPair_(std::vector<std::string> pairs);
+  std::string FindBestPair_(const std::vector<std::string>& pairs);
 
  public:
   const c10::Dict<std::string, int64_t> bpe_encoder_;
@@ -122,9 +122,9 @@ GPT2BPEEncoderStatesPybind _serialize_gpt2_bpe_encoder_pybind(
 GPT2BPEEncoderStatesTorchbind _serialize_gpt2_bpe_encoder_torchbind(
     const c10::intrusive_ptr<GPT2BPEEncoder>& self);
 c10::intrusive_ptr<GPT2BPEEncoder> _deserialize_gpt2_bpe_encoder_pybind(
-    GPT2BPEEncoderStatesPybind states);
+    const GPT2BPEEncoderStatesPybind& states);
 c10::intrusive_ptr<GPT2BPEEncoder> _deserialize_gpt2_bpe_encoder_torchbind(
-    GPT2BPEEncoderStatesTorchbind states);
+    const GPT2BPEEncoderStatesTorchbind& states);
 } // namespace facebook::torcharrow::functions
 
 #endif // GPT2_BPE_TOKENIZER_H_
