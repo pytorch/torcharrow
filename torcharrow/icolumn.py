@@ -705,7 +705,7 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
         dtype: boolean, length: 2, null_count: 0
         """
         if columns is not None:
-            raise TypeError(f"columns parameter for flat columns not supported")
+            raise TypeError("columns parameter for flat columns not supported")
 
         if not isinstance(predicate, ty.Iterable) and not callable(predicate):
             raise TypeError(
@@ -1006,8 +1006,6 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
         """
         self._prototype_support_warning("fill_null")
 
-        if not isinstance(fill_value, Column._scalar_types):
-            raise TypeError(f"fill_null with {type(fill_value)} is not supported")
         if isinstance(fill_value, Column._scalar_types):
             res = Scope._EmptyColumn(self.dtype.constructor(nullable=False))
             for m, i in self._items():
@@ -1017,7 +1015,9 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
                     res._append_value(fill_value)
             return res._finalize()
         else:
-            raise TypeError(f"fill_null with {type(fill_value)} is not supported")
+            raise TypeError(
+                f"fill_null with {type(fill_value).__name__} is not supported"
+            )
 
     @trace
     @expression
@@ -1050,7 +1050,7 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
 
         if how is not None:
             # "any or "all" is only used for DataFrame
-            raise TypeError(f"how parameter for flat columns not supported")
+            raise TypeError("how parameter for flat columns not supported")
 
         if dt.is_primitive(self.dtype):
             res = Scope._EmptyColumn(self.dtype.constructor(nullable=False))
@@ -1076,7 +1076,7 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
         # TODO Add functionality for first and last
         assert keep == "first"
         if subset is not None:
-            raise TypeError(f"subset parameter for flat columns not supported")
+            raise TypeError("subset parameter for flat columns not supported")
         res = Scope._EmptyColumn(self._dtype)
         res._extend(list(OrderedDict.fromkeys(self)))
         return res._finalize()

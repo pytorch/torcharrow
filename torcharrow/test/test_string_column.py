@@ -6,6 +6,7 @@
 
 import typing as ty
 import unittest
+from unittest import mock
 
 import torcharrow as ta
 import torcharrow.dtypes as dt
@@ -344,6 +345,226 @@ class TestStringColumn(unittest.TestCase):
                 ["to", "co"],
             ],
         )
+
+    def base_test_is_unique(self):
+        unique_column = ta.column(
+            [f"test{x}" for x in range(3)],
+            device=self.device,
+        )
+
+        self.assertTrue(unique_column.is_unique)
+
+        non_unique_column = ta.column(
+            [
+                "test",
+                "test",
+            ],
+            device=self.device,
+        )
+
+        self.assertFalse(non_unique_column.is_unique)
+
+    def base_test_is_monotonic_increasing(self):
+        c = ta.column([f"test{x}" for x in range(5)], device=self.device)
+        self.assertTrue(c.is_monotonic_increasing)
+        self.assertFalse(c.is_monotonic_decreasing)
+
+    def base_test_is_monotonic_decreasing(self):
+        c = ta.column([f"test{x}" for x in range(5, 0, -1)], device=self.device)
+        self.assertFalse(c.is_monotonic_increasing)
+        self.assertTrue(c.is_monotonic_decreasing)
+
+    def base_test_if_else(self):
+        left_repr = ["a1", "a2", "a3", "a4"]
+        right_repr = ["b1", "b2", "b3", "b4"]
+        cond_repr = [True, False, True, False]
+        cond = ta.column(cond_repr, device=self.device)
+        left = ta.column(left_repr, device=self.device)
+        right = ta.column(right_repr, device=self.device)
+
+        # Ensure py-iterables work as intended
+        expected = [left_repr[0], right_repr[1], left_repr[2], right_repr[3]]
+        result = ta.if_else(cond, left_repr, right_repr)
+        self.assertEqual(expected, list(result))
+
+        # Non common d type
+        with self.assertRaisesRegex(
+            expected_exception=TypeError,
+            expected_regex="then and else branches must have compatible types, got.*and.*, respectively",
+        ), mock.patch("torcharrow.icolumn.dt.common_dtype") as mock_common_dtype:
+            mock_common_dtype.return_value = None
+
+            ta.if_else(cond, left, right)
+
+            mock_common_dtype.assert_called_once_with(
+                left.dtype,
+                right.dtype,
+            )
+
+        with self.assertRaisesRegex(
+            expected_exception=TypeError,
+            expected_regex="then and else branches must have compatible types, got.*and.*, respectively",
+        ), mock.patch(
+            "torcharrow.icolumn.dt.common_dtype"
+        ) as mock_common_dtype, mock.patch(
+            "torcharrow.icolumn.dt.is_void"
+        ) as mock_is_void:
+            mock_is_void.return_value = True
+            mock_common_dtype.return_value = dt.int64
+
+            ta.if_else(cond, left, right)
+            mock_common_dtype.assert_called_once_with(
+                left.dtype,
+                right.dtype,
+            )
+            mock_is_void.assert_called_once_with(mock_common_dtype.return_value)
+
+        # Invalid condition input
+        with self.assertRaisesRegex(
+            expected_exception=TypeError,
+            expected_regex="condition must be a boolean vector",
+        ):
+            ta.if_else(
+                cond=left,
+                left=left,
+                right=right,
+            )
+
+    def base_test_str(self):
+        c = ta.column([f"test{x}" for x in range(5)], device=self.device)
+        c.id = 321
+
+        expected = "Column(['test0', 'test1', 'test2', 'test3', 'test4'], id = 321)"
+        self.assertEqual(expected, str(c))
+
+    def base_test_repr(self):
+        c = ta.column([f"test{x}" for x in range(5)], device=self.device)
+
+        expected = (
+            "0  'test0'\n"
+            "1  'test1'\n"
+            "2  'test2'\n"
+            "3  'test3'\n"
+            "4  'test4'\n"
+            f"dtype: string, length: 5, null_count: 0, device: {self.device}"
+        )
+        self.assertEqual(expected, repr(c))
+
+    def base_test_is_valid_at(self):
+        c = ta.column([f"test{x}" for x in range(5)], device=self.device)
+
+        # Normal access
+        self.assertTrue(all(c.is_valid_at(x) for x in range(5)))
+
+        # Negative access
+        self.assertTrue(c.is_valid_at(-1))
+
+        # Out of bounds access
+        with self.assertRaises(expected_exception=RuntimeError):
+            self.assertFalse(c.is_valid_at(10))
+
+    def base_test_cast(self):
+        c_repr = ["0", "1", "2", "3", "4", None]
+        c_repr_after_cast = [0, 1, 2, 3, 4, None]
+        c = ta.column(c_repr, device=self.device)
+
+        result = c.cast(dt.int64)
+        self.assertEqual(c_repr_after_cast, list(result))
+
+    def base_test_drop_null(self):
+        c_repr = ["0", "1", "2", "3", "4", None]
+        c = ta.column(c_repr, device=self.device)
+
+        result = c.drop_null()
+
+        self.assertEqual(c_repr[:-1], list(result))
+
+        with self.assertRaisesRegex(
+            expected_exception=TypeError,
+            expected_regex="how parameter for flat columns not supported",
+        ):
+            c.drop_null(how="any")
+
+    def base_test_drop_duplicates(self):
+        c_repr = ["test", "test2", "test3", "test"]
+        c = ta.column(c_repr, device=self.device)
+
+        result = c.drop_duplicates()
+
+        self.assertEqual(c_repr[:-1], list(result))
+
+        # TODO: Add functionality for last
+        with self.assertRaises(expected_exception=AssertionError):
+            c.drop_duplicates(keep="last")
+
+        with self.assertRaisesRegex(
+            expected_exception=TypeError,
+            expected_regex="subset parameter for flat columns not supported",
+        ):
+            c.drop_duplicates(subset=c_repr[:2])
+
+    def base_test_fill_null(self):
+        c_repr = ["0", "1", None, "3", "4", None]
+        expected_fill = "TEST"
+        expected_repr = ["0", "1", expected_fill, "3", "4", expected_fill]
+        c = ta.column(c_repr, device=self.device)
+
+        result = c.fill_null(expected_fill)
+
+        self.assertEqual(expected_repr, list(result))
+
+        with self.assertRaisesRegex(
+            expected_exception=TypeError,
+            expected_regex="fill_null with bytes is not supported",
+        ):
+            c.fill_null(expected_fill.encode())
+
+    def base_test_isin(self):
+        c_repr = [f"test{x}" for x in range(5)]
+        c = ta.column(c_repr, device=self.device)
+        self.assertTrue(all(c.isin(values=c_repr + ["test_123"])))
+        self.assertFalse(any(c.isin(values=["test5", "test6", "test7"])))
+
+    def base_test_bool(self):
+        c = ta.column([f"test{x}" for x in range(5)], device=self.device)
+        with self.assertRaisesRegex(
+            expected_exception=ValueError,
+            expected_regex=r"The truth value of a.*is ambiguous. Use a.any\(\) or a.all\(\).",
+        ):
+            bool(c)
+
+    def base_test_flatmap(self):
+        c = ta.column(["test1", "test2", None, None, "test3"], device=self.device)
+        expected_result = [
+            "test1",
+            "test1",
+            "test2",
+            "test2",
+            None,
+            None,
+            None,
+            None,
+            "test3",
+            "test3",
+        ]
+        result = c.flatmap(lambda xs: [xs, xs])
+        self.assertEqual(expected_result, list(result))
+
+    def base_test_any(self):
+        c_some = ta.column(["test1", "test2", None, None, "test3"], device=self.device)
+        c_none = ta.column([], dtype=dt.string, device=self.device)
+        c_none = c_none.append([None])
+        self.assertTrue(any(c_some))
+        self.assertFalse(any(c_none))
+
+    def base_test_all(self):
+        c_all = ta.column(["test", "test2", "test3"], device=self.device)
+        c_partial = ta.column(["test", "test2", None, None], device=self.device)
+        c_none = ta.column([], dtype=dt.string, device=self.device)
+        c_none = c_none.append([None])
+        self.assertTrue(all(c_all))
+        self.assertFalse(all(c_partial))
+        self.assertFalse(all(c_none))
 
 
 if __name__ == "__main__":

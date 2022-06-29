@@ -187,23 +187,6 @@ class StringColumnCpu(ColumnCpuMixin, StringColumn):
     def __ge__(self, other):
         return self._checked_binary_op_call(other, "gte")
 
-    # printing ----------------------------------------------------------------
-
-    def __str__(self):
-        def quote(x):
-            return f"'{x}'"
-
-        return f"Column([{', '.join('None' if i is None else quote(i) for i in self)}])"
-
-    def __repr__(self):
-        tab = tabulate(
-            [["None" if i is None else f"'{i}'"] for i in self],
-            tablefmt="plain",
-            showindex=True,
-        )
-        typ = f"dtype: {self.dtype}, length: {self.length}, null_count: {self.null_count}, device: cpu"
-        return tab + dt.NL + typ
-
     # interop
     def _to_tensor_default(self):
         # there are no string tensors, so we're using regular python list conversion
