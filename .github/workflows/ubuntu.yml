@@ -1,10 +1,11 @@
 name: Ubuntu Build and Test
 on:
   push:
-    branches: [ main ]
+    branches: [ main, fbsync ]
   pull_request:
     branches:
       - main
+      - fbsync
       # For PR created by ghstack
       - gh/*/*/base
 
