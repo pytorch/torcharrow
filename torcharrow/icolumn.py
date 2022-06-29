@@ -269,18 +269,21 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
     # printing ----------------------------------------------------------------
 
     def __str__(self):
-        return f"Column([{', '.join(str(i) for i in self)}], id = {self.id})"
+        item_padding = "'" if dt.is_string(self.dtype) else ""
+        return f"Column([{', '.join(f'{item_padding}{i}{item_padding}' for i in self)}], id = {self.id})"
 
     def __repr__(self):
-        rows = [[l if l is not None else "None"] for l in self]
+        item_padding = "'" if dt.is_string(self.dtype) else ""
+        rows = [
+            [f"{item_padding}{l}{item_padding}" if l is not None else "None"]
+            for l in self
+        ]
         tab = tabulate(
             rows,
             tablefmt="plain",
             showindex=True,
         )
-        typ = (
-            f"dtype: {self._dtype}, length: {len(self)}, null_count: {self.null_count}"
-        )
+        typ = f"dtype: {self._dtype}, length: {len(self)}, null_count: {self.null_count}, device: {self.device}"
         return tab + dt.NL + typ
 
     # selectors/getters -------------------------------------------------------
