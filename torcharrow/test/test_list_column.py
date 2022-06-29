@@ -208,6 +208,23 @@ class TestListColumn(unittest.TestCase):
             f"Unexpected failure reason: {str(ex.exception)}",
         )
 
+    def base_test_cast(self):
+        list_dtype = dt.List(item_dtype=dt.int64, fixed_size=2)
+        c_list = ta.column(
+            [[1, 2], [3, 4]],
+            dtype=list_dtype,
+            device=self.device,
+        )
+
+        int_dtype = dt.int64
+        # TODO: Nested cast should be supported in the future
+        for arg in (int_dtype, list_dtype):
+            with self.assertRaisesRegexp(
+                expected_exception=TypeError,
+                expected_regex=r"List\(int64, fixed_size=2\) for.*is not supported",
+            ):
+                c_list.cast(arg)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -254,8 +254,8 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
                         res._append_value(fun(i))
                 return res._finalize()
             else:
-                raise TypeError('f"{astype}({dtype}) is not supported")')
-        raise TypeError('f"{astype} for {type(self).__name__} is not supported")')
+                raise TypeError(f"{dtype} for {type(self).__name__} is not supported")
+        raise TypeError(f"{self.dtype} for {type(self).__name__} is not supported")
 
     # public simple observers -------------------------------------------------
 
