@@ -83,6 +83,18 @@ class TestNumericalColumnCpu(TestNumericalColumn):
     def test_cast(self):
         return self.base_test_cast()
 
+    def test_str(self):
+        self.base_test_str()
+
+    def test_repr(self):
+        self.base_test_repr()
+
+    def test_to_pandas(self):
+        self.base_test_to_pandas()
+
+    def test_transform(self):
+        self.base_test_transform()
+
 
 if __name__ == "__main__":
     unittest.main()
