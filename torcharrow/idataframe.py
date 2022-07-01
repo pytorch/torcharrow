@@ -425,7 +425,7 @@ class DataFrame(Column):
     # column alnternating
     @trace
     @expression
-    def drop(self, columns: List[str]):
+    def drop(self, columns: Union[str, List[str]]):
         """
         Returns DataFrame without the removed columns.
         """
