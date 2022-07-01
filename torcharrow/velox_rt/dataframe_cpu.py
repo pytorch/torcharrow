@@ -308,6 +308,9 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
             return self
 
     def _check_columns(self, columns: Iterable[str]):
+        if isinstance(columns, str):
+            raise TypeError(f"columns should be Iterable of str but not str")
+
         valid_names = {f.name for f in self.dtype.fields}
         for n in columns:
             if n not in valid_names:
@@ -1597,11 +1600,13 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
     @expression
     def drop_duplicates(
         self,
-        subset: Optional[List[str]] = None,
+        subset: Optional[Union[str, List[str]]] = None,
         keep="first",
     ):
         self._prototype_support_warning("drop_duplicates")
 
+        if isinstance(subset, str):
+            subset = [subset]
         columns = subset if subset is not None else self.columns
         self._check_columns(columns)
 
@@ -1857,7 +1862,9 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
 
     @trace
     @expression
-    def drop(self, columns: List[str]):
+    def drop(self, columns: Union[str, List[str]]):
+        if isinstance(columns, str):
+            columns = [columns]
         self._check_columns(columns)
         return self._fromdata(
             {
@@ -2105,7 +2112,7 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
     @expression
     def groupby(
         self,
-        by: List[str],
+        by: Union[str, List[str]],
         sort=False,
         drop_null=True,
     ):
@@ -2181,6 +2188,8 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
         # TODO implement
         assert not sort
         assert drop_null
+        if isinstance(by, str):
+            by = [by]
         self._check_columns(by)
 
         key_columns = by
