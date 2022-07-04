@@ -293,7 +293,7 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
 
                 return new_data.append(it)
 
-            elif isinstance(value, tuple):
+            elif isinstance(value, (tuple, list)):
                 assert self._data.children_size() == len(value)
                 return self.append(
                     [{f.name: v for f, v in zip(self.dtype.fields, value)}]
