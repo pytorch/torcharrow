@@ -46,6 +46,14 @@ class _TestFunctionalBase(unittest.TestCase):
             ),
         )
 
+        cls.base_if_else_df = ta.dataframe(
+            {
+                "cond": [True, False, True, False],
+                "x": [1, 2, 3, 4],
+                "y": [10, 20, 30, 40],
+            },
+        )
+
         cls.setUpTestCaseData()
 
     @classmethod
@@ -82,6 +90,12 @@ class _TestFunctionalBase(unittest.TestCase):
             [[12], [22, 23], [32]],
         )
 
+    def test_if_else(self):
+        df = self.if_else_df
+        self.assertEqual(
+            list(functional.if_else(df["cond"], df["x"], df["y"])), [1, 20, 3, 40]
+        )
+
     def test_width_bucket(self):
         df = self.width_bucket_df
 
@@ -102,6 +116,7 @@ class TestFunctionalCpu(_TestFunctionalBase):
     @classmethod
     def setUpTestCaseData(cls):
         cls.df1 = cls.base_df1.copy()
+        cls.if_else_df = cls.base_if_else_df.copy()
         cls.width_bucket_df = cls.base_width_bucket_df.copy()
 
 
