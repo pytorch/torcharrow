@@ -25,6 +25,7 @@
 #include "velox/functions/prestosql/registration/RegistrationFunctions.h"
 #include "velox/type/Type.h"
 #include "velox/vector/TypeAliases.h"
+#include "velox/vector/arrow/Abi.h"
 #include "velox/vector/arrow/Bridge.h"
 
 #ifdef USE_TORCH

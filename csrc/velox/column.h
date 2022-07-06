@@ -22,6 +22,7 @@
 #include "velox/vector/BaseVector.h"
 #include "velox/vector/ComplexVector.h"
 #include "velox/vector/FlatVector.h"
+#include "velox/vector/arrow/Abi.h"
 #include "velox/vector/arrow/Bridge.h"
 
 // TODO: Move uses of static variables into .cpp. Static variables are local to
