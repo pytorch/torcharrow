@@ -46,6 +46,9 @@ class TestListColumnCpu(TestListColumn):
     def test_fixed_size_list(self):
         self.base_test_fixed_size_list()
 
+    def test_cast(self):
+        self.base_test_cast()
+
 
 if __name__ == "__main__":
     unittest.main()
