@@ -22,6 +22,15 @@ class TestMapColumnCpu(TestMapColumn):
     def test_keys_values_get(self):
         self.base_test_keys_values_get()
 
+    def test_get_operator(self):
+        self.base_test_get_operator()
+
+    def test_slice_operation(self):
+        self.base_test_slice_operation()
+
+    def test_equality_operators(self):
+        self.base_test_equality_operators()
+
 
 if __name__ == "__main__":
     unittest.main()
