@@ -624,6 +624,12 @@ def infer_dtype_from_value(value):
         for t in value:
             dtypes.append(infer_dtype_from_value(t))
         return prt(value, Tuple(dtypes))
+
+    from torcharrow.velox_rt.dataframe_cpu import DataFrameCpu
+
+    if isinstance(value, DataFrameCpu):
+        return prt(value, List(value.dtype))
+
     raise AssertionError(f"unexpected case {value} of type {type(value)}")
 
 
@@ -729,8 +735,14 @@ def common_dtype(l: DType, r: DType) -> ty.Optional[DType]:
     if is_list(l) and is_list(r):
         k = common_dtype(l.item_dtype, r.item_dtype)
         return List(k).with_null(l.nullable or r.nullable) if k is not None else None
+    if is_struct(l) and is_struct(r):
+        if l.fields == r.fields:
+            return Struct(l.fields, l.nullable or r.nullable)
+        else:
+            return None
     if l.with_null() == r.with_null():
         return l if l.nullable else r
+
     return None
 
 
