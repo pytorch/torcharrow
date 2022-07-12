@@ -368,27 +368,9 @@ class BaseColumn {
 
  public:
   // generic UDF
-  static std::unique_ptr<BaseColumn> genericUnaryUDF(
+  static std::unique_ptr<BaseColumn> genericUDF(
       const std::string& udfName,
-      const BaseColumn& col1);
-
-  static std::unique_ptr<BaseColumn> genericBinaryUDF(
-      const std::string& udfName,
-      const BaseColumn& col1,
-      const BaseColumn& col2);
-
-  static std::unique_ptr<BaseColumn> genericTrinaryUDF(
-      const std::string& udfName,
-      const BaseColumn& col1,
-      const BaseColumn& col2,
-      const BaseColumn& col3);
-
-  static std::unique_ptr<BaseColumn> genericQuaternaryUDF(
-      const std::string& udfName,
-      const BaseColumn& col1,
-      const BaseColumn& col2,
-      const BaseColumn& col3,
-      const BaseColumn& col4);
+      const std::vector<BaseColumn>& cols);
 
   // factory UDF (e.g rand)
   static std::unique_ptr<BaseColumn> factoryNullaryUDF(
