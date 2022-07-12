@@ -36,7 +36,7 @@ class VeloxFunctional(types.ModuleType):
                     # constant value
                     wrapped_args.append(ta.ConstantColumn(arg, length))
 
-            result_col = ta.generic_udf_dispatch(op_name, *wrapped_args)
+            result_col = ta.generic_udf_dispatch(op_name, wrapped_args)
             # Generic dispatch always assumes nullable
             result_dtype = result_col.dtype().with_null(True)
 
