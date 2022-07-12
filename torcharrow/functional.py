@@ -9,6 +9,8 @@ from functools import partial
 from types import ModuleType
 from typing import Dict, List, Optional, Set, Union
 
+import torcharrow.dtypes as dt
+
 from torcharrow.icolumn import Column
 from torcharrow.ilist_column import ListColumn
 from torcharrow.inumerical_column import NumericalColumn
@@ -508,3 +510,20 @@ def scale_to_0_1(col: NumericalColumn) -> NumericalColumn:
     else:
         # TODO: we should add explicit stub to sigmoid
         return sys.modules["torcharrow.functional"].sigmoid(col)
+
+
+def scale_to_z_score(col: NumericalColumn) -> NumericalColumn:
+    """
+    Return the column data scaled to mean 0 and variance 1 (standard deviation 1).
+    Scaling to z-score subtracts out the mean and divides by standard deviation.
+    Note that the standard deviation computed here is based on the biased variance (0 delta degrees of freedom).
+    If input col contains a single distinct value, then the input is returned without scaling.
+    If input col is integral, the output is cast to float32.
+    """
+    assert isinstance(col, NumericalColumn)
+    std = col.std()
+    if std == 0:
+        if dt.is_integer(col.dtype):
+            return col.cast(dt.Float32(col.dtype.nullable))
+        return col
+    return (col - col.mean()) / std

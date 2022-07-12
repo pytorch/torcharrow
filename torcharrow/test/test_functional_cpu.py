@@ -6,6 +6,8 @@
 
 import unittest
 
+import numpy as np
+
 import torcharrow as ta
 import torcharrow._torcharrow
 import torcharrow.dtypes as dt
@@ -95,6 +97,58 @@ class TestFunctionalCpu(unittest.TestCase):
         c = ta.column(["foo", "bar"])
         with self.assertRaises(AssertionError):
             functional.scale_to_0_1(c)
+
+    def test_scale_to_z_score(self):
+        # norm same int
+        c = ta.column([1, 1], device=self.device)
+        self.assertEqual(c.dtype, dt.int64)
+        result = functional.scale_to_z_score(c)
+        self.assertEqual(
+            list(result),
+            [1, 1],
+        )
+        self.assertEqual(result.dtype, dt.float32)
+
+        # norm same double
+        c = ta.column([np.float64(1), np.float64(1)], device=self.device)
+        self.assertEqual(c.dtype, dt.float64)
+        result = functional.scale_to_z_score(c)
+        self.assertEqual(
+            list(result),
+            [1, 1],
+        )
+        self.assertEqual(result.dtype, dt.float64)
+
+        # norm float
+        c = ta.column([1.0, 1.0, 2.0, 2.0], device=self.device)
+        self.assertEqual(
+            list(functional.scale_to_z_score(c)),
+            [
+                -0.866025447845459,
+                -0.866025447845459,
+                0.866025447845459,
+                0.866025447845459,
+            ],
+        )
+
+        # norm int with None
+        c = ta.column([1, 2, 3, None, 4, 5], device=self.device)
+        self.assertEqual(
+            list(functional.scale_to_z_score(c)),
+            [
+                -1.2649110555648804,
+                -0.6324555277824402,
+                0.0,
+                None,
+                0.6324555277824402,
+                1.2649110555648804,
+            ],
+        )
+
+        # test assert
+        c = ta.column(["foo", "bar"])
+        with self.assertRaises(AssertionError):
+            functional.scale_to_z_score(c)
 
 
 if __name__ == "__main__":
