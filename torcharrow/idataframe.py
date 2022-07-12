@@ -274,7 +274,7 @@ class DataFrame(Column):
         >>> df = ta.dataframe({"a": [1,2,None,4],
                                 "b": [5, 6, None, 8]
                                 })
-        >>> df.min()
+        >>> df.log()
         index         a        b
         -------  --------  -------
             0  0         1.60944
@@ -284,6 +284,27 @@ class DataFrame(Column):
         dtype: Struct([Field('a', Float32(nullable=True)), Field('b', Float32(nullable=True))]), count: 4, null_count: 0
         """
         raise self._not_supported("log")
+
+    def abs(self) -> DataFrame:
+        """
+        Return a DataFrame with absolute value of each element.
+
+        Examples
+        --------
+        >>> import torcharrow as ta
+        >>> df = ta.dataframe({"a": [-1,2,None,-4],
+                                "b": [5, -6, None, -8]
+                                })
+        >>> df.abs()
+        index         a        b
+        -------  --------  -------
+            0      1         5
+            1      2         6
+            2
+            3      4         8
+        dtype: Struct([Field('a', Float32(nullable=True)), Field('b', Float32(nullable=True))]), count: 4, null_count: 0
+        """
+        raise self._not_supported("abs")
 
     # aggregation
 
