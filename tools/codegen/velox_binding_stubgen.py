@@ -9,6 +9,8 @@ from __future__ import annotations
 import logging
 import os
 
+import torch  # noqa
+
 from libfb.py.log import set_simple_logging
 from pybind11_stubgen.stubgen import ChdirGuard, ModuleStubsGenerator
 
