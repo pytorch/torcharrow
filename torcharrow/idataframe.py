@@ -274,7 +274,7 @@ class DataFrame(Column):
         >>> df = ta.dataframe({"a": [1,2,None,4],
                                 "b": [5, 6, None, 8]
                                 })
-        >>> df.min()
+        >>> df.log()
         index         a        b
         -------  --------  -------
             0  0         1.60944
