@@ -57,6 +57,54 @@ class TestStringColumnCpu(TestStringColumn):
     def test_regular_expressions(self):
         self.base_test_regular_expressions()
 
+    def test_is_unique(self):
+        self.base_test_is_unique()
+
+    def test_is_monotonic_increasing(self):
+        self.base_test_is_monotonic_increasing()
+
+    def test_is_monotonic_decreasing(self):
+        self.base_test_is_monotonic_decreasing()
+
+    def test_if_else(self):
+        self.base_test_if_else()
+
+    def test_repr(self):
+        self.base_test_repr()
+
+    def test_str(self):
+        self.base_test_str()
+
+    def test_is_valid_at(self):
+        self.base_test_is_valid_at()
+
+    def test_cast(self):
+        self.base_test_cast()
+
+    def test_drop_null(self):
+        self.base_test_drop_null()
+
+    def test_drop_duplicates(self):
+        self.base_test_drop_duplicates()
+
+    def test_fill_null(self):
+        self.base_test_fill_null()
+
+    def test_isin(self):
+        self.base_test_isin()
+
+    def test_bool(self):
+        self.base_test_bool()
+
+    def test_flatmap(self):
+        self.base_test_flatmap()
+
+    def test_any(self):
+        self.base_test_any()
+
+    def test_all(self):
+        self.base_test_all()
+
 
 if __name__ == "__main__":
     unittest.main()

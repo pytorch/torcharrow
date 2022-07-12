@@ -839,9 +839,8 @@ class TestNumericalColumn(unittest.TestCase):
 
     def base_test_str(self):
         c = ta.column(list(range(5)), device=self.device)
-        c.id = 123
 
-        expected = "Column([0, 1, 2, 3, 4], id = 123)"
+        expected = "Column([0, 1, 2, 3, 4])"
         self.assertEqual(expected, str(c))
 
     def base_test_repr(self):
