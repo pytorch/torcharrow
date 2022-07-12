@@ -288,10 +288,30 @@ std::shared_ptr<velox::exec::ExprSet> BaseColumn::genBinaryExprSet(
       std::move(callTypedExprs), &TorchArrowGlobalStatic::execContext());
 }
 
-std::unique_ptr<BaseColumn> BaseColumn::genericUnaryUDF(
+std::unique_ptr<BaseColumn> BaseColumn::genericUDF(
     const std::string& udfName,
-    const BaseColumn& col1) {
-  auto rowType = velox::ROW({"c0"}, {col1.getUnderlyingVeloxVector()->type()});
+    const std::vector<BaseColumn>& cols) {
+  std::shared_ptr<const velox::RowType> rowType(nullptr);
+  std::vector<velox::VectorPtr> colVeloxVector;
+
+  if (cols.size() == 1) {
+    // specialize for arity 1
+    rowType = velox::ROW({"c0"}, {cols[0].getUnderlyingVeloxVector()->type()});
+    colVeloxVector = {cols[0].getUnderlyingVeloxVector()};
+  } else {
+    // general path
+    std::vector<std::string> names;
+    std::vector<std::shared_ptr<const velox::Type>> types;
+
+    int i = 0;
+    for (auto& col : cols) {
+      colVeloxVector.push_back(col.getUnderlyingVeloxVector());
+      names.push_back("c" + std::to_string(i++));
+      types.push_back(col.getUnderlyingVeloxVector()->type());
+    }
+    rowType = velox::ROW(std::move(names), std::move(types));
+  }
+
   GenericUDFDispatchKey key(udfName, rowType->toString());
 
   static std::
@@ -304,90 +324,7 @@ std::unique_ptr<BaseColumn> BaseColumn::genericUnaryUDF(
         dispatchTable.insert({key, OperatorHandle::fromUDF(rowType, udfName)})
             .first;
   }
-  return iter->second->call({col1.getUnderlyingVeloxVector()});
-}
-
-std::unique_ptr<BaseColumn> BaseColumn::genericBinaryUDF(
-    const std::string& udfName,
-    const BaseColumn& col1,
-    const BaseColumn& col2) {
-  auto rowType = velox::ROW(
-      {"c0", "c1"},
-      {col1.getUnderlyingVeloxVector()->type(),
-       col2.getUnderlyingVeloxVector()->type()});
-  GenericUDFDispatchKey key(udfName, rowType->toString());
-
-  static std::
-      unordered_map<GenericUDFDispatchKey, std::unique_ptr<OperatorHandle>>
-          dispatchTable;
-
-  auto iter = dispatchTable.find(key);
-  if (iter == dispatchTable.end()) {
-    iter =
-        dispatchTable.insert({key, OperatorHandle::fromUDF(rowType, udfName)})
-            .first;
-  }
-  return iter->second->call(
-      {col1.getUnderlyingVeloxVector(), col2.getUnderlyingVeloxVector()});
-}
-
-std::unique_ptr<BaseColumn> BaseColumn::genericTrinaryUDF(
-    const std::string& udfName,
-    const BaseColumn& col1,
-    const BaseColumn& col2,
-    const BaseColumn& col3) {
-  auto rowType = velox::ROW(
-      {"c0", "c1", "c2"},
-      {col1.getUnderlyingVeloxVector()->type(),
-       col2.getUnderlyingVeloxVector()->type(),
-       col3.getUnderlyingVeloxVector()->type()});
-  GenericUDFDispatchKey key(udfName, rowType->toString());
-
-  static std::
-      unordered_map<GenericUDFDispatchKey, std::unique_ptr<OperatorHandle>>
-          dispatchTable;
-
-  auto iter = dispatchTable.find(key);
-  if (iter == dispatchTable.end()) {
-    iter =
-        dispatchTable.insert({key, OperatorHandle::fromUDF(rowType, udfName)})
-            .first;
-  }
-  return iter->second->call(
-      {col1.getUnderlyingVeloxVector(),
-       col2.getUnderlyingVeloxVector(),
-       col3.getUnderlyingVeloxVector()});
-}
-
-std::unique_ptr<BaseColumn> BaseColumn::genericQuaternaryUDF(
-    const std::string& udfName,
-    const BaseColumn& col1,
-    const BaseColumn& col2,
-    const BaseColumn& col3,
-    const BaseColumn& col4) {
-  auto rowType = velox::ROW(
-      {"c0", "c1", "c2", "c3"},
-      {col1.getUnderlyingVeloxVector()->type(),
-       col2.getUnderlyingVeloxVector()->type(),
-       col3.getUnderlyingVeloxVector()->type(),
-       col4.getUnderlyingVeloxVector()->type()});
-  GenericUDFDispatchKey key(udfName, rowType->toString());
-
-  static std::
-      unordered_map<GenericUDFDispatchKey, std::unique_ptr<OperatorHandle>>
-          dispatchTable;
-
-  auto iter = dispatchTable.find(key);
-  if (iter == dispatchTable.end()) {
-    iter =
-        dispatchTable.insert({key, OperatorHandle::fromUDF(rowType, udfName)})
-            .first;
-  }
-  return iter->second->call(
-      {col1.getUnderlyingVeloxVector(),
-       col2.getUnderlyingVeloxVector(),
-       col3.getUnderlyingVeloxVector(),
-       col4.getUnderlyingVeloxVector()});
+  return iter->second->call(colVeloxVector);
 }
 
 std::unique_ptr<BaseColumn> BaseColumn::factoryNullaryUDF(

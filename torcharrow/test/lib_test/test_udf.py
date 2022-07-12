@@ -43,41 +43,41 @@ class TestSimpleColumns(unittest.TestCase):
         data = ["abc", "ABC", "XYZ123", None, "xYZ", "123", "äöå"]
         col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
 
-        lcol = ta.generic_udf_dispatch("lower", col)
+        lcol = ta.generic_udf_dispatch("lower", [col])
         self.assert_SimpleColumn(
             lcol, ["abc", "abc", "xyz123", None, "xyz", "123", "äöå"]
         )
 
-        ucol = ta.generic_udf_dispatch("upper", col)
+        ucol = ta.generic_udf_dispatch("upper", [col])
         self.assert_SimpleColumn(
             ucol, ["ABC", "ABC", "XYZ123", None, "XYZ", "123", "ÄÖÅ"]
         )
 
-        lcol2 = ta.generic_udf_dispatch("lower", ucol)
+        lcol2 = ta.generic_udf_dispatch("lower", [ucol])
         self.assert_SimpleColumn(
             lcol2, ["abc", "abc", "xyz123", None, "xyz", "123", "äöå"]
         )
 
-        ucol2 = ta.generic_udf_dispatch("upper", lcol)
+        ucol2 = ta.generic_udf_dispatch("upper", [lcol])
         self.assert_SimpleColumn(
             ucol2, ["ABC", "ABC", "XYZ123", None, "XYZ", "123", "ÄÖÅ"]
         )
 
-        alpha = ta.generic_udf_dispatch("torcharrow_isalpha", col)
+        alpha = ta.generic_udf_dispatch("torcharrow_isalpha", [col])
         self.assert_SimpleColumn(alpha, [True, True, False, None, True, False, True])
 
-        alnum = ta.generic_udf_dispatch("torcharrow_isalnum", col)
+        alnum = ta.generic_udf_dispatch("torcharrow_isalnum", [col])
         self.assert_SimpleColumn(alnum, [True, True, True, None, True, True, True])
 
-        digit = ta.generic_udf_dispatch("torcharrow_isdecimal", col)
+        digit = ta.generic_udf_dispatch("torcharrow_isdecimal", [col])
         self.assert_SimpleColumn(digit, [False, False, False, None, False, True, False])
 
-        islower = ta.generic_udf_dispatch("torcharrow_islower", col)
+        islower = ta.generic_udf_dispatch("torcharrow_islower", [col])
         self.assert_SimpleColumn(
             islower, [True, False, False, None, False, False, True]
         )
 
-        isupper = ta.generic_udf_dispatch("torcharrow_isupper", col)
+        isupper = ta.generic_udf_dispatch("torcharrow_isupper", [col])
         self.assert_SimpleColumn(
             isupper, [False, True, True, None, False, False, False]
         )
@@ -85,20 +85,19 @@ class TestSimpleColumns(unittest.TestCase):
         data2 = [1, 2, 3, None, 5, None, -7]
         col2 = self.construct_simple_column(ta.VeloxType_BIGINT(), data2)
 
-        neg = ta.generic_udf_dispatch("negate", col2)
+        neg = ta.generic_udf_dispatch("negate", [col2])
         self.assert_SimpleColumn(neg, [-1, -2, -3, None, -5, None, 7])
 
         data3 = ["\n", "a", "\t", "76", " ", None]
         col3 = self.construct_simple_column(ta.VeloxType_VARCHAR(), data3)
-        isspace = ta.generic_udf_dispatch("torcharrow_isspace", col3)
+        isspace = ta.generic_udf_dispatch("torcharrow_isspace", [col3])
         self.assert_SimpleColumn(isspace, [True, False, True, False, True, None])
 
         data4 = ["a b c", "d,e,f"]
         col4 = self.construct_simple_column(ta.VeloxType_VARCHAR(), data4)
         splits = ta.generic_udf_dispatch(
             "split",
-            col4,
-            ta.ConstantColumn(" ", len(data4)),
+            [col4, ta.ConstantColumn(" ", len(data4))],
         )
         expected = [["a", "b", "c"], ["d,e,f"]]
         self.assertEqual(len(splits), len(expected))
@@ -109,8 +108,7 @@ class TestSimpleColumns(unittest.TestCase):
         col1 = self.construct_simple_column(ta.VeloxType_BIGINT(), [1, 2, None, 3])
         result = ta.generic_udf_dispatch(
             "coalesce",
-            col1,
-            ta.ConstantColumn(42, len(col1)),
+            [col1, ta.ConstantColumn(42, len(col1))],
         )
         self.assert_SimpleColumn(result, [1, 2, 42, 3])
         self.assertTrue(isinstance(result.type(), ta.VeloxType_BIGINT))
@@ -118,8 +116,7 @@ class TestSimpleColumns(unittest.TestCase):
         col2 = self.construct_simple_column(ta.VeloxType_INTEGER(), [1, 2, None, 3])
         result = ta.generic_udf_dispatch(
             "coalesce",
-            col2,
-            ta.ConstantColumn(42, len(col2), ta.VeloxType_INTEGER()),
+            [col2, ta.ConstantColumn(42, len(col2), ta.VeloxType_INTEGER())],
         )
         self.assert_SimpleColumn(result, [1, 2, 42, 3])
         self.assertTrue(isinstance(result.type(), ta.VeloxType_INTEGER))
@@ -131,15 +128,13 @@ class TestSimpleColumns(unittest.TestCase):
 
         match = ta.generic_udf_dispatch(
             "match_re",
-            col,
-            ta.ConstantColumn("[a-z]\\d", 6),
+            [col, ta.ConstantColumn("[a-z]\\d", 6)],
         )
         self.assert_SimpleColumn(match, [False, True, True, True, False, None])
 
         search = ta.generic_udf_dispatch(
             "regexp_like",
-            col,
-            ta.ConstantColumn("[a-z]\\d", 6),
+            [col, ta.ConstantColumn("[a-z]\\d", 6)],
         )
         self.assert_SimpleColumn(search, [False, True, True, True, True, None])
 
@@ -147,8 +142,7 @@ class TestSimpleColumns(unittest.TestCase):
         col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
         extract = ta.generic_udf_dispatch(
             "regexp_extract_all",
-            col,
-            ta.ConstantColumn("([a-z])\\d", 5),
+            [col, ta.ConstantColumn("([a-z])\\d", 5)],
         )
         expected = [["d4", "e5"], ["a1"], ["b2"], ["c3"], ["d4", "f6"]]
         self.assertEqual(len(extract), len(expected))
@@ -158,7 +152,7 @@ class TestSimpleColumns(unittest.TestCase):
     def test_lower(self) -> None:
         data = ["abc", "ABC", "XYZ123", None, "xYZ", "123", "äöå"]
         col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
-        lcol = ta.generic_udf_dispatch("lower", col)
+        lcol = ta.generic_udf_dispatch("lower", [col])
         self.assert_SimpleColumn(
             lcol, ["abc", "abc", "xyz123", None, "xyz", "123", "äöå"]
         )
@@ -177,7 +171,7 @@ class TestSimpleColumns(unittest.TestCase):
             None,
         ]
         col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
-        istitle = ta.generic_udf_dispatch("torcharrow_istitle", col)
+        istitle = ta.generic_udf_dispatch("torcharrow_istitle", [col])
         self.assert_SimpleColumn(
             istitle,
             [
@@ -204,14 +198,14 @@ class TestSimpleColumns(unittest.TestCase):
             "A1B2",
         ]
         col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
-        istitle = ta.generic_udf_dispatch("torcharrow_istitle", col)
+        istitle = ta.generic_udf_dispatch("torcharrow_istitle", [col])
         self.assert_SimpleColumn(istitle, [True, True, True, True, True, True, True])
 
     def test_isnumeric(self) -> None:
         # All False
         data = ["-1", "1.5", "+2", "abc", "AA", "VIII", "1/3", None]
         col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
-        lcol = ta.generic_udf_dispatch("torcharrow_isnumeric", col)
+        lcol = ta.generic_udf_dispatch("torcharrow_isnumeric", [col])
         self.assert_SimpleColumn(
             lcol, [False, False, False, False, False, False, False, None]
         )
@@ -219,7 +213,7 @@ class TestSimpleColumns(unittest.TestCase):
         # All True
         data = ["9876543210123456789", "ⅧⅪ", "ⅷ〩𐍁ᛯ", "᧖७𝟡௫６", "¼⑲⑹⓲➎㉏𐧯"]
         col = self.construct_simple_column(ta.VeloxType_VARCHAR(), data)
-        lcol = ta.generic_udf_dispatch("torcharrow_isnumeric", col)
+        lcol = ta.generic_udf_dispatch("torcharrow_isnumeric", [col])
         self.assert_SimpleColumn(lcol, [True, True, True, True, True])
 
     def test_trinary(self) -> None:
@@ -229,9 +223,7 @@ class TestSimpleColumns(unittest.TestCase):
         # substr, 3 parameters
         substr = ta.generic_udf_dispatch(
             "substr",
-            col,
-            ta.ConstantColumn(2, 7),  # start
-            ta.ConstantColumn(2, 7),  # length
+            [col, ta.ConstantColumn(2, 7), ta.ConstantColumn(2, 7)],  # start  # length
         )
         self.assert_SimpleColumn(substr, ["bc", "BC", "YZ", None, "YZ", "23", "öå"])
 
@@ -243,7 +235,7 @@ class TestSimpleColumns(unittest.TestCase):
         bucketCount = self.construct_simple_column(ta.VeloxType_BIGINT(), [3, 3, 4])
 
         widthBucket = ta.generic_udf_dispatch(
-            "width_bucket", x, bound1, bound2, bucketCount
+            "width_bucket", [x, bound1, bound2, bucketCount]
         )
         self.assert_SimpleColumn(widthBucket, [3, 2, 0])
 
