@@ -26,7 +26,7 @@ jobs:
         run: |
           pip3 install --upgrade pip
           source /opt/conda/etc/profile.d/conda.sh
-          PYTHON_VERSION=${{ matrix.python-version }} CPU_TARGET="sse" packaging/build_wheel.sh
+          BUILD_VERSION=0.1.0 PYTHON_VERSION=${{ matrix.python-version }} CPU_TARGET="sse" packaging/build_wheel.sh
           conda activate env${{ matrix.python-version }}
           pip3 install auditwheel
           auditwheel repair dist/*.whl -w fixed_dist --plat manylinux2014_x86_64
@@ -86,7 +86,7 @@ jobs:
           pip3 install --upgrade pip
           MACOSX_DEPLOYMENT_TARGET=10.15 CPU_TARGET="sse" ./csrc/velox/velox/scripts/setup-macos.sh
           pip install wheel
-          CPU_TARGET="sse" ./packaging/build_wheel.sh
+          BUILD_VERSION=0.1.0 CPU_TARGET="sse" ./packaging/build_wheel.sh
           pip install delocate
           delocate-wheel dist/*.whl -w fixed_dist
 
