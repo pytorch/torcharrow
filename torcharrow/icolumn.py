@@ -1422,34 +1422,6 @@ class Column(ty.Sized, ty.Iterable, abc.ABC):
 
     @trace
     @expression
-    def _nlargest(
-        self,
-        n=5,
-        columns: ty.Optional[ty.List[str]] = None,
-        keep: ty.Literal["last", "first"] = "first",
-    ):
-        """Returns a new data of the *n* largest element."""
-        # keep="all" not supported
-        if columns is not None:
-            raise TypeError(
-                "computing n-largest on non-structured column can't have 'columns' parameter"
-            )
-        return self.sort(ascending=False).head(n)
-
-    @trace
-    @expression
-    def _nsmallest(self, n=5, columns: ty.Optional[ty.List[str]] = None, keep="first"):
-        """Returns a new data of the *n* smallest element."""
-        # keep="all" not supported
-        if columns is not None:
-            raise TypeError(
-                "computing n-smallest on non-structured column can't have 'columns' parameter"
-            )
-
-        return self.sort(ascending=True).head(n)
-
-    @trace
-    @expression
     def _nunique(self, drop_null=True):
         """Returns the number of unique values of the column"""
         if not drop_null:
