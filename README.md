@@ -31,7 +31,7 @@ The following is the corresponding `torcharrow` versions and supported Python ve
 | `torch`            | `torcharrow`        | `python`          |
 | ------------------ | ------------------ | ----------------- |
 | `main` / `nightly` | `main` / `nightly` | `>=3.7`, `<=3.10` |
-| `1.12.0`           | `0.1.0`            | `>=3.7`, `<=3.10` |
+| `1.12.0` /  `1.13.0`| `0.1.0` / `0.2.0` | `>=3.7`, `<=3.10` |
 
 
 ### Colab
