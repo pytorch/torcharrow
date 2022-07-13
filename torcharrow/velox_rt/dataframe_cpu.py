@@ -617,29 +617,6 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
             res._extend([None] * self.null_count)
         return res._finalize()
 
-    @trace
-    @expression
-    def _nlargest(
-        self,
-        n=5,
-        columns: Optional[List[str]] = None,
-        keep="first",
-    ):
-        """Returns a new dataframe of the *n* largest elements."""
-        # Todo add keep arg
-        return self.sort(by=columns, ascending=False).head(n)
-
-    @trace
-    @expression
-    def _nsmallest(
-        self,
-        n=5,
-        columns: Optional[List[str]] = None,
-        keep="first",
-    ):
-        """Returns a new dataframe of the *n* smallest elements."""
-        return self.sort(by=columns, ascending=True).head(n)
-
     # operators --------------------------------------------------------------
 
     @expression

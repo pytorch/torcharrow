@@ -195,30 +195,6 @@ class NumericalColumnCpu(ColumnCpuMixin, NumericalColumn):
 
     @trace
     @expression
-    def _nlargest(
-        self,
-        n=5,
-        columns: Optional[List[str]] = None,
-        keep="first",
-    ):
-        if columns is not None:
-            raise TypeError(
-                "computing n-largest on numerical column can't have 'columns' parameter"
-            )
-        return self.sort(columns=None, ascending=False, na_position=keep).head(n)
-
-    @trace
-    @expression
-    def _nsmallest(self, n=5, columns: Optional[List[str]] = None, keep="first"):
-        if columns is not None:
-            raise TypeError(
-                "computing n-smallest on numerical column can't have 'columns' parameter"
-            )
-
-        return self.sort(columns=None, ascending=True, na_position=keep).head(n)
-
-    @trace
-    @expression
     def _nunique(self, drop_null=True):
         self._prototype_support_warning("_nunique")
 
