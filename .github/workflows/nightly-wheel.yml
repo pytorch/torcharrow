@@ -20,6 +20,7 @@ jobs:
           - 3.7
           - 3.8
           - 3.9
+          - "3.10"
     steps:
       - name: Print CPU info
         run: cat /proc/cpuinfo
@@ -64,6 +65,7 @@ jobs:
           - 3.7
           - 3.8
           - 3.9
+          - "3.10"
     steps:
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
