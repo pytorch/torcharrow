@@ -21,7 +21,7 @@ jobs:
 
       - name: Install TorchArrow
         run: |
-          pip install --pre torcharrow -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
+          pip install torcharrow
 
       - name: Build the docs
         run: |
