@@ -9,6 +9,9 @@ on:
       AWS_PYTORCH_UPLOADER_SECRET_ACCESS_KEY:
         required: true
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
   linux-container:
     runs-on: ubuntu-latest
@@ -22,9 +25,6 @@ jobs:
           - 3.9
           - "3.10"
     steps:
-      - name: Print CPU info
-        run: cat /proc/cpuinfo
-
       - name: Check out source repository
         uses: actions/checkout@v2
         with:
@@ -55,6 +55,29 @@ jobs:
           for pkg in fixed_dist/torcharrow*.whl; do
               ~/.local/bin/aws s3 cp "$pkg" "$S3_PATH" --acl public-read
           done
+
+      # We only run this part on ubuntu wheel build for python 3.7,
+      # since we only need to deploy the doc once.
+      - name: Install TorchArrow and build docs
+        if: matrix.python-version == '3.7'
+        run: |
+          source /opt/conda/etc/profile.d/conda.sh
+          conda activate env${{ matrix.python-version }}
+          pip install fixed_dist/*.whl
+          cd ./docs
+          pip install -r requirements.txt --user
+          PATH=${PATH}:~/.local/bin
+          make html
+          cd ..
+
+      - name: Deploy Docs on Push
+        if: matrix.python-version == '3.7'
+        uses: JamesIves/github-pages-deploy-action@v4.2.5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages # The branch the action should deploy to.
+          folder: docs/build/html # The folder the action should deploy.
+          target-folder: main
 
   macos-container:
     runs-on: macos-latest
