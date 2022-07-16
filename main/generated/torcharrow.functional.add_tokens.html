@@ -10,7 +10,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>torcharrow.Column.transform &mdash; TorchArrow main documentation</title>
+  <title>torcharrow.functional.add_tokens &mdash; TorchArrow main documentation</title>
   
 
   
@@ -32,8 +32,8 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="torcharrow.Column.fill_null" href="torcharrow.Column.fill_null.html" />
-    <link rel="prev" title="torcharrow.Column.flatmap" href="torcharrow.Column.flatmap.html" />
+    <link rel="next" title="torcharrow.functional.bucketize" href="torcharrow.functional.bucketize.html" />
+    <link rel="prev" title="torcharrow.functional" href="../functional.html" />
   <!-- Google Analytics -->
   
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-117752657-2"></script>
@@ -238,9 +238,9 @@
               <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../torcharrow.html">torcharrow</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../column.html">torcharrow.Column</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../column.html">torcharrow.Column</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../dataframe.html">torcharrow.DataFrame</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../functional.html">torcharrow.functional</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../functional.html">torcharrow.functional</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">PyTorch Libraries</span></p>
 <ul>
@@ -292,15 +292,15 @@
       </li>
 
         
-          <li><a href="../column.html">torcharrow.Column</a> &gt;</li>
+          <li><a href="../functional.html">torcharrow.functional</a> &gt;</li>
         
-      <li>torcharrow.Column.transform</li>
+      <li>torcharrow.functional.add_tokens</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/generated/torcharrow.Column.transform.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/generated/torcharrow.functional.add_tokens.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -326,16 +326,32 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
-  <section id="torcharrow-column-transform">
-<h1>torcharrow.Column.transform<a class="headerlink" href="#torcharrow-column-transform" title="Permalink to this heading">¶</a></h1>
-<dl class="py method">
-<dt class="sig sig-object py" id="torcharrow.Column.transform">
-<span class="sig-prename descclassname"><span class="pre">Column.</span></span><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">DType</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'column'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torcharrow.Column.transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Like map() but invokes the callable on mini-batches of rows at a time.
-The column is passed to the callable as TorchArrow column by default.
-If <cite>format=’python’</cite> the input is converted to python types instead.
-If <cite>format=’torch’</cite> the input is converted to PyTorch types
-dtype required if result type != item type and the type hint is missing on the callable.</p>
+  <section id="torcharrow-functional-add-tokens">
+<h1>torcharrow.functional.add_tokens<a class="headerlink" href="#torcharrow-functional-add-tokens" title="Permalink to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="torcharrow.functional.add_tokens">
+<span class="sig-prename descclassname"><span class="pre">torcharrow.functional.</span></span><span class="sig-name descname"><span class="pre">add_tokens</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">ListColumn</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokens</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">ListColumn</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">begin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">NumericalColumn</span></span></span><a class="headerlink" href="#torcharrow.functional.add_tokens" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append or prepend a list of tokens/indices to a column.
+This is a common operation to add EOS and BOS tokens to text.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_col</strong> (<em>List of input tokens/indices</em>) – </p></li>
+<li><p><strong>tokens</strong> (<em>List of tokens/indices to append</em><em> or </em><em>prepend</em>) – </p></li>
+<li><p><strong>begin</strong> (<em>Boolean to determine whether to prepend</em><em> or </em><em>append the tokens/indices</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">torcharrow</span> <span class="k">as</span> <span class="nn">ta</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">torcharrow</span> <span class="kn">import</span> <span class="n">functional</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">ta</span><span class="o">.</span><span class="n">column</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">functional</span><span class="o">.</span><span class="n">add_tokens</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">begin</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="go">0  [0, 1, 2]</span>
+<span class="go">1  [0, 3, 4, 5]</span>
+<span class="go">dtype: List(Int64(nullable=True), nullable=True), length: 2, null_count: 0</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -348,10 +364,10 @@ dtype required if result type != item type and the type hint is missing on the c
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="torcharrow.Column.fill_null.html" class="btn btn-neutral float-right" title="torcharrow.Column.fill_null" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-orange.svg" class="next-page"></a>
+        <a href="torcharrow.functional.bucketize.html" class="btn btn-neutral float-right" title="torcharrow.functional.bucketize" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-orange.svg" class="next-page"></a>
       
       
-        <a href="torcharrow.Column.flatmap.html" class="btn btn-neutral" title="torcharrow.Column.flatmap" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
+        <a href="../functional.html" class="btn btn-neutral" title="torcharrow.functional" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
       
     </div>
   
@@ -383,7 +399,7 @@ dtype required if result type != item type and the type hint is missing on the c
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">torcharrow.Column.transform</a></li>
+<li><a class="reference internal" href="#">torcharrow.functional.add_tokens</a></li>
 </ul>
 
             </div>

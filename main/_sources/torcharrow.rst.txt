@@ -4,8 +4,8 @@ torcharrow
 ==========================
 
 The torcharrow package contains data structures for two-dimensional, potentially heterogeneous tabular data,
-denoted as dataframe. 
-It also defines relational operations over these dataframes. 
+denoted as dataframe.
+It also defines relational operations over these dataframes.
 Additionally, it provides utilities for conversion with other formats (especially zero-copy conversion with Arrow arrays),
 and other useful utilities.
 
@@ -28,4 +28,3 @@ Mutating Ops
 
     concat
     if_else
-
