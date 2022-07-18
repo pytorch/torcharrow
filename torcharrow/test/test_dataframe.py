@@ -913,20 +913,17 @@ class TestDataFrame(unittest.TestCase):
         )
         self.assertEqual(list(df.select("*", d=me["a"] + me["b"])), list(gf))
 
-
     def base_test_groupby_str(self):
         df = ta.dataframe(
             {"a": [1, 1, 2], "b": [1, 2, 3], "c": [2, 2, 1]}, device=self.device
         )
         self.assertEqual(list(df.groupby("a").size), [(1, 2), (2, 1)])
 
-
     def base_test_groupby_list_of_str(self):
         df = ta.dataframe(
             {"a": [1, 1, 2], "b": [1, 2, 3], "c": [2, 2, 1]}, device=self.device
         )
         self.assertEqual(list(df.groupby(["a"]).size), [(1, 2), (2, 1)])
-
 
     def base_test_groupby_size_pipe(self):
         df = ta.dataframe(
