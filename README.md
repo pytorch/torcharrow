@@ -24,6 +24,16 @@ conda create --name torcharrow python=3.7
 conda activate torcharrow
 ```
 
+### Version Compatibility
+
+The following is the corresponding `torcharrow` versions and supported Python versions.
+
+| `torch`            | `torcharrow`        | `python`          |
+| ------------------ | ------------------ | ----------------- |
+| `main` / `nightly` | `main` / `nightly` | `>=3.7`, `<=3.10` |
+| `1.13.0`           | `0.2.0`            | `>=3.7`, `<=3.10` |
+
+
 ### Colab
 
 Follow the instructions [in this Colab notebook](https://colab.research.google.com/drive/1S0ldwN7qNM37E4WZnnAEnzn1DWnAQ6Vt)

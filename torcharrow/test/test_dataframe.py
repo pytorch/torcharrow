@@ -833,6 +833,24 @@ class TestDataFrame(unittest.TestCase):
             ],
         )
 
+    def base_test_drop_by_str_as_columns(self):
+        df = ta.dataframe(device=self.device)
+        df["aa"] = [1, 2, 3]
+        df["ab"] = [11, 22, 33]
+        df["ac"] = [111, 222, 333]
+        self.assertEqual(list(df.drop("aa")), [(11, 111), (22, 222), (33, 333)])
+        self.assertEqual(list(df.drop("ab")), [(1, 111), (2, 222), (3, 333)])
+        self.assertEqual(list(df.drop("ac")), [(1, 11), (2, 22), (3, 33)])
+
+    def base_test_drop_by_list_of_str_as_columns(self):
+        df = ta.dataframe(device=self.device)
+        df["aa"] = [1, 2, 3]
+        df["ab"] = [11, 22, 33]
+        df["ac"] = [111, 222, 333]
+        self.assertEqual(list(df.drop(["aa", "ab"])), [(111,), (222,), (333,)])
+        self.assertEqual(list(df.drop(["aa", "ac"])), [(11,), (22,), (33,)])
+        self.assertEqual(list(df.drop(["ab", "ac"])), [(1,), (2,), (3,)])
+
     def base_test_drop_keep_rename_reorder_pipe(self):
         df = ta.dataframe(device=self.device)
         df["a"] = [1, 2, 3]
@@ -894,6 +912,18 @@ class TestDataFrame(unittest.TestCase):
             {"a": df["a"], "b": df["b"], "c": df["a"] + df["b"]}, device=self.device
         )
         self.assertEqual(list(df.select("*", d=me["a"] + me["b"])), list(gf))
+
+    def base_test_groupby_str(self):
+        df = ta.dataframe(
+            {"a": [1, 1, 2], "b": [1, 2, 3], "c": [2, 2, 1]}, device=self.device
+        )
+        self.assertEqual(list(df.groupby("a").size), [(1, 2), (2, 1)])
+
+    def base_test_groupby_list_of_str(self):
+        df = ta.dataframe(
+            {"a": [1, 1, 2], "b": [1, 2, 3], "c": [2, 2, 1]}, device=self.device
+        )
+        self.assertEqual(list(df.groupby(["a"]).size), [(1, 2), (2, 1)])
 
     def base_test_groupby_size_pipe(self):
         df = ta.dataframe(
