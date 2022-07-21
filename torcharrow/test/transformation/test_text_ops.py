@@ -140,7 +140,7 @@ class _TestTextOpsBase(unittest.TestCase):
     @unittest.skipUnless(
         pytorch_available and _ta.is_built_with_torch(), "Requires PyTorch"
     )
-    def test_bpe_encode(self):
+    def test_bpe_tokenize(self):
         out_df = functional.bpe_tokenize(self.tokenizer, self.df_bpe["text"])
         self.assertEqual(list(out_df), list(self.df_bpe["tokens"]))
 
