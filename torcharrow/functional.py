@@ -4,12 +4,14 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
+from msilib.schema import Error
 import sys
 from functools import partial
 from types import ModuleType
 from typing import Dict, List, Optional, Set, Union
 
 import torcharrow.dtypes as dt
+import torcharrow._torcharrow as _ta
 
 from torcharrow.icolumn import Column
 from torcharrow.ilist_column import ListColumn
@@ -121,6 +123,7 @@ def add_tokens(
     """
     Append or prepend a list of tokens/indices to a column.
     This is a common operation to add EOS and BOS tokens to text.
+    Note: this method is only available if torcharrow is built from source with the `USE_TORCH` flag enabled.
 
     Parameters
     ----------
@@ -138,6 +141,10 @@ def add_tokens(
     1  [0, 3, 4, 5]
     dtype: List(Int64(nullable=True), nullable=True), length: 2, null_count: 0
     """
+    if not _ta.is_built_with_torch():
+        raise Exception(
+            "This functionality requires TorchArrow to be built with PyTorch. Please install the library from source with the `USE_TORCH` flag enabled."
+        )
     return _dispatch("add_tokens", input_col, tokens, begin)
 
 
@@ -147,17 +154,19 @@ def bpe_tokenize(
 ) -> ListColumn:
     """
     Tokenize text into a list of tokens using the GPT-2 BPE Tokenizer
+    Note: this method is only available if torcharrow is built from source with the `USE_TORCH` flag enabled.
 
     Parameters
     ----------
-    tokenizer: An instance of the `GPT2BPEEncoder` class
+    tokenizer: An instance of the `torcharrow._torcharrow.GPT2BPEEncoder` class
     input_col: List of input text
 
     Examples
     --------
     >>> import torcharrow as ta
     >>> from torcharrow import functional
-    >>> # init_bpe_encoder() is helper function that creates an instance of the `GPT2BPEEncoder` class
+    >>> # init_bpe_encoder() is helper function that creates an instance of the `torcharrow._torcharrow.GPT2BPEEncoder` class
+    >>> # reference https://github.com/pytorch/torcharrow/blob/cecbd9222dca54784b21c6e914869c90b0fec60e/torcharrow/test/transformation/test_text_ops.py#L59 for more info
     >>> tokenizer = init_bpe_encoder()
     >>> a = ta.column([["Hello World!, how are you?", "Respublica superiorem"]])
     >>> functional.bpe_tokenize(tokenizer, a)
@@ -165,6 +174,10 @@ def bpe_tokenize(
     1  ['4965', '11377', '64', '2208', '72', '29625']
     dtype: List(String(nullable=True), nullable=True), length: 2, null_count: 0
     """
+    if not _ta.is_built_with_torch():
+        raise Exception(
+            "This functionality requires TorchArrow to be built with PyTorch. Please install the library from source with the `USE_TORCH` flag enabled."
+        )
     return _dispatch("bpe_tokenize", tokenizer, input_col)
 
 
@@ -174,15 +187,17 @@ def lookup_indices(
 ) -> ListColumn:
     """
     Convert input tokens corresponding token ids based on a Vocab lookup
+    Note: this method is only available if torcharrow is built from source with the `USE_TORCH` flag enabled.
 
     Parameters
     ----------
-    vocab: An instance of the `Vocab` class
+    vocab: An instance of the `torcharrow._torcharrow.Vocab` class
     input_col: List of input tokens
 
     Examples
     --------
     >>> import torcharrow as ta
+    >>> import torcharrow._torcharrow as _ta
     >>> from torcharrow import functional
     >>> tokens = ["<unk>", "Hello", "world", "How", "are", "you!"]
     >>> vocab = _ta.Vocab(tokens, 0)
@@ -192,6 +207,10 @@ def lookup_indices(
     1  [3, 4, 5, 0]
     dtype: List(Int64(nullable=True), nullable=True), length: 2, null_count: 0
     """
+    if not _ta.is_built_with_torch():
+        raise Exception(
+            "This functionality requires TorchArrow to be built with PyTorch. Please install the library from source with the `USE_TORCH` flag enabled."
+        )
     return _dispatch("lookup_indices", vocab, input_col)
 
 
