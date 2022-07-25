@@ -16,8 +16,8 @@
 #include "rec/firstX.h" // @manual
 #include "rec/sigrid_hash.h" // @manual
 #include "string_functions.h"
-#ifdef USE_TORCH
 #include "text/add_tokens.h" // @manual
+#ifdef USE_TORCH
 #include "text/bpe_tokenize.h" // @manual
 #include "text/vocab_ops.h" // @manual
 #endif
@@ -251,8 +251,21 @@ inline void registerTorchArrowFunctions() {
       velox::Array<int64_t>,
       velox::Array<int64_t>>({"bucketize"});
 
-#ifdef USE_TORCH
   // TorchText
+  velox::registerFunction<
+      add_tokens,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>,
+      velox::Array<int64_t>,
+      bool>({"add_tokens"});
+  velox::registerFunction<
+      add_tokens,
+      velox::Array<velox::Varchar>,
+      velox::Array<velox::Varchar>,
+      velox::Array<velox::Varchar>,
+      bool>({"add_tokens"});
+
+#ifdef USE_TORCH
   velox::registerFunction<
       lookup_indices,
       velox::ArrayWriterT<int64_t>,
@@ -264,19 +277,6 @@ inline void registerTorchArrowFunctions() {
       velox::ArrayWriterT<velox::Varchar>,
       std::shared_ptr<GPT2BPEEncoder>,
       velox::Varchar>({"bpe_tokenize"});
-
-  velox::registerFunction<
-      add_tokens,
-      velox::Array<int64_t>,
-      velox::Array<int64_t>,
-      velox::Array<int64_t>,
-      bool>({"add_tokens"});
-  velox::registerFunction<
-      add_tokens,
-      velox::Array<velox::Varchar>,
-      velox::Array<velox::Varchar>,
-      velox::Array<velox::Varchar>,
-      bool>({"add_tokens"});
 #endif
 
   //   sigrid_hash

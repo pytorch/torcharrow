@@ -4,7 +4,6 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
-from msilib.schema import Error
 import sys
 from functools import partial
 from types import ModuleType
@@ -123,7 +122,6 @@ def add_tokens(
     """
     Append or prepend a list of tokens/indices to a column.
     This is a common operation to add EOS and BOS tokens to text.
-    Note: this method is only available if torcharrow is built from source with the `USE_TORCH` flag enabled.
 
     Parameters
     ----------
@@ -141,10 +139,6 @@ def add_tokens(
     1  [0, 3, 4, 5]
     dtype: List(Int64(nullable=True), nullable=True), length: 2, null_count: 0
     """
-    if not _ta.is_built_with_torch():
-        raise Exception(
-            "This functionality requires TorchArrow to be built with PyTorch. Please install the library from source with the `USE_TORCH` flag enabled."
-        )
     return _dispatch("add_tokens", input_col, tokens, begin)
 
 
