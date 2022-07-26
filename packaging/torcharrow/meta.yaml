@@ -22,12 +22,20 @@ requirements:
     - pyarrow
     - arrow-cpp==8.0.0
     - cffi
-    - glog==0.6.0
     - libsodium
-    - libboost
     - libevent
     - bzip2
     - lz4-c
+    {% if osx %}
+    - glog==0.6.0
+    - libboost
+    {% elif linux %}
+    - glog==0.4.0
+    - libboost==1.71.0
+    - double-conversion
+    # - re2==2020.01.01
+    {% endif %}
+
 
 build:
   string: py{{py}}
