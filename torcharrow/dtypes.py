@@ -54,8 +54,6 @@ class Field:
 
 @dataclass(frozen=True)  # type: ignore
 class DType(ABC):
-    fields: ty.ClassVar[ty.Any] = NotImplementedError
-
     typecode: ty.ClassVar[str] = "__TO_BE_DEFINED_IN_SUBCLASS__"
     arraycode: ty.ClassVar[str] = "__TO_BE_DEFINED_IN_SUBCLASS__"
 
@@ -573,7 +571,7 @@ def contains_tuple(t: DType):
         # pyre-fixme[16]: `DType` has no attribute `key_dtype`.
         return contains_tuple(t.key_dtype) or contains_tuple(t.item_dtype)
     if is_struct(t):
-        return any(contains_tuple(f.dtype) for f in t.fields)
+        return any(contains_tuple(f.dtype) for f in ty.cast(Struct, t).fields)
 
     return False
 
@@ -708,9 +706,13 @@ def common_dtype(l: DType, r: DType) -> ty.Optional[DType]:
         return String(l.nullable or r.nullable)
     if is_boolean_or_numerical(l) and is_boolean_or_numerical(r):
         return promote(l, r)
-    if is_tuple(l) and is_tuple(r) and len(l.fields) == len(r.fields):
+    if (
+        is_tuple(l)
+        and is_tuple(r)
+        and len(ty.cast(Struct, l).fields) == len(ty.cast(Struct, r).fields)
+    ):
         res = []
-        for i, j in zip(l.fields, r.fields):
+        for i, j in zip(ty.cast(Struct, l).fields, ty.cast(Struct, r).fields):
             m = common_dtype(i, j)
             if m is None:
                 return None

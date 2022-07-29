@@ -329,7 +329,6 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
         empty_df = len(self.dtype.fields) == 0
 
         # Update dtype
-        # pyre-fixme[16]: `DType` has no attribute `get_index`.
         idx = self.dtype.get_index(name)
         if idx is None:
             # append column
@@ -354,7 +353,7 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
         new_delegate.set_length(len(col._data))
 
         # Set columns for new_delegate
-        for idx in range(len(self._dtype.fields)):
+        for idx in range(len(self.dtype.fields)):
             if idx != column_idx:
                 new_delegate.set_child(idx, self._data.child_at(idx))
             else:
@@ -1477,6 +1476,7 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
 
     def log(self) -> DataFrameCpu:
         return self._fromdata(
+            # pyre-fixme[6]: Incompatible parameter type [6]: In call `DataFrameCpu._fromdata`, for 1st positional only parameter expected `OrderedDict[str, Column]` but got `Dict[str, typing.Any]`
             {
                 self.dtype.fields[i]
                 # pyre-fixme[16]: `Column` has no attribute `log`.
@@ -1498,6 +1498,7 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
     def isin(self, values: Union[list, dict, Column]):
         if isinstance(values, list):
             return self._fromdata(
+                # pyre-fixme[6]: Incompatible parameter type [6]: In call `DataFrameCpu._fromdata`, for 1st positional only parameter expected `OrderedDict[str, Column]` but got `Dict[str, typing.Any]`
                 {
                     self.dtype.fields[i]
                     .name: ColumnCpuMixin._from_velox(
@@ -1538,6 +1539,7 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
             return self
         if isinstance(fill_value, Column._scalar_types):
             return self._fromdata(
+                # pyre-fixme[6]: Incompatible parameter type [6]: In call `DataFrameCpu._fromdata`, for 1st positional only parameter expected `OrderedDict[str, Column]` but got `Dict[str, typing.Any]`
                 {
                     self.dtype.fields[i]
                     .name: ColumnCpuMixin._from_velox(
@@ -1844,6 +1846,7 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
             columns = [columns]
         self._check_columns(columns)
         return self._fromdata(
+            # pyre-fixme[6]: Incompatible parameter type [6]: In call `DataFrameCpu._fromdata`, for 1st positional only parameter expected `OrderedDict[str, Column]` but got `Dict[str, typing.Any]`
             {
                 self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                     self.device,
@@ -1865,6 +1868,7 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
         """
         self._check_columns(columns)
         return self._fromdata(
+            # pyre-fixme[6]: Incompatible parameter type [6]: In call `DataFrameCpu._fromdata`, for 1st positional only parameter expected `OrderedDict[str, Column]` but got `Dict[str, typing.Any]`
             {
                 self.dtype.fields[i].name: ColumnCpuMixin._from_velox(
                     self.device,
@@ -2173,7 +2177,6 @@ class DataFrameCpu(ColumnCpuMixin, DataFrame):
         key_fields = []
         item_fields = []
         for k in key_columns:
-            # pyre-fixme[16]: `DType` has no attribute `get`.
             key_fields.append(dt.Field(k, self.dtype.get(k)))
         for f in self.dtype.fields:
             if f.name not in key_columns:
