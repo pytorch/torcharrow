@@ -11,6 +11,7 @@ import abc
 from typing import (
     Any,
     Callable,
+    cast,
     Dict,
     get_type_hints,
     Iterable,
@@ -170,6 +171,11 @@ class DataFrame(Column):
     def columns(self):
         """The column labels of the DataFrame."""
         return [f.name for f in self.dtype.fields]
+
+    @property
+    @traceproperty
+    def dtype(self) -> dt.Struct:
+        return cast(dt.Struct, self._dtype)
 
     def __contains__(self, key: str) -> bool:
         for f in self.dtype.fields:
