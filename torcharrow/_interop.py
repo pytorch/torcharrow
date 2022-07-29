@@ -229,7 +229,7 @@ def _dtype_to_arrowtype(t: dt.DType) -> pa.DataType:
                 pa.field(
                     f.name, _dtype_to_arrowtype(f.dtype), nullable=f.dtype.nullable
                 )
-                for f in t.fields
+                for f in cast(dt.Struct, t).fields
             ]
         )
     raise NotImplementedError(f"Unsupported DType to Arrow type: {str(t)}")
