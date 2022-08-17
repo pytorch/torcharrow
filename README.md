@@ -1,18 +1,14 @@
-# TorchArrow
+# TorchArrow: a data processing library for PyTorch
 
-**This library is currently in the Beta stage and does not have a stable release. The API may change based on
-user feedback or performance. We are committed to bring this library to stable release, but future changes may not be
-completely backward compatible. If you have suggestions on the API or use cases you'd like to be covered, please open a
+**This library is currently in the Beta stage and does not have a stable release. The API and implementation may change based on
+user feedback or performance. Future changes may not be backward compatible.
+If you have suggestions on the API or use cases you'd like to be covered, please open a
 GitHub issue. We'd love to hear thoughts and feedback.**
 
-TorchArrow is a machine learning preprocessing library over batch data, providing performant and Pandas-style easy-to-use API for model development. Currently it provides a Python DataFrame that allows extensible UDFs with [Velox](https://github.com/facebookincubator/velox/), with the following features:
+TorchArrow is a [torch](https://github.com/pytorch/pytorch).Tensor-like Python DataFrame library for data preprocessing in PyTorch models, with two high-level features:
 
-* Seamless handoff with [PyTorch](https://github.com/pytorch/pytorch) or other model authoring, such as Tensor collation and easily plugging into PyTorch DataLoader and [DataPipes](https://github.com/pytorch/data#what-are-datapipes)
-* Zero copy for external readers via [Arrow](https://github.com/apache/arrow) in-memory columnar format
-* Multiple execution runtimes support:
-    - High-performance CPU backend via [Velox](https://github.com/facebookincubator/velox/)
-    - (Future Work) GPU backend via [libcudf](https://docs.rapids.ai/api/libcudf/stable/)
-* High-performance C++ UDF support with vectorization
+* DataFrame library (like Pandas) with strong GPU or other hardware acceleration (under development) and PyTorch ecosystem integration.
+* Columnar memory layout based on [Apache Arrow](https://arrow.apache.org/docs/format/Columnar.html#physical-memory-layout) with strong variable-width and nested data support (such as string, list, map) and Arrow ecosystem integration.
 
 ## Installation
 
