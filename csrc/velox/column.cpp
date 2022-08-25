@@ -553,9 +553,9 @@ velox::core::QueryCtx& TorchArrowGlobalStatic::queryContext() {
 }
 
 velox::core::ExecCtx& TorchArrowGlobalStatic::execContext() {
-  static auto pool = velox::memory::getDefaultScopedMemoryPool();
   static velox::core::ExecCtx execContext(
-      pool.get(), &TorchArrowGlobalStatic::queryContext());
+      TorchArrowGlobalStatic::rootMemoryPool(),
+      &TorchArrowGlobalStatic::queryContext());
   return execContext;
 }
 
