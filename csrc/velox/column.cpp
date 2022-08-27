@@ -452,7 +452,7 @@ std::unique_ptr<BaseColumn> OperatorHandle::call(
       &TorchArrowGlobalStatic::execContext(), exprSet_.get(), inputRows.get());
   velox::SelectivityVector select(size);
   std::vector<velox::VectorPtr> outputRows(1);
-  exprSet_->eval(0, 1, true, select, &evalCtx, &outputRows);
+  exprSet_->eval(0, 1, true, select, evalCtx, outputRows);
 
   // TODO: This causes an extra type-based dispatch.
   // We can optimize it by template OperatorHandle by return type
