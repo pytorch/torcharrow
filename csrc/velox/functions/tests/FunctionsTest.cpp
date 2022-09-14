@@ -15,7 +15,7 @@
 #include <velox/common/base/VeloxException.h>
 #include <velox/vector/SimpleVector.h>
 #include "pytorch/torcharrow/csrc/velox/functions/functions.h"
-#include "velox/functions/prestosql/tests/FunctionBaseTest.h"
+#include "velox/functions/prestosql/tests/utils/FunctionBaseTest.h"
 #include "velox/parse/TypeResolver.h"
 
 namespace facebook::velox {
