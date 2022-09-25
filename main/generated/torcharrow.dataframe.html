@@ -206,7 +206,7 @@
               
               
                 <div class="version">
-                  main (0.2.0a0.dev20220924 )
+                  main (0.2.0a0.dev20220925 )
                 </div>
               
             
@@ -334,14 +334,14 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>data</strong> (<em>dict</em><em> or </em><em>list of tuples</em>) – Defines the contents of the DataFrame.  Dict keys are used for column
+<li><p><strong>data</strong> (<em>dict</em><em> or </em><em>list</em><em> of </em><em>tuples</em>) – Defines the contents of the DataFrame.  Dict keys are used for column
 names, and values for columns.  Use dtype to force a particular column
 ordering.  When Data is a list of tuples, dtype has to be provided to
 infer field names.</p></li>
 <li><p><strong>dtype</strong> (<em>dtype</em><em>, </em><em>default None</em>) – Data type to force.  If None the type will be automatically inferred
 where possible.  Should be a dt.Struct() providing a list of
 dt.Fields.</p></li>
-<li><p><strong>columns</strong> (<em>list of strings</em><em>, </em><em>default None</em>) – The name of columns. Used when data is a list of tuples without
+<li><p><strong>columns</strong> (<em>list</em><em> of </em><em>strings</em><em>, </em><em>default None</em>) – The name of columns. Used when data is a list of tuples without
 a custom dtype provided. This should be left to be None when data
 and dtype are both None (the semantic is constructing a default
 empty DataFrame without any columns).</p></li>
@@ -471,7 +471,10 @@ columns at the end:</p>
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">torcharrow.dataframe</a></li>
+<li><a class="reference internal" href="#">torcharrow.dataframe</a><ul>
+<li><a class="reference internal" href="#torcharrow.dataframe"><code class="docutils literal notranslate"><span class="pre">dataframe()</span></code></a></li>
+</ul>
+</li>
 </ul>
 
             </div>
@@ -492,6 +495,7 @@ columns at the end:</p>
          <script src="../_static/underscore.js"></script>
          <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
          <script src="../_static/doctools.js"></script>
+         <script src="../_static/sphinx_highlight.js"></script>
      
 
   
