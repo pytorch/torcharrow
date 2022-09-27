@@ -188,7 +188,7 @@ class CriteoIntegrationTest(unittest.TestCase):
         # Convert to Tensor
         tensors = df.to_tensor(
             {
-                "dense_features": tap.rec.Dense(batch_first=True),
+                "dense_features": tap.rec.Dense(batch_first=False),
                 "sparse_features": _CriteoJaggedTensorConversion(),
             }
         )
