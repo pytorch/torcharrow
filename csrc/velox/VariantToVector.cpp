@@ -10,7 +10,7 @@
 // https://github.com/facebookincubator/velox/blob/18aff402c2b5a070ef7ec3f33cde017e90c8aa8a/velox/parse/VariantToVector.cpp
 // since parse is not part of VELOX_MINIMAL
 
-#include "velox/parse/VariantToVector.h"
+#include "velox/vector/VariantToVector.h"
 #include "velox/buffer/StringViewBufferHolder.h"
 #include "velox/type/Variant.h"
 #include "velox/vector/ComplexVector.h"
