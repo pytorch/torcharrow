@@ -364,7 +364,7 @@ _promotion_list = [
 ]
 
 
-def promote(l, r):
+def promote(l: DType, r: DType) -> ty.Optional[DType]:
     assert is_boolean_or_numerical(l) and is_boolean_or_numerical(r)
 
     lt = l.typecode
