@@ -34,9 +34,9 @@ class ListColumnCpu(ColumnCpuMixin, ListColumn):
         ListColumn.__init__(self, device, dtype)
 
         self._data = velox.Column(
-            velox.VeloxArrayType(get_velox_type(dtype.item_dtype))
+            velox.ArrayType(get_velox_type(dtype.item_dtype))
             if dtype.fixed_size == -1
-            else velox.VeloxFixedArrayType(
+            else velox.FixedSizeArrayType(
                 dtype.fixed_size, get_velox_type(dtype.item_dtype)
             )
         )

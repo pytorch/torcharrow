@@ -277,111 +277,111 @@ class TestSimpleColumns(BaseTestColumns):
 
     def test_ConstantColumn(self) -> None:
         # INTEGER
-        col = ta.ConstantColumn(42, 6, ta.VeloxType_INTEGER())
-        self.assertTrue(isinstance(col.type(), ta.VeloxType_INTEGER))
+        col = ta.ConstantColumn(42, 6, ta.IntegerType())
+        self.assertTrue(isinstance(col.type(), ta.IntegerType))
         self.assert_Column(col, [42] * 6)
 
         ###########
         #  BIGINT
         col = ta.ConstantColumn(42, 6)
-        self.assertTrue(isinstance(col.type(), ta.VeloxType_BIGINT))
+        self.assertTrue(isinstance(col.type(), ta.BigintType))
         self.assert_Column(col, [42] * 6)
 
         # Test use constant column for normal add
         data = [1, -2, None, 3, -4, None]
         num_column = infer_column(data)
         add_result = num_column.add(col)
-        self.assertTrue(isinstance(add_result.type(), ta.VeloxType_BIGINT))
+        self.assertTrue(isinstance(add_result.type(), ta.BigintType))
         self.assert_Column(add_result, [43, 40, None, 45, 38, None])
 
         add_result = col.add(num_column)
-        self.assertTrue(isinstance(add_result.type(), ta.VeloxType_BIGINT))
+        self.assertTrue(isinstance(add_result.type(), ta.BigintType))
         self.assert_Column(add_result, [43, 40, None, 45, 38, None])
 
         ###########
         #  REAL
         col = ta.ConstantColumn(4.2, 6)
-        self.assertTrue(isinstance(col.type(), ta.VeloxType_REAL))
+        self.assertTrue(isinstance(col.type(), ta.RealType))
         self.assert_Column(col, [4.2] * 6)
 
         # Test use constant column for normal add
         data = [1.2, -2.3, None, 3.4, -4.6, None]
         num_column = infer_column(data)
         add_result = num_column.add(col)
-        self.assertTrue(isinstance(add_result.type(), ta.VeloxType_REAL))
+        self.assertTrue(isinstance(add_result.type(), ta.RealType))
         self.assert_Column(add_result, [5.4, 1.9, None, 7.6, -0.4, None])
 
         add_result = col.add(num_column)
-        self.assertTrue(isinstance(add_result.type(), ta.VeloxType_REAL))
+        self.assertTrue(isinstance(add_result.type(), ta.RealType))
         self.assert_Column(add_result, [5.4, 1.9, None, 7.6, -0.4, None])
 
         ###########
         #  VARCHAR
         col = ta.ConstantColumn("abc", 6)
-        self.assertTrue(isinstance(col.type(), ta.VeloxType_VARCHAR))
+        self.assertTrue(isinstance(col.type(), ta.VarcharType))
         self.assert_Column(col, ["abc"] * 6)
 
     def test_FromPyList(self) -> None:
         #  BIGINT
-        col = ta.Column(ta.VeloxType_BIGINT(), [1, 2, None, 4])
-        self.assertTrue(isinstance(col.type(), ta.VeloxType_BIGINT))
+        col = ta.Column(ta.BigintType(), [1, 2, None, 4])
+        self.assertTrue(isinstance(col.type(), ta.BigintType))
         self.assert_Column(col, [1, 2, None, 4])
 
         #  INTEGER
-        col = ta.Column(ta.VeloxType_INTEGER(), [1, 2, None, 4])
-        self.assertTrue(isinstance(col.type(), ta.VeloxType_INTEGER))
+        col = ta.Column(ta.IntegerType(), [1, 2, None, 4])
+        self.assertTrue(isinstance(col.type(), ta.IntegerType))
         self.assert_Column(col, [1, 2, None, 4])
 
         #  SMALLINT
-        col = ta.Column(ta.VeloxType_SMALLINT(), [1, 2, None, 4])
-        self.assertTrue(isinstance(col.type(), ta.VeloxType_SMALLINT))
+        col = ta.Column(ta.SmallintType(), [1, 2, None, 4])
+        self.assertTrue(isinstance(col.type(), ta.SmallintType))
         self.assert_Column(col, [1, 2, None, 4])
 
         #  TINYINT
-        col = ta.Column(ta.VeloxType_TINYINT(), [1, 2, None, 4])
-        self.assertTrue(isinstance(col.type(), ta.VeloxType_TINYINT))
+        col = ta.Column(ta.TinyintType(), [1, 2, None, 4])
+        self.assertTrue(isinstance(col.type(), ta.TinyintType))
         self.assert_Column(col, [1, 2, None, 4])
 
         #  REAL
-        col = ta.Column(ta.VeloxType_REAL(), [1, 2, None, 4])
-        self.assertTrue(isinstance(col.type(), ta.VeloxType_REAL))
+        col = ta.Column(ta.RealType(), [1, 2, None, 4])
+        self.assertTrue(isinstance(col.type(), ta.RealType))
         self.assert_Column(col, [1.0, 2.0, None, 4.0])
 
         #  DOUBLE
-        col = ta.Column(ta.VeloxType_DOUBLE(), [1, 2, None, 4])
-        self.assertTrue(isinstance(col.type(), ta.VeloxType_DOUBLE))
+        col = ta.Column(ta.DoubleType(), [1, 2, None, 4])
+        self.assertTrue(isinstance(col.type(), ta.DoubleType))
         self.assert_Column(col, [1.0, 2.0, None, 4.0])
 
         #  BOOLEAN
-        col = ta.Column(ta.VeloxType_BOOLEAN(), [True, False, None, True])
-        self.assertTrue(isinstance(col.type(), ta.VeloxType_BOOLEAN))
+        col = ta.Column(ta.BooleanType(), [True, False, None, True])
+        self.assertTrue(isinstance(col.type(), ta.BooleanType))
         self.assert_Column(col, [True, False, None, True])
 
         #  VARCHAR
-        col = ta.Column(ta.VeloxType_VARCHAR(), ["foo", "bar", None, "abc"])
-        self.assertTrue(isinstance(col.type(), ta.VeloxType_VARCHAR))
+        col = ta.Column(ta.VarcharType(), ["foo", "bar", None, "abc"])
+        self.assertTrue(isinstance(col.type(), ta.VarcharType))
         self.assert_Column(col, ["foo", "bar", None, "abc"])
 
         #  ARRAY of scalar element
         col = ta.Column(
-            ta.VeloxArrayType(ta.VeloxType_VARCHAR()),
+            ta.ArrayType(ta.VarcharType()),
             [["foo", "bar"], None, ["abc", None]],
         )
-        self.assertTrue(isinstance(col.type(), ta.VeloxArrayType))
-        self.assertTrue(isinstance(col.type().element_type(), ta.VeloxType_VARCHAR))
+        self.assertTrue(isinstance(col.type(), ta.ArrayType))
+        self.assertTrue(isinstance(col.type().element_type(), ta.VarcharType))
         self.assert_Column(col, [["foo", "bar"], None, ["abc", None]])
 
         #  ARRAY of ROW element
         # col = ta.Column(
-        #     ta.VeloxArrayType(
-        #         ta.VeloxRowType(
-        #             ["f1", "f2"], [ta.VeloxType_VARCHAR(), ta.VeloxType_BIGINT()]
+        #     ta.ArrayType(
+        #         ta.RowType(
+        #             ["f1", "f2"], [ta.VarcharType(), ta.BigintType()]
         #         )
         #     ),
         #     [[("foo", 1), ("bar", 2)], None, [("abc", 3), ("def", 4)]],
         # )
-        # self.assertTrue(isinstance(col.type(), ta.VeloxArrayType))
-        # self.assertTrue(isinstance(col.type().element_type(), ta.VeloxRowType))
+        # self.assertTrue(isinstance(col.type(), ta.ArrayType))
+        # self.assertTrue(isinstance(col.type().element_type(), ta.RowType))
         # self.assert_Column(
         #     col, [[("foo", 1), ("bar", 2)], None, [("abc", 3), ("def", 4)]]
         # )
@@ -435,9 +435,9 @@ class TestSimpleColumns(BaseTestColumns):
         ptr_array = int(ffi.cast("uintptr_t", c_array))
 
         col = ta.Column(
-            ta.VeloxRowType(
+            ta.RowType(
                 ["f1", "f2"],
-                [ta.VeloxType_INTEGER(), ta.VeloxType_INTEGER()],
+                [ta.IntegerType(), ta.IntegerType()],
             )
         )
         col.child_at(0).append(1)
@@ -480,7 +480,7 @@ class TestSimpleColumns(BaseTestColumns):
         # pyre-fixme[16]: Item `Array` of `Union[Array[typing.Any], ChunkedArray]`
         #  has no attribute `_export_to_c`.
         a._export_to_c(ptr_array, ptr_schema)
-        col = ta._import_from_arrow(ta.VeloxType_BIGINT(), ptr_array, ptr_schema)
+        col = ta._import_from_arrow(ta.BigintType(), ptr_array, ptr_schema)
         self.assertEqual(len(col), 4)
         self.assertEqual(col.get_null_count(), 2)
         self.assertTrue(col.is_null_at(0))
@@ -513,9 +513,9 @@ class TestSimpleColumns(BaseTestColumns):
         #  has no attribute `_export_to_c`.
         s._export_to_c(ptr_array, ptr_schema)
         col = ta._import_from_arrow(
-            ta.VeloxRowType(
+            ta.RowType(
                 ["f1", "f2"],
-                [ta.VeloxType_INTEGER(), ta.VeloxType_BOOLEAN()],
+                [ta.IntegerType(), ta.BooleanType()],
             ),
             ptr_array,
             ptr_schema,
@@ -533,14 +533,14 @@ class TestSimpleColumns(BaseTestColumns):
 
 
 def is_same_type(a, b) -> bool:
-    if isinstance(a, ta.VeloxType_BIGINT):
-        return isinstance(b, ta.VeloxType_BIGINT)
-    if isinstance(a, ta.VeloxType_VARCHAR):
-        return isinstance(b, ta.VeloxType_VARCHAR)
-    if isinstance(a, ta.VeloxType_BOOLEAN):
-        return isinstance(b, ta.VeloxType_BOOLEAN)
-    if isinstance(a, ta.VeloxArrayType):
-        return isinstance(b, ta.VeloxArrayType) and is_same_type(
+    if isinstance(a, ta.BigintType):
+        return isinstance(b, ta.BigintType)
+    if isinstance(a, ta.VarcharType):
+        return isinstance(b, ta.VarcharType)
+    if isinstance(a, ta.BooleanType):
+        return isinstance(b, ta.BooleanType)
+    if isinstance(a, ta.ArrayType):
+        return isinstance(b, ta.ArrayType) and is_same_type(
             a.element_type(), b.element_type()
         )
     raise NotImplementedError()
@@ -569,11 +569,11 @@ def infer_column(data) -> ta.BaseColumn:
 def resolve_column_with_arbitrary_type(unresolved: Unresolved) -> ta.BaseColumn:
     if isinstance(unresolved, UnresolvedArray):
         element = resolve_column_with_arbitrary_type(unresolved.element_type)
-        col = ta.Column(ta.VeloxArrayType(element.type()))
+        col = ta.Column(ta.ArrayType(element.type()))
         col.append(element)
         return col
     else:
-        return ta.Column(ta.VeloxType_BIGINT())
+        return ta.Column(ta.BigintType())
 
 
 def get_union_type(inferred_columns: List[Union[ta.BaseColumn, Unresolved, None]]):
@@ -620,7 +620,7 @@ def _infer_column(data) -> Union[ta.BaseColumn, Unresolved, None]:
                 return UnresolvedArray(union_type)
             else:
                 resolved_item_type = union_type
-                col = ta.Column(ta.VeloxArrayType(resolved_item_type))
+                col = ta.Column(ta.ArrayType(resolved_item_type))
                 for item_col, item in zip(inferred_columns, data):
                     if item is None:
                         resolved_item_col = None
@@ -653,12 +653,12 @@ def _infer_column(data) -> Union[ta.BaseColumn, Unresolved, None]:
             keys_array_type = inferred_keys_array_columns.type()
             values_array_type = inferred_values_array_columns.type()
 
-            if isinstance(keys_array_type, ta.VeloxArrayType) and isinstance(
+            if isinstance(keys_array_type, ta.ArrayType) and isinstance(
                 values_array_type,
-                ta.VeloxArrayType,
+                ta.ArrayType,
             ):
                 col = ta.Column(
-                    ta.VeloxMapType(
+                    ta.MapType(
                         keys_array_type.element_type(), values_array_type.element_type()
                     )
                 )
@@ -681,10 +681,10 @@ def _infer_column(data) -> Union[ta.BaseColumn, Unresolved, None]:
 
         else:
             type_ = {
-                int: ta.VeloxType_BIGINT(),
-                float: ta.VeloxType_REAL(),
-                str: ta.VeloxType_VARCHAR(),
-                bool: ta.VeloxType_BOOLEAN(),
+                int: ta.BigintType(),
+                float: ta.RealType(),
+                str: ta.VarcharType(),
+                bool: ta.BooleanType(),
             }.get(type(non_null_item))
             if type_ is None:
                 raise NotImplementedError(f"Cannot infer {type(non_null_item)}")
@@ -705,12 +705,12 @@ def resolve_column(item, type_) -> ta.BaseColumn:
             col.append_null()
         else:
             if type(type_) in (
-                ta.VeloxType_INTEGER,
-                ta.VeloxType_VARCHAR,
-                ta.VeloxType_BOOLEAN,
+                ta.IntegerType,
+                ta.VarcharType,
+                ta.BooleanType,
             ):
                 col.append(value)
-            elif type(type_) == ta.VeloxArrayType:
+            elif type(type_) == ta.ArrayType:
                 col.append(resolve_column(value, type_.element_type()))
             else:
                 raise NotImplementedError(f"{type(type_)}")
@@ -721,12 +721,12 @@ class TestInferColumn(unittest.TestCase):
     def test_infer_simple(self) -> None:
         data = [1, 2, 3]
         type_ = infer_column(data).type()
-        self.assertTrue(is_same_type(type_, ta.VeloxType_BIGINT()))
+        self.assertTrue(is_same_type(type_, ta.BigintType()))
 
     def test_infer_array(self) -> None:
         data = [[1], [2], [3]]
         type_ = infer_column(data).type()
-        self.assertTrue(is_same_type(type_, ta.VeloxArrayType(ta.VeloxType_BIGINT())))
+        self.assertTrue(is_same_type(type_, ta.ArrayType(ta.BigintType())))
 
     def test_infer_nested_array(self) -> None:
         data = [[[1]], [[2], [5]], [[3, 4]]]
@@ -734,34 +734,34 @@ class TestInferColumn(unittest.TestCase):
         self.assertTrue(
             is_same_type(
                 type_,
-                ta.VeloxArrayType(ta.VeloxArrayType(ta.VeloxType_BIGINT())),
+                ta.ArrayType(ta.ArrayType(ta.BigintType())),
             )
         )
 
     def test_unresolved(self) -> None:
         data = []
         type_ = infer_column(data).type()
-        self.assertTrue(is_same_type(type_, ta.VeloxType_BIGINT()))
+        self.assertTrue(is_same_type(type_, ta.BigintType()))
 
     def test_nested_unresolved1(self) -> None:
         data = [[]]
         type_ = infer_column(data).type()
-        self.assertTrue(is_same_type(type_, ta.VeloxArrayType(ta.VeloxType_BIGINT())))
+        self.assertTrue(is_same_type(type_, ta.ArrayType(ta.BigintType())))
 
     def test_nested_unresolved2(self) -> None:
         data = [None]
         type_ = infer_column(data).type()
-        self.assertTrue(is_same_type(type_, ta.VeloxType_BIGINT()))
+        self.assertTrue(is_same_type(type_, ta.BigintType()))
 
     def test_nested_unresolved3(self) -> None:
         data = [[None]]
         type_ = infer_column(data).type()
-        self.assertTrue(is_same_type(type_, ta.VeloxArrayType(ta.VeloxType_BIGINT())))
+        self.assertTrue(is_same_type(type_, ta.ArrayType(ta.BigintType())))
 
     def test_propagate_unresolved(self) -> None:
         data = [None, [], [1], [1, None, 2], None]
         type_ = infer_column(data).type()
-        self.assertTrue(is_same_type(type_, ta.VeloxArrayType(ta.VeloxType_BIGINT())))
+        self.assertTrue(is_same_type(type_, ta.ArrayType(ta.BigintType())))
 
 
 class TestArrayColumns(BaseTestColumns):
@@ -899,9 +899,9 @@ class TestMapColumns(unittest.TestCase):
 class TestRowColumns(unittest.TestCase):
     def test_RowColumn1(self) -> None:
         col = ta.Column(
-            ta.VeloxRowType(
+            ta.RowType(
                 ["a", "b"],
-                [ta.VeloxType_INTEGER(), ta.VeloxType_VARCHAR()],
+                [ta.IntegerType(), ta.VarcharType()],
             )
         )
         col.child_at(0).append(1)
@@ -928,9 +928,9 @@ class TestRowColumns(unittest.TestCase):
 
     def test_set_child(self) -> None:
         col = ta.Column(
-            ta.VeloxRowType(
+            ta.RowType(
                 ["a", "b"],
-                [ta.VeloxType_INTEGER(), ta.VeloxType_VARCHAR()],
+                [ta.IntegerType(), ta.VarcharType()],
             )
         )
         col.child_at(0).append(1)
@@ -952,13 +952,13 @@ class TestRowColumns(unittest.TestCase):
 
     def test_nested_row(self) -> None:
         col = ta.Column(
-            ta.VeloxRowType(
+            ta.RowType(
                 ["a", "b"],
                 [
-                    ta.VeloxType_INTEGER(),
-                    ta.VeloxRowType(
+                    ta.IntegerType(),
+                    ta.RowType(
                         ["b1", "b2"],
-                        [ta.VeloxType_VARCHAR(), ta.VeloxType_INTEGER()],
+                        [ta.VarcharType(), ta.IntegerType()],
                     ),
                 ],
             )

@@ -33,7 +33,7 @@ class MapColumnCpu(ColumnCpuMixin, MapColumn):
         MapColumn.__init__(self, device, dtype)
 
         self._data = velox.Column(
-            velox.VeloxMapType(
+            velox.MapType(
                 get_velox_type(dtype.key_dtype), get_velox_type(dtype.item_dtype)
             )
         )

@@ -160,7 +160,7 @@ class TestListColumn(unittest.TestCase):
             [[1, 2], [3, 4]], dtype=dt.List(item_dtype=dt.int64, fixed_size=2)
         )
         self.assertEqual(d.dtype.fixed_size, 2)
-        self.assertEqual(type(d._data.type()), velox.VeloxFixedArrayType)
+        self.assertEqual(type(d._data.type()), velox.FixedSizeArrayType)
         self.assertEqual(d._data.type().fixed_width(), 2)
 
         # Unequal length cells are disallowed
@@ -180,14 +180,14 @@ class TestListColumn(unittest.TestCase):
         e = d.append(d)
         self.assertEqual(list(e), [[1, 2], [3, 4], [1, 2], [3, 4]])
         self.assertEqual(e.dtype.fixed_size, 2)
-        self.assertEqual(type(e._data.type()), velox.VeloxFixedArrayType)
+        self.assertEqual(type(e._data.type()), velox.FixedSizeArrayType)
         self.assertEqual(e._data.type().fixed_width(), 2)
 
         # Appending a non-fixed list of same size
         f = d.append(ta.column([[4, 5], [5, 6]]))
         self.assertEqual(list(f), [[1, 2], [3, 4], [4, 5], [5, 6]])
         self.assertEqual(f.dtype.fixed_size, 2)
-        self.assertEqual(type(f._data.type()), velox.VeloxFixedArrayType)
+        self.assertEqual(type(f._data.type()), velox.FixedSizeArrayType)
         self.assertEqual(f._data.type().fixed_width(), 2)
 
         # Appending a fixed list of different size

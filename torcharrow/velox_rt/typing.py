@@ -16,35 +16,35 @@ import torcharrow.dtypes as dt
 def get_velox_type(dtype: dt.DType) -> velox.VeloxType:
     underlying_dtype = dt.get_underlying_dtype(dtype)
     if underlying_dtype == dt.int64:
-        return velox.VeloxType_BIGINT()
+        return velox.BigintType()
     elif underlying_dtype == dt.int32:
-        return velox.VeloxType_INTEGER()
+        return velox.IntegerType()
     elif underlying_dtype == dt.int16:
-        return velox.VeloxType_SMALLINT()
+        return velox.SmallintType()
     elif underlying_dtype == dt.int8:
-        return velox.VeloxType_TINYINT()
+        return velox.TinyintType()
     elif underlying_dtype == dt.float32:
-        return velox.VeloxType_REAL()
+        return velox.RealType()
     elif underlying_dtype == dt.float64:
-        return velox.VeloxType_DOUBLE()
+        return velox.DoubleType()
     elif underlying_dtype == dt.string:
-        return velox.VeloxType_VARCHAR()
+        return velox.VarcharType()
     elif underlying_dtype == dt.boolean:
-        return velox.VeloxType_BOOLEAN()
+        return velox.BooleanType()
     elif isinstance(underlying_dtype, dt.List):
         if underlying_dtype.fixed_size == -1:
-            return velox.VeloxArrayType(get_velox_type(underlying_dtype.item_dtype))
+            return velox.ArrayType(get_velox_type(underlying_dtype.item_dtype))
         else:
-            return velox.VeloxFixedArrayType(
+            return velox.FixedSizeArrayType(
                 underlying_dtype.fixed_size, get_velox_type(underlying_dtype.item_dtype)
             )
     elif isinstance(underlying_dtype, dt.Map):
-        return velox.VeloxMapType(
+        return velox.MapType(
             get_velox_type(underlying_dtype.key_dtype),
             get_velox_type(underlying_dtype.item_dtype),
         )
     elif isinstance(underlying_dtype, dt.Struct):
-        return velox.VeloxRowType(
+        return velox.RowType(
             [f.name for f in underlying_dtype.fields],
             [get_velox_type(f.dtype) for f in underlying_dtype.fields],
         )
@@ -70,12 +70,12 @@ def dtype_of_velox_type(vtype: velox.VeloxType) -> dt.DType:
     if vtype.kind() == velox.TypeKind.VARCHAR:
         return dt.String(nullable=True)
     if vtype.kind() == velox.TypeKind.ARRAY:
-        if type(vtype) == velox.VeloxArrayType:
+        if type(vtype) == velox.ArrayType:
             return dt.List(
                 item_dtype=dtype_of_velox_type(vtype.element_type()),
                 nullable=True,
             )
-        elif type(vtype) == velox.VeloxFixedArrayType:
+        elif type(vtype) == velox.FixedSizeArrayType:
             return dt.List(
                 item_dtype=dtype_of_velox_type(vtype.element_type()),
                 fixed_size=vtype.fixed_width(),
@@ -84,16 +84,16 @@ def dtype_of_velox_type(vtype: velox.VeloxType) -> dt.DType:
         else:
             raise TypeError(f"Unknown array type {vtype}")
     if vtype.kind() == velox.TypeKind.MAP:
-        # pyre-fixme[11]: Annotation `VeloxMapType` is not defined as a type.
-        vtype = ty.cast(velox.VeloxMapType, vtype)
+        # pyre-fixme[11]: Annotation `MapType` is not defined as a type.
+        vtype = ty.cast(velox.MapType, vtype)
         return dt.Map(
             key_dtype=dtype_of_velox_type(vtype.key_type()),
             item_dtype=dtype_of_velox_type(vtype.value_type()),
             nullable=True,
         )
     if vtype.kind() == velox.TypeKind.ROW:
-        # pyre-fixme[11]: Annotation `VeloxRowType` is not defined as a type.
-        vtype = ty.cast(velox.VeloxRowType, vtype)
+        # pyre-fixme[11]: Annotation `RowType` is not defined as a type.
+        vtype = ty.cast(velox.RowType, vtype)
         fields = [
             dt.Field(
                 name=vtype.name_of(i), dtype=dtype_of_velox_type(vtype.child_at(i))

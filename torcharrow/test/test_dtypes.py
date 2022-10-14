@@ -110,23 +110,21 @@ class TestTypes(unittest.TestCase):
         self.assertEqual(dtype, deserialized_dtype)
 
     def test_convert_velox_type_array(self):
-        vType = velox.VeloxArrayType(velox.VeloxArrayType(velox.VeloxType_VARCHAR()))
+        vType = velox.ArrayType(velox.ArrayType(velox.VarcharType()))
         dType = dtype_of_velox_type(vType)
         self.assertTrue(is_list(dType))
         self.assertTrue(is_list(dType.item_dtype))
         self.assertTrue(is_string(dType.item_dtype.item_dtype))
 
     def test_convert_velox_type_map(self):
-        vType = velox.VeloxMapType(velox.VeloxType_VARCHAR(), velox.VeloxType_BIGINT())
+        vType = velox.MapType(velox.VarcharType(), velox.BigintType())
         dType = dtype_of_velox_type(vType)
         self.assertTrue(is_map(dType))
         self.assertTrue(is_string(dType.key_dtype))
         self.assertTrue(is_int64(dType.item_dtype))
 
     def test_convert_velox_type_row(self):
-        vType = velox.VeloxRowType(
-            ["c0", "c1"], [velox.VeloxType_VARCHAR(), velox.VeloxType_BIGINT()]
-        )
+        vType = velox.RowType(["c0", "c1"], [velox.VarcharType(), velox.BigintType()])
         dType = dtype_of_velox_type(vType)
         self.assertTrue(is_struct(dType))
         self.assertEqual(

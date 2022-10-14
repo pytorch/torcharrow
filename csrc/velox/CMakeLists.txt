@@ -9,6 +9,7 @@ cmake_minimum_required(VERSION 3.15)
 
 # _torcharrow is a shared library as it's a Python extension
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CREATE_PYVELOX_MODULE OFF)
 
 # To make the right CPython is built with on GitHub Actions,
 # see https://github.com/actions/setup-python/issues/121#issuecomment-1014500503
@@ -91,6 +92,7 @@ endif()
 # set_target_properties(_torcharrow PROPERTIES CXX_VISIBILITY_PRESET default)
 add_subdirectory(velox)
 add_subdirectory(functions)
+add_subdirectory(pyvelox)
 
 
 # Link with Velox:
@@ -103,6 +105,7 @@ target_link_libraries(_torcharrow PRIVATE
   velox_function_registry
   velox_arrow_bridge
   torcharrow_udfs
+        pyvelox
 )
 
 target_compile_definitions(
