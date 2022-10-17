@@ -49,18 +49,18 @@ __all__  = [
 "SimpleColumnVARCHAR",
 "TypeKind",
 "VeloxType",
-"VeloxArrayType",
-"VeloxFixedArrayType",
-"VeloxMapType",
-"VeloxRowType",
-"VeloxType_BIGINT",
-"VeloxType_BOOLEAN",
-"VeloxType_DOUBLE",
-"VeloxType_INTEGER",
-"VeloxType_REAL",
-"VeloxType_SMALLINT",
-"VeloxType_TINYINT",
-"VeloxType_VARCHAR",
+"ArrayType",
+"FixedSizeArrayType",
+"MapType",
+"RowType",
+"BigintType",
+"BooleanType",
+"DoubleType",
+"IntegerType",
+"RealType",
+"SmallintType",
+"TinyintType",
+"VarcharType",
 "Vocab",
 "fb_SentencePiece",
 "Column",
@@ -2153,14 +2153,14 @@ class VeloxType:
     def kind_name(self) -> str: ...
     __pybind11_module_local_v4_clang_libstdcpp_cxxabi1002__ = ... # type: PyCapsule # value = <capsule object NULL at 0x7f50e2a512d0>
     pass
-class VeloxArrayType(VeloxType):
+class ArrayType(VeloxType):
     def __init__(self, arg0: VeloxType) -> None: ...
     def element_type(self) -> VeloxType: ...
     def kind(self) -> TypeKind: ...
     def kind_name(self) -> str: ...
     __pybind11_module_local_v4_clang_libstdcpp_cxxabi1002__ = ... # type: PyCapsule # value = <capsule object NULL at 0x7f50e2a69660>
     pass
-class VeloxFixedArrayType(VeloxType):
+class FixedSizeArrayType(VeloxType):
     def __init__(self, arg0: int, arg1: VeloxType) -> None: ...
     def element_type(self) -> VeloxType: ...
     def fixed_width(self) -> int: ...
@@ -2168,7 +2168,7 @@ class VeloxFixedArrayType(VeloxType):
     def kind_name(self) -> str: ...
     __pybind11_module_local_v4_clang_libstdcpp_cxxabi1002__ = ... # type: PyCapsule # value = <capsule object NULL at 0x7f50e2a69780>
     pass
-class VeloxMapType(VeloxType):
+class MapType(VeloxType):
     def __init__(self, arg0: VeloxType, arg1: VeloxType) -> None: ...
     def key_type(self) -> VeloxType: ...
     def kind(self) -> TypeKind: ...
@@ -2176,7 +2176,7 @@ class VeloxMapType(VeloxType):
     def value_type(self) -> VeloxType: ...
     __pybind11_module_local_v4_clang_libstdcpp_cxxabi1002__ = ... # type: PyCapsule # value = <capsule object NULL at 0x7f50e2a69c30>
     pass
-class VeloxRowType(VeloxType):
+class RowType(VeloxType):
     def __init__(self, arg0: List[str], arg1: List[VeloxType]) -> None: ...
     def child_at(self, arg0: int) -> VeloxType: ...
     def contains_child(self, arg0: str) -> bool: ...
@@ -2187,49 +2187,49 @@ class VeloxRowType(VeloxType):
     def size(self) -> int: ...
     __pybind11_module_local_v4_clang_libstdcpp_cxxabi1002__ = ... # type: PyCapsule # value = <capsule object NULL at 0x7f50e2a70120>
     pass
-class VeloxType_BIGINT(VeloxType):
+class BigintType(VeloxType):
     def __init__(self) -> None: ...
     def kind(self) -> TypeKind: ...
     def kind_name(self) -> str: ...
     __pybind11_module_local_v4_clang_libstdcpp_cxxabi1002__ = ... # type: PyCapsule # value = <capsule object NULL at 0x7f50e2a51540>
     pass
-class VeloxType_BOOLEAN(VeloxType):
+class BooleanType(VeloxType):
     def __init__(self) -> None: ...
     def kind(self) -> TypeKind: ...
     def kind_name(self) -> str: ...
     __pybind11_module_local_v4_clang_libstdcpp_cxxabi1002__ = ... # type: PyCapsule # value = <capsule object NULL at 0x7f50e2a5eea0>
     pass
-class VeloxType_DOUBLE(VeloxType):
+class DoubleType(VeloxType):
     def __init__(self) -> None: ...
     def kind(self) -> TypeKind: ...
     def kind_name(self) -> str: ...
     __pybind11_module_local_v4_clang_libstdcpp_cxxabi1002__ = ... # type: PyCapsule # value = <capsule object NULL at 0x7f50e2a65540>
     pass
-class VeloxType_INTEGER(VeloxType):
+class IntegerType(VeloxType):
     def __init__(self) -> None: ...
     def kind(self) -> TypeKind: ...
     def kind_name(self) -> str: ...
     __pybind11_module_local_v4_clang_libstdcpp_cxxabi1002__ = ... # type: PyCapsule # value = <capsule object NULL at 0x7f50e2a553f0>
     pass
-class VeloxType_REAL(VeloxType):
+class RealType(VeloxType):
     def __init__(self) -> None: ...
     def kind(self) -> TypeKind: ...
     def kind_name(self) -> str: ...
     __pybind11_module_local_v4_clang_libstdcpp_cxxabi1002__ = ... # type: PyCapsule # value = <capsule object NULL at 0x7f50e2a627b0>
     pass
-class VeloxType_SMALLINT(VeloxType):
+class SmallintType(VeloxType):
     def __init__(self) -> None: ...
     def kind(self) -> TypeKind: ...
     def kind_name(self) -> str: ...
     __pybind11_module_local_v4_clang_libstdcpp_cxxabi1002__ = ... # type: PyCapsule # value = <capsule object NULL at 0x7f50e2a59240>
     pass
-class VeloxType_TINYINT(VeloxType):
+class TinyintType(VeloxType):
     def __init__(self) -> None: ...
     def kind(self) -> TypeKind: ...
     def kind_name(self) -> str: ...
     __pybind11_module_local_v4_clang_libstdcpp_cxxabi1002__ = ... # type: PyCapsule # value = <capsule object NULL at 0x7f50e2a5e090>
     pass
-class VeloxType_VARCHAR(VeloxType):
+class VarcharType(VeloxType):
     def __init__(self) -> None: ...
     def kind(self) -> TypeKind: ...
     def kind_name(self) -> str: ...
@@ -2265,94 +2265,94 @@ class fb_SentencePiece:
     def process(self, arg0: str) -> List[str]: ...
     pass
 @overload
-def Column(arg0: VeloxType_DOUBLE) -> SimpleColumnDOUBLE:
+def Column(arg0: DoubleType) -> SimpleColumnDOUBLE:
     pass
 @overload
-def Column(arg0: VeloxType_INTEGER) -> SimpleColumnINTEGER:
+def Column(arg0: IntegerType) -> SimpleColumnINTEGER:
     pass
 @overload
-def Column(arg0: VeloxType_INTEGER, arg1: list) -> SimpleColumnINTEGER:
+def Column(arg0: IntegerType, arg1: list) -> SimpleColumnINTEGER:
     pass
 @overload
-def Column(arg0: VeloxType_SMALLINT, arg1: tuple) -> SimpleColumnSMALLINT:
+def Column(arg0: SmallintType, arg1: tuple) -> SimpleColumnSMALLINT:
     pass
 @overload
-def Column(arg0: VeloxType_SMALLINT) -> SimpleColumnSMALLINT:
+def Column(arg0: SmallintType) -> SimpleColumnSMALLINT:
     pass
 @overload
-def Column(arg0: VeloxType_REAL, arg1: tuple) -> SimpleColumnREAL:
+def Column(arg0: RealType, arg1: tuple) -> SimpleColumnREAL:
     pass
 @overload
-def Column(arg0: VeloxRowType) -> RowColumn:
+def Column(arg0: RowType) -> RowColumn:
     pass
 @overload
-def Column(arg0: VeloxType_SMALLINT, arg1: list) -> SimpleColumnSMALLINT:
+def Column(arg0: SmallintType, arg1: list) -> SimpleColumnSMALLINT:
     pass
 @overload
-def Column(arg0: VeloxType_TINYINT, arg1: tuple) -> SimpleColumnTINYINT:
+def Column(arg0: TinyintType, arg1: tuple) -> SimpleColumnTINYINT:
     pass
 @overload
-def Column(arg0: VeloxFixedArrayType, arg1: list) -> ArrayColumn:
+def Column(arg0: FixedSizeArrayType, arg1: list) -> ArrayColumn:
     pass
 @overload
-def Column(arg0: VeloxType_BIGINT, arg1: tuple) -> SimpleColumnBIGINT:
+def Column(arg0: BigintType, arg1: tuple) -> SimpleColumnBIGINT:
     pass
 @overload
-def Column(arg0: VeloxArrayType) -> ArrayColumn:
+def Column(arg0: ArrayType) -> ArrayColumn:
     pass
 @overload
-def Column(arg0: VeloxType_DOUBLE, arg1: tuple) -> SimpleColumnDOUBLE:
+def Column(arg0: DoubleType, arg1: tuple) -> SimpleColumnDOUBLE:
     pass
 @overload
-def Column(arg0: VeloxArrayType, arg1: list) -> ArrayColumn:
+def Column(arg0: ArrayType, arg1: list) -> ArrayColumn:
     pass
 @overload
-def Column(arg0: VeloxType_BOOLEAN) -> SimpleColumnBOOLEAN:
+def Column(arg0: BooleanType) -> SimpleColumnBOOLEAN:
     pass
 @overload
-def Column(arg0: VeloxType_VARCHAR, arg1: tuple) -> SimpleColumnVARCHAR:
+def Column(arg0: VarcharType, arg1: tuple) -> SimpleColumnVARCHAR:
     pass
 @overload
-def Column(arg0: VeloxMapType) -> MapColumn:
+def Column(arg0: MapType) -> MapColumn:
     pass
 @overload
-def Column(arg0: VeloxType_TINYINT) -> SimpleColumnTINYINT:
+def Column(arg0: TinyintType) -> SimpleColumnTINYINT:
     pass
 @overload
-def Column(arg0: VeloxFixedArrayType) -> ArrayColumn:
+def Column(arg0: FixedSizeArrayType) -> ArrayColumn:
     pass
 @overload
-def Column(arg0: VeloxType_INTEGER, arg1: tuple) -> SimpleColumnINTEGER:
+def Column(arg0: IntegerType, arg1: tuple) -> SimpleColumnINTEGER:
     pass
 @overload
-def Column(arg0: VeloxType_REAL) -> SimpleColumnREAL:
+def Column(arg0: RealType) -> SimpleColumnREAL:
     pass
 @overload
-def Column(arg0: VeloxType_BIGINT) -> SimpleColumnBIGINT:
+def Column(arg0: BigintType) -> SimpleColumnBIGINT:
     pass
 @overload
-def Column(arg0: VeloxType_TINYINT, arg1: list) -> SimpleColumnTINYINT:
+def Column(arg0: TinyintType, arg1: list) -> SimpleColumnTINYINT:
     pass
 @overload
-def Column(arg0: VeloxType_DOUBLE, arg1: list) -> SimpleColumnDOUBLE:
+def Column(arg0: DoubleType, arg1: list) -> SimpleColumnDOUBLE:
     pass
 @overload
-def Column(arg0: VeloxType_BIGINT, arg1: list) -> SimpleColumnBIGINT:
+def Column(arg0: BigintType, arg1: list) -> SimpleColumnBIGINT:
     pass
 @overload
-def Column(arg0: VeloxType_REAL, arg1: list) -> SimpleColumnREAL:
+def Column(arg0: RealType, arg1: list) -> SimpleColumnREAL:
     pass
 @overload
-def Column(arg0: VeloxType_BOOLEAN, arg1: tuple) -> SimpleColumnBOOLEAN:
+def Column(arg0: BooleanType, arg1: tuple) -> SimpleColumnBOOLEAN:
     pass
 @overload
-def Column(arg0: VeloxType_VARCHAR) -> SimpleColumnVARCHAR:
+def Column(arg0: VarcharType) -> SimpleColumnVARCHAR:
     pass
 @overload
-def Column(arg0: VeloxType_VARCHAR, arg1: list) -> SimpleColumnVARCHAR:
+def Column(arg0: VarcharType, arg1: list) -> SimpleColumnVARCHAR:
     pass
 @overload
-def Column(arg0: VeloxType_BOOLEAN, arg1: list) -> SimpleColumnBOOLEAN:
+def Column(arg0: BooleanType, arg1: list) -> SimpleColumnBOOLEAN:
     pass
 @overload
 def ConstantColumn(arg0: handle, arg1: int, arg2: VeloxType) -> BaseColumn:
@@ -2361,28 +2361,28 @@ def ConstantColumn(arg0: handle, arg1: int, arg2: VeloxType) -> BaseColumn:
 def ConstantColumn(arg0: handle, arg1: int) -> BaseColumn:
     pass
 @overload
-def _import_from_arrow(arg0: VeloxType_SMALLINT, arg1: int, arg2: int) -> SimpleColumnSMALLINT:
+def _import_from_arrow(arg0: SmallintType, arg1: int, arg2: int) -> SimpleColumnSMALLINT:
     pass
 @overload
-def _import_from_arrow(arg0: VeloxType_DOUBLE, arg1: int, arg2: int) -> SimpleColumnDOUBLE:
+def _import_from_arrow(arg0: DoubleType, arg1: int, arg2: int) -> SimpleColumnDOUBLE:
     pass
 @overload
-def _import_from_arrow(arg0: VeloxType_TINYINT, arg1: int, arg2: int) -> SimpleColumnTINYINT:
+def _import_from_arrow(arg0: TinyintType, arg1: int, arg2: int) -> SimpleColumnTINYINT:
     pass
 @overload
-def _import_from_arrow(arg0: VeloxType_BOOLEAN, arg1: int, arg2: int) -> SimpleColumnBOOLEAN:
+def _import_from_arrow(arg0: BooleanType, arg1: int, arg2: int) -> SimpleColumnBOOLEAN:
     pass
 @overload
-def _import_from_arrow(arg0: VeloxType_INTEGER, arg1: int, arg2: int) -> SimpleColumnINTEGER:
+def _import_from_arrow(arg0: IntegerType, arg1: int, arg2: int) -> SimpleColumnINTEGER:
     pass
 @overload
-def _import_from_arrow(arg0: VeloxRowType, arg1: int, arg2: int) -> RowColumn:
+def _import_from_arrow(arg0: RowType, arg1: int, arg2: int) -> RowColumn:
     pass
 @overload
-def _import_from_arrow(arg0: VeloxType_BIGINT, arg1: int, arg2: int) -> SimpleColumnBIGINT:
+def _import_from_arrow(arg0: BigintType, arg1: int, arg2: int) -> SimpleColumnBIGINT:
     pass
 @overload
-def _import_from_arrow(arg0: VeloxType_REAL, arg1: int, arg2: int) -> SimpleColumnREAL:
+def _import_from_arrow(arg0: RealType, arg1: int, arg2: int) -> SimpleColumnREAL:
     pass
 def _populate_dense_features_nopresence(arg0: RowColumn, arg1: int) -> None:
     pass
