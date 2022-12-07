@@ -81,6 +81,15 @@ class ListColumnCpu(ColumnCpuMixin, ListColumn):
             for i in data:
                 col._append(i)
             return col._finalize()
+    
+    @staticmethod
+    def _from_arrow(device: str, array, dtype: dt.List):
+        import pyarrow as pa
+
+        assert isinstance(array, pa.Array)
+
+        pydata = array.to_pylist()
+        return ListColumnCpu._from_pysequence(device, pydata, dtype)
 
     def _append_null(self):
         if self._finalized:
@@ -292,4 +301,7 @@ class ListMethodsCpu(ListMethods):
 Dispatcher.register((dt.List.typecode + "_empty", "cpu"), ListColumnCpu._empty)
 Dispatcher.register(
     (dt.List.typecode + "_from_pysequence", "cpu"), ListColumnCpu._from_pysequence
+)
+Dispatcher.register(
+    (dt.List.typecode + "_from_arrow", "cpu"), ListColumnCpu._from_arrow
 )
