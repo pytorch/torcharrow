@@ -35,8 +35,6 @@ def _from_arrow_array(
     # increase the amount of places we can use the from_arrow result
     # pyre-fixme[16]: `Array` has no attribute `type`.
     dtype_from_arrowtype = _arrowtype_to_dtype(array.type, array.null_count > 0)
-    # TODO: following fails with nullable lists.
-    # handle comparison for nullable lists
     if dtype and (
         dt.get_underlying_dtype(dtype) != dt.get_underlying_dtype(dtype_from_arrowtype)
     ):

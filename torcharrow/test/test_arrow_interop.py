@@ -426,12 +426,14 @@ class TestArrowInterop(unittest.TestCase):
                 "f1":[1, 2, 3],
                 "f2": ["foo", "bar", None],
                 "f3": [[1, 2], [3, 4, 5], [6]],
+                "f4": [[1, 2], [3, 4, 5], [6]],
             },
             schema=pa.schema(
                 [
                     pa.field("f1", pa.int64(), nullable=True),
                     pa.field("f2", pa.string(), nullable=True),
-                    pa.field("f3", pa.list_(pa.int8()), nullable=False),
+                    pa.field("f3", pa.list_(pa.int8()), nullable=True),
+                    pa.field("f4", pa.list_(pa.int8()), nullable=False),
                 ]
             )
         )
