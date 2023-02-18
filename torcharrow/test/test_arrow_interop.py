@@ -26,6 +26,7 @@ class TestArrowInterop(unittest.TestCase):
         (pa.float64(), dt.Float64(True)),
         (pa.string(), dt.String(True)),
         (pa.large_string(), dt.String(True)),
+        (pa.list_(pa.int64()), dt.List(dt.Int64(True), True))
     )
 
     unsupported_types: Tuple[pa.DataType, ...] = (
@@ -44,7 +45,6 @@ class TestArrowInterop(unittest.TestCase):
         pa.binary(),
         pa.large_binary(),
         pa.decimal128(38),
-        pa.list_(pa.int64()),
         pa.large_list(pa.int64()),
         pa.map_(pa.int64(), pa.int64()),
         pa.dictionary(pa.int64(), pa.int64()),
@@ -420,19 +420,32 @@ class TestArrowInterop(unittest.TestCase):
         del df
         self.assertEqual(pa.total_allocated_bytes(), initial_memory)
 
-    def base_test_table_unsupported_types(self):
+    def base_test_from_arrow_table_with_list(self):
         pt = pa.table(
             {
-                "f1": pa.array([1, 2, 3], type=pa.int64()),
-                "f2": pa.array(["foo", "bar", None], type=pa.string()),
-                "f3": pa.array([[1, 2], [3, 4, 5], [6]], type=pa.list_(pa.int8())),
-            }
+                "f1":[1, 2, 3],
+                "f2": ["foo", "bar", None],
+                "f3": [[1, 2], [3, 4, 5], [6]],
+                "f4": [[1, 2], [3, 4, 5], [6]],
+            },
+            schema=pa.schema(
+                [
+                    pa.field("f1", pa.int64(), nullable=True),
+                    pa.field("f2", pa.string(), nullable=True),
+                    pa.field("f3", pa.list_(pa.int8()), nullable=True),
+                    pa.field("f4", pa.list_(pa.int8()), nullable=False),
+                ]
+            )
         )
-        with self.assertRaises(RuntimeError) as ex:
-            df = ta.from_arrow(pt, device=self.device)
-        self.assertTrue(
-            f"Unsupported Arrow type: {str(pt.field(2).type)}" in str(ex.exception)
-        )
+        df = ta.from_arrow(pt, device=self.device)
+        for (i, ta_field) in enumerate(df.dtype.fields):
+            pa_field = pt.schema.field(i)
+            self.assertEqual(ta_field.name, pa_field.name)
+            self.assertEqual(
+                ta_field.dtype, _arrowtype_to_dtype(pa_field.type, pa_field.nullable)
+            )
+            self.assertEqual(list(df[ta_field.name]), pt[i].to_pylist())
+
 
     def base_test_nullability(self):
         pydata = [1, 2, 3]

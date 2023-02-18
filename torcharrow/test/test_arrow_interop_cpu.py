@@ -76,8 +76,8 @@ class TestArrowInteropCpu(TestArrowInterop):
     def test_table_memory_reclaimed(self):
         return self.base_test_table_memory_reclaimed()
 
-    def test_table_unsupported_types(self):
-        return self.base_test_table_unsupported_types()
+    def test_from_arrow_table_with_list(self):
+        return self.base_test_from_arrow_table_with_list()
 
     def test_nullability(self):
         return self.base_test_nullability()

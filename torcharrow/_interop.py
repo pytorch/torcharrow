@@ -202,6 +202,8 @@ def _arrowtype_to_dtype(t: pa.DataType, nullable: bool) -> dt.DType:
             [dt.Field(f.name, _arrowtype_to_dtype(f.type, f.nullable)) for f in t],
             nullable,
         )
+    if pa.types.is_list(t):
+        return dt.List(_arrowtype_to_dtype(t.value_type, nullable), nullable=nullable)
     raise NotImplementedError(f"Unsupported Arrow type: {str(t)}")
 
 

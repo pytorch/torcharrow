@@ -580,6 +580,8 @@ def cast_as(dtype):
 
 
 def get_underlying_dtype(dtype: DType) -> DType:
+    if is_list(dtype):
+        return replace(dtype, nullable=False, item_dtype=replace(dtype.item_dtype, nullable=False))
     return replace(dtype, nullable=False)
 
 
