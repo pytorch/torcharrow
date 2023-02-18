@@ -1,9 +1,7 @@
 # TorchArrow: a data processing library for PyTorch
 
-**This library is currently in the Beta stage and does not have a stable release. The API and implementation may change based on
-user feedback or performance. Future changes may not be backward compatible.
-If you have suggestions on the API or use cases you'd like to be covered, please open a
-GitHub issue. We'd love to hear thoughts and feedback.**
+**This library currently does not have a stable release. The API and implementation may change. 
+Future changes may not be backward compatible.**
 
 TorchArrow is a [torch](https://github.com/pytorch/pytorch).Tensor-like Python DataFrame library for data preprocessing in PyTorch models, with two high-level features:
 
@@ -93,28 +91,6 @@ To build and install TorchArrow with release mode:
 ```
 python setup.py install
 ```
-
-
-## Documentation
-You can find the API documentation [here](https://pytorch.org/torcharrow/).
-
-This [10 minutes tutorial](https://github.com/pytorch/torcharrow/blob/main/tutorial/tutorial.ipynb) provides a short introduction to TorchArrow, and you can also try it in [this Colab](https://colab.research.google.com/drive/1mQ3S6dwmU-zhBe2Tdvq_VRAnjQ3paiay).
-
-## Examples
-You can find the example about integrating a TorchRec based training loop utilizing TorchArrow's on-the-fly preprocessing
-[here](https://github.com/pytorch/torchrec/tree/main/examples/torcharrow). More examples are coming soon!
-
-## Contributing
-
-We welcome PRs! See the [CONTRIBUTING](CONTRIBUTING.md) file.
-
-## Beta Usage and Feedback
-
-We'd love to hear from and work with early adopters to shape our design. Please reach out by raising an issue if you're
-interested in using this library for your project.
-
-## Future Plans
-We hope to continue to expand the library, harden API, and gather feedback to enable future releases. Stay tuned!
 
 ## License
 
