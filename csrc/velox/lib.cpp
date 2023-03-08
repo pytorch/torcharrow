@@ -12,7 +12,6 @@
 #include <velox/common/memory/Memory.h>
 #include <velox/type/Type.h>
 #include <velox/vector/TypeAliases.h>
-#include <iostream>
 #include <memory>
 
 #include "bindings.h"
@@ -23,10 +22,9 @@
 #include "velox/buffer/StringViewBufferHolder.h"
 #include "velox/common/base/Exceptions.h"
 #include "velox/functions/prestosql/registration/RegistrationFunctions.h"
-#include "velox/type/Type.h"
-#include "velox/vector/TypeAliases.h"
 #include "velox/vector/arrow/Abi.h"
 #include "velox/vector/arrow/Bridge.h"
+#include "pyvelox/pyvelox.h"
 
 #ifdef USE_TORCH
 #include <torch/csrc/utils/pybind.h> // @manual
@@ -136,12 +134,6 @@ py::class_<SimpleColumn<T>, BaseColumn> declareSimpleType(
       });
 
   using I = typename velox::TypeTraits<kind>::ImplType;
-  py::class_<I, velox::Type, std::shared_ptr<I>>(
-      m,
-      (std::string("VeloxType_") + velox::TypeTraits<kind>::name).c_str(),
-      // TODO: Move the Koksi binding of Velox type to OSS
-      py::module_local())
-      .def(py::init());
 
   // Empty Column
   m.def("Column", [](std::shared_ptr<I> type) {
@@ -681,20 +673,8 @@ void declareArrayType(py::module& m) {
       .def("withElements", &ArrayColumn::withElements);
 
   using I = typename velox::TypeTraits<velox::TypeKind::ARRAY>::ImplType;
-  py::class_<I, velox::Type, std::shared_ptr<I>>(
-      m,
-      "VeloxArrayType",
-      // TODO: Move the Koksi binding of Velox type to OSS
-      py::module_local())
-      .def(py::init<velox::TypePtr>())
-      .def("element_type", &velox::ArrayType::elementType);
 
-  using J = typename velox::FixedSizeArrayType;
-  py::class_<J, velox::Type, std::shared_ptr<J>>(
-      m, "VeloxFixedArrayType", py::module_local())
-      .def(py::init<int, velox::TypePtr>())
-      .def("element_type", &velox::FixedSizeArrayType::elementType)
-      .def("fixed_width", &velox::FixedSizeArrayType::fixedElementsWidth);
+    using J = typename velox::FixedSizeArrayType;
 
   // Empty Column
   m.def("Column", [](std::shared_ptr<I> type) {
@@ -737,14 +717,6 @@ void declareMapType(py::module& m) {
       .def("slice", &MapColumn::slice);
 
   using I = typename velox::TypeTraits<velox::TypeKind::MAP>::ImplType;
-  py::class_<I, velox::Type, std::shared_ptr<I>>(
-      m,
-      "VeloxMapType",
-      // TODO: Move the Koksi binding of Velox type to OSS
-      py::module_local())
-      .def(py::init<velox::TypePtr, velox::TypePtr>())
-      .def("key_type", &velox::MapType::keyType)
-      .def("value_type", &velox::MapType::valueType);
 
   m.def("Column", [](std::shared_ptr<I> type) {
     return std::make_unique<MapColumn>(type);
@@ -772,19 +744,6 @@ void declareRowType(py::module& m) {
       });
 
   using I = typename velox::TypeTraits<velox::TypeKind::ROW>::ImplType;
-  py::class_<I, velox::Type, std::shared_ptr<I>>(
-      m,
-      "VeloxRowType",
-      // TODO: Move the Koksi binding of Velox type to OSS
-      py::module_local())
-      .def(py::init<
-           std::vector<std::string>&&,
-           std::vector<std::shared_ptr<const velox::Type>>&&>())
-      .def("size", &I::size)
-      .def("get_child_idx", &I::getChildIdx)
-      .def("contains_child", &I::containsChild)
-      .def("name_of", &I::nameOf)
-      .def("child_at", &I::childAt);
   m.def("Column", [](std::shared_ptr<I> type) {
     return std::make_unique<RowColumn>(type);
   });
@@ -833,33 +792,8 @@ PYBIND11_MODULE(_torcharrow, m) {
       .def_property_readonly("length", &BaseColumn::getLength)
       .def("__len__", &BaseColumn::getLength);
 
-  py::enum_<velox::TypeKind>(
-      m,
-      "TypeKind", // TODO: Move the Koksi binding of Velox type to OSS
-      py::module_local())
-      .value("BOOLEAN", velox::TypeKind::BOOLEAN)
-      .value("TINYINT", velox::TypeKind::TINYINT)
-      .value("SMALLINT", velox::TypeKind::SMALLINT)
-      .value("INTEGER", velox::TypeKind::INTEGER)
-      .value("BIGINT", velox::TypeKind::BIGINT)
-      .value("REAL", velox::TypeKind::REAL)
-      .value("DOUBLE", velox::TypeKind::DOUBLE)
-      .value("VARCHAR", velox::TypeKind::VARCHAR)
-      .value("VARBINARY", velox::TypeKind::VARBINARY)
-      .value("TIMESTAMP", velox::TypeKind::TIMESTAMP)
-      .value("ARRAY", velox::TypeKind::ARRAY)
-      .value("MAP", velox::TypeKind::MAP)
-      .value("ROW", velox::TypeKind::ROW)
-      .export_values();
 
-  py::class_<velox::Type, std::shared_ptr<velox::Type>>(
-      m,
-      "VeloxType",
-      // TODO: Move the Koksi binding of Velox type to OSS
-      py::module_local())
-      .def("kind", &velox::Type::kind)
-      .def("kind_name", &velox::Type::kindName);
-
+  pyvelox::addVeloxBindings(m);
   declareIntegralType<velox::TypeKind::BIGINT>(m);
   declareIntegralType<velox::TypeKind::INTEGER>(m);
   declareIntegralType<velox::TypeKind::SMALLINT>(m);
