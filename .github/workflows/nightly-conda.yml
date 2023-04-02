@@ -21,8 +21,8 @@ jobs:
       matrix:
         python-version:
           - 3.7
-          - 3.8
-          - 3.9
+          # - 3.8
+          # - 3.9
     steps:
       - name: Print CPU info
         run: |
@@ -99,71 +99,71 @@ jobs:
           conda install -yq -c anaconda anaconda-client
           anaconda -t "${CONDA_NIGHTLY_PYTORCHBOT_TOKEN}" upload ./conda-bld/linux-64/torcharrow-*.tar.bz2 -u "$CONDA_CHANNEL" --label main --no-progress --force
 
-  macos-container:
-    runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version:
-          - 3.7
-          - 3.8
-          - 3.9
-    steps:
-      - name: Create Conda Env
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-          activate-environment: conda_build_env
+  # macos-container:
+  #   runs-on: macos-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       python-version:
+  #         - 3.7
+  #         - 3.8
+  #         - 3.9
+  #   steps:
+  #     - name: Create Conda Env
+  #       uses: conda-incubator/setup-miniconda@v2
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #         activate-environment: conda_build_env
 
-      - name: Check out source repository
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
+  #     - name: Check out source repository
+  #       uses: actions/checkout@v2
+  #       with:
+  #         submodules: recursive
 
-      - name: Install dependencies from Brew
-        run: |
-          brew install --formula ninja flex bison cmake ccache icu4c boost gflags glog libevent
+  #     - name: Install dependencies from Brew
+  #       run: |
+  #         brew install --formula ninja flex bison cmake ccache icu4c boost gflags glog libevent
 
-      - name: Conda Build
-        shell: bash -l {0}
-        env:
-          PYTHON_VERSION: ${{ matrix.python-version }}
-          MACOSX_DEPLOYMENT_TARGET: 10.15
-          CPU_TARGET: sse
-        run: |
-          conda activate conda_build_env
-          conda install -yq conda-build -c conda-forge
-          scripts/build_mac_dep.sh ranges_v3 fmt double_conversion folly re2
-          ./packaging/build_conda.sh
+  #     - name: Conda Build
+  #       shell: bash -l {0}
+  #       env:
+  #         PYTHON_VERSION: ${{ matrix.python-version }}
+  #         MACOSX_DEPLOYMENT_TARGET: 10.15
+  #         CPU_TARGET: sse
+  #       run: |
+  #         conda activate conda_build_env
+  #         conda install -yq conda-build -c conda-forge
+  #         scripts/build_mac_dep.sh ranges_v3 fmt double_conversion folly re2
+  #         ./packaging/build_conda.sh
 
-      - name: Fix Velox Dylib Paths
-        shell: bash -l {0}
-        env:
-          PYTHON_VERSION: ${{ matrix.python-version }}
-        run: |
-          cd conda-bld/osx-64
-          pkg_name=`ls ./torcharrow-* | sed -n -e 's/.*\(torcharrow.*\).tar.bz2/\1/p'`
-          mkdir ./${pkg_name}
-          tar -xf ./${pkg_name}.tar.bz2 -C ./${pkg_name}
-          rm ./${pkg_name}.tar.bz2
-          cd ./${pkg_name}
+  #     - name: Fix Velox Dylib Paths
+  #       shell: bash -l {0}
+  #       env:
+  #         PYTHON_VERSION: ${{ matrix.python-version }}
+  #       run: |
+  #         cd conda-bld/osx-64
+  #         pkg_name=`ls ./torcharrow-* | sed -n -e 's/.*\(torcharrow.*\).tar.bz2/\1/p'`
+  #         mkdir ./${pkg_name}
+  #         tar -xf ./${pkg_name}.tar.bz2 -C ./${pkg_name}
+  #         rm ./${pkg_name}.tar.bz2
+  #         cd ./${pkg_name}
 
-          source ${GITHUB_WORKSPACE}/packaging/fix_conda_dylib_paths.sh
-          conda_lib_folder=lib/python${PYTHON_VERSION}/site-packages/torcharrow
-          so_name=`ls ${conda_lib_folder}/_torcharrow.* | sed -n -e 's/.*\(_torcharrow.*\.so\)/\1/p'`
-          fix_velox_dylib_paths ${conda_lib_folder}/${so_name}
-          otool -L ${conda_lib_folder}/${so_name}
+  #         source ${GITHUB_WORKSPACE}/packaging/fix_conda_dylib_paths.sh
+  #         conda_lib_folder=lib/python${PYTHON_VERSION}/site-packages/torcharrow
+  #         so_name=`ls ${conda_lib_folder}/_torcharrow.* | sed -n -e 's/.*\(_torcharrow.*\.so\)/\1/p'`
+  #         fix_velox_dylib_paths ${conda_lib_folder}/${so_name}
+  #         otool -L ${conda_lib_folder}/${so_name}
 
-          tar -cjf ../${pkg_name}.tar.bz2 *
-          cd ..
-          rm -rf ./${pkg_name}
-          cd ../..
+  #         tar -cjf ../${pkg_name}.tar.bz2 *
+  #         cd ..
+  #         rm -rf ./${pkg_name}
+  #         cd ../..
 
-      - name: Conda Upload
-        shell: bash -l {0}
-        env:
-          PYTHON_VERSION: ${{ matrix.python-version }}
-          CONDA_NIGHTLY_PYTORCHBOT_TOKEN: ${{ secrets.CONDA_NIGHTLY_PYTORCHBOT_TOKEN }}
-        run: |
-          conda install -yq anaconda-client
-          anaconda -t "${CONDA_NIGHTLY_PYTORCHBOT_TOKEN}" upload ./conda-bld/osx-64/torcharrow-*.tar.bz2 -u "$CONDA_CHANNEL" --label main --no-progress --force
+  #     - name: Conda Upload
+  #       shell: bash -l {0}
+  #       env:
+  #         PYTHON_VERSION: ${{ matrix.python-version }}
+  #         CONDA_NIGHTLY_PYTORCHBOT_TOKEN: ${{ secrets.CONDA_NIGHTLY_PYTORCHBOT_TOKEN }}
+  #       run: |
+  #         conda install -yq anaconda-client
+  #         anaconda -t "${CONDA_NIGHTLY_PYTORCHBOT_TOKEN}" upload ./conda-bld/osx-64/torcharrow-*.tar.bz2 -u "$CONDA_CHANNEL" --label main --no-progress --force
