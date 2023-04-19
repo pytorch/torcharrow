@@ -222,7 +222,7 @@
               
               
                 <div class="version">
-                  main (0.2.0a0.dev20230418 )
+                  main (0.2.0a0.dev20230419 )
                 </div>
               
             
@@ -400,7 +400,7 @@ if result type != item type.</p></li>
 <p>Using user-supplied python function:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">add_ten</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="k">return</span> <span class="n">num</span> <span class="o">+</span> <span class="mi">10</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ta</span><span class="o">.</span><span class="n">column</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="mi">4</span><span class="p">])</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">add_ten</span><span class="p">,</span> <span class="n">na_action</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
 <span class="go">0  11</span>
 <span class="go">1  12</span>
@@ -415,7 +415,7 @@ None/null.  To pass nulls to a UDF, the UDF needs to prepare
 for it:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">add_ten_or_0</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="k">return</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">num</span> <span class="o">+</span> <span class="mi">10</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ta</span><span class="o">.</span><span class="n">column</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="mi">4</span><span class="p">])</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">add_ten_or_0</span><span class="p">,</span> <span class="n">na_action</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 <span class="go">0  11</span>
 <span class="go">1  12</span>
@@ -436,7 +436,7 @@ for it:</p>
 <p>Mapping over a DataFrame, the UDF gets the whole row as a tuple:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">add_unary</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="k">return</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ta</span><span class="o">.</span><span class="n">dataframe</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]})</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">add_unary</span> <span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
 <span class="go">0  2</span>
 <span class="go">1  4</span>
@@ -447,7 +447,7 @@ for it:</p>
 <p>Multi-parameter UDFs:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">add_binary</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">):</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ta</span><span class="o">.</span><span class="n">dataframe</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">],</span> <span class="s1">&#39;c&#39;</span><span class="p">:[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]})</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">add_binary</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span><span class="s1">&#39;c&#39;</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
 <span class="go">0  2</span>
 <span class="go">1  4</span>
@@ -474,7 +474,7 @@ for it:</p>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="k">return</span> <span class="mi">1</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="k">else</span><span class="p">:</span>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="k">return</span> <span class="n">fib</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">fib</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nd">@dataclass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">State</span><span class="p">:</span>
@@ -483,7 +483,7 @@ for it:</p>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">fib</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="k">def</span> <span class="nf">add_fib</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">+</span><span class="n">x</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">State</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ta</span><span class="o">.</span><span class="n">column</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">add_fib</span><span class="p">)</span>
 <span class="go">0  56</span>
